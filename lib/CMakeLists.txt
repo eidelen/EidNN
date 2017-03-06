@@ -7,6 +7,9 @@ PROJECT(eidnnlib)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+find_package(Eigen3 REQUIRED)
+include_directories(EIGEN3_INCLUDE_DIR)
+
 INCLUDE_DIRECTORIES(inc)
 FILE(GLOB_RECURSE  EIDNN_INCLUDES        inc/*.h)
 FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
