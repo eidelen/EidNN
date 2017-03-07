@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 PROJECT(eidnnlib)
 
 # enable c++ 11
-#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 find_package(Eigen3 REQUIRED)
 include_directories(EIGEN3_INCLUDE_DIR)
@@ -16,8 +17,6 @@ FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
 
 ADD_LIBRARY(eidnnlib SHARED ${EIDNN_INCLUDES} ${EIDNN_SOURCES} )
 #TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${NATK_LIBRARY} )
-
-target_compile_features(eidnnlib PRIVATE cxx_range_for)
 
 
 option(TESTEIDNN  "TEST" OFF)
