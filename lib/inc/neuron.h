@@ -50,6 +50,19 @@ public:
      */
     bool setWeights( const Eigen::VectorXf& weights );
 
+    /**
+     * Fills the weight vector with Gaussian noise.
+     * @param mean Mean of the Gaussian noise.
+     * @param deviation Standard deviation of the Gaussian noise.
+     */
+    void setRandomWeights( const float& mean, const float& deviation );
+
+    /**
+     * Sets a random bias using Gaussian noise.
+     * @param mean Mean of the Gaussian noise.
+     * @param deviation Standard deviation of the Gaussian noise.
+     */
+    void setRandomBias( const float& mean, const float& deviation );
 
     /**
      * Sets the neuron's bias.
@@ -74,7 +87,7 @@ public:
     /**
     * Sigmoid derivation function value of a given input z.
     */
-    static float d_sigmoid( const float& z );
+    static float d_sigmoid( const float& z ); 
 
 private:
 

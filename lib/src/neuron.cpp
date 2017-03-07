@@ -24,12 +24,16 @@
 #include "neuron.h"
 #include <cmath>
 #include <iostream>
+#include <random>
 
 Neuron::Neuron( const unsigned int& nbr_of_input ) :
     m_nbr_of_inputs( nbr_of_input )
 {
     m_weights = Eigen::VectorXf(nbr_of_input);
     m_bias = 0;
+
+    setRandomWeights( 0.0, 1.0 );
+    setRandomBias( 0.0, 1.0 );
 }
 
 Neuron::~Neuron()
@@ -63,9 +67,28 @@ bool Neuron::setWeights( const Eigen::VectorXf& weights )
     return true;
 }
 
+void Neuron::setRandomWeights( const float& mean, const float& deviation )
+{
+    std::default_random_engine randomGenerator;
+    std::normal_distribution<float> gNoise(mean, deviation);
+
+    for( unsigned int i = 0; i < m_weights.rows(); i++ )
+    {
+        m_weights(i) = gNoise(randomGenerator);
+    }
+}
+
 void Neuron::setBias( const float& bias )
 {
     m_bias = bias;
+}
+
+void Neuron::setRandomBias( const float& mean, const float& deviation )
+{
+    std::default_random_engine randomGenerator;
+    std::normal_distribution<float> gNoise(mean, deviation);
+
+    setBias( gNoise(randomGenerator) );
 }
 
 float Neuron::sigmoid( const float& z )
