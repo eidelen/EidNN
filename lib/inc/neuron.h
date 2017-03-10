@@ -58,6 +58,12 @@ public:
     void setRandomWeights( const float& mean, const float& deviation );
 
     /**
+     * Returns the weights vector of this neuron.
+     * @return
+     */
+    const Eigen::VectorXf getWeights( ) const { return m_weights; }
+
+    /**
      * Sets a random bias using Gaussian noise.
      * @param mean Mean of the Gaussian noise.
      * @param deviation Standard deviation of the Gaussian noise.
@@ -69,6 +75,12 @@ public:
      * @param bias
      */
     void setBias( const float& bias );
+
+    /**
+     * Returns the bias of this neuron.
+     * @return Bias as float
+     */
+    float getBias() const {return m_bias;}
 
 
     /**

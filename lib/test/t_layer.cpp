@@ -84,4 +84,40 @@ TEST(LayerTest, ActivationVector)
     delete l;
 }
 
+TEST(LayerTest, SetWeightsAndBiases)
+{
+    Layer* l = new Layer( 2, 2 );
+
+    std::vector<Eigen::VectorXf> wV;
+    Eigen::VectorXf w_n0(2);  w_n0 << 1, 2;
+    Eigen::VectorXf w_n1(2);  w_n1 << 3, 4;
+    wV.push_back( w_n0 ); wV.push_back( w_n1 );
+
+    std::vector<float> bV; bV.push_back(5); bV.push_back(6);
+
+    ASSERT_TRUE( l->setBiases( bV ) );
+    ASSERT_TRUE( l->setWeights( wV ) );
+
+    bV.push_back(7);
+    ASSERT_FALSE( l->setBiases( bV ) );
+
+    // check some weights and biases
+    ASSERT_NEAR( (l->getNeuron(0)->getWeights())(0), 1, 0.0001 );
+    ASSERT_NEAR( (l->getNeuron(1)->getWeights())(1), 4 , 0.0001 );
+    ASSERT_NEAR( l->getNeuron(1)->getBias(), 6 , 0.0001 );
+
+    // set uniform neuron settings
+    l->setBias( 10.00 );
+    l->setWeight( 13.00 );
+    ASSERT_NEAR( (l->getNeuron(0)->getWeights())(0), 13.00, 0.0001 );
+    ASSERT_NEAR( (l->getNeuron(1)->getWeights())(1), 13.00, 0.0001 );
+    ASSERT_NEAR( l->getNeuron(1)->getBias(), 10.00 , 0.0001 );
+    ASSERT_NEAR( l->getNeuron(0)->getBias(), 10.00 , 0.0001 );
+
+    l->resetRandomlyWeightsAndBiases();
+    ASSERT_TRUE( fabs( l->getNeuron(0)->getBias() ) < 2.0 ); // Theoretically, this could fail. But this is very unlikely.
+
+    delete l;
+}
+
 

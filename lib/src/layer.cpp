@@ -81,3 +81,69 @@ void Layer::initLayer()
     m_activation_out = Eigen::VectorXf( m_nbr_of_neurons );
     m_z_weighted_input = Eigen::VectorXf( m_nbr_of_neurons );
 }
+
+
+bool Layer::setWeights( const vector<Eigen::VectorXf>& weights )
+{
+    if( weights.size() != getNbrOfNeurons() )
+    {
+        std::cout << "Error: Weights vector size mismatches number of neurons" << std::endl;
+        return false;
+    }
+
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+        if( ! m_neurons.at(k)->setWeights( weights.at(k) ) )
+            return false;
+
+    return true;
+}
+
+bool Layer::setBiases( const vector<float>& biases )
+{
+    if( biases.size() != getNbrOfNeurons() )
+    {
+        std::cout << "Error: Bias vector size mismatches number of neurons" << std::endl;
+        return false;
+    }
+
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+        m_neurons.at(k)->setBias( biases.at(k) );
+
+    return true;
+}
+
+shared_ptr<Neuron> Layer::getNeuron( const unsigned int& nIdx )
+{
+    if( nIdx >= m_neurons.size() )
+    {
+        std::cout << "Error: Neuron index exceeds vector" << std::endl;
+        return std::shared_ptr<Neuron>(NULL);
+    }
+
+    return m_neurons.at(nIdx);
+}
+
+void Layer::setWeight( const float& weight )
+{
+    Eigen::VectorXf uniformWeight = Eigen::VectorXf::Constant(getNbrOfNeurons(), weight);
+
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+        m_neurons.at(k)->setWeights( uniformWeight );
+}
+
+void Layer::setBias( const float& bias )
+{
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+        m_neurons.at(k)->setBias( bias );
+}
+
+void Layer::resetRandomlyWeightsAndBiases()
+{
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+    {
+        m_neurons.at(k)->setRandomWeights( 0.0, 1.0 );
+        m_neurons.at(k)->setRandomBias( 0.0, 1.0 );
+    }
+}
+
+

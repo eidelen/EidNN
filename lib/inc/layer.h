@@ -47,7 +47,7 @@ public:
     /**
      * Constructor of a layer.
      * @param nbr_of_inputs Number of inputs to each neuron.
-     * @param weights Vector of neuron weights.
+     * @param weights Vector of neuron weights-vector
      * @param biases Vector of neuron biases.
      */
     Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXf>& weights, const vector<float>& biases );
@@ -61,6 +61,47 @@ public:
      * @return true if successful.
      */
     bool feedForward( const Eigen::VectorXf& x_in );
+
+    /**
+     * Sets the weights-vector in each neuron of this layer.
+     * @param weights Vector of neuron weights-vector.
+     * @return true if successful
+     */
+    bool setWeights( const vector<Eigen::VectorXf>& weights );
+
+    /**
+     * Sets the same weight for all neurons and all intputs
+     * @param weights Weight value.
+     */
+    void setWeight( const float& weight );
+
+    /**
+     * Sets the bias of each neuron in this layer.
+     * @param biases Vector of neuron biases.
+     * @return true if successful
+     */
+    bool setBiases( const vector<float>& biases );
+
+    /**
+     * Sets the same bias for all neurons
+     * @param bias Bias value.
+     */
+    void setBias( const float& bias );
+
+    /**
+     * Resets all weights and biases of each neuron in this layer
+     * with zero-mean Gaussian noise of standard deviation 1.0
+     */
+    void resetRandomlyWeightsAndBiases();
+
+    /**
+     * Gets a pointer to the neuron a position nIdx within this layer.
+     * @param nIdx
+     * @return shared_ptr<Neuron>
+     */
+    shared_ptr<Neuron> getNeuron( const unsigned int& nIdx );
+
+
     const Eigen::VectorXf& getOutputActivation() const { return m_activation_out; }
     const Eigen::VectorXf& getWeightedInputZ() const { return m_z_weighted_input; }
 

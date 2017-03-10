@@ -45,5 +45,15 @@ TEST(NetworkTest, ConstructNetwork)
     delete net;
 }
 
+TEST(NetworkTest, FeedForward)
+{
+    std::vector<unsigned int> map1 = {1,8,20,4,2};
+    Network* net1 = new Network(map1);
+
+
+    delete net1;
+}
+
+
 
 
