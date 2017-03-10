@@ -30,12 +30,16 @@
 #include <string>
 #include <eigen3/Eigen/Dense>
 
+#include "network.h"
+
 using namespace std;
 
 class Neuron;
 
 class Layer
 {
+    friend class Network;
+
 public:
     /**
      * Constructor of a layer, which consists of many neurons.
@@ -102,7 +106,19 @@ public:
     shared_ptr<Neuron> getNeuron( const unsigned int& nIdx );
 
 
+    /**
+     * Get the output activation of this layer. This function is usually called
+     * after executing feedForward().
+     * @return Output activation Vector
+     */
     const Eigen::VectorXf& getOutputActivation() const { return m_activation_out; }
+
+    /**
+     * This is an intermediate result of calling feedForward(). It is the weighted input,
+     * or one can also think of it as the activation output without performing the sigmoid
+     * function.
+     * @return weighted input.
+     */
     const Eigen::VectorXf& getWeightedInputZ() const { return m_z_weighted_input; }
 
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
@@ -110,6 +126,15 @@ public:
 
 private:
     void initLayer();
+
+    /**
+     * Sets directly the activation output of this layer.
+     * This function is called by the network for the
+     * first layer, the input layer.
+     * @param activation_out
+     * @return True if successful.
+     */
+    bool setActivationOutput( const Eigen::VectorXf& activation_out );
 
 private:
     vector< shared_ptr<Neuron> > m_neurons;

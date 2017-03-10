@@ -70,6 +70,8 @@ bool Layer::feedForward( const Eigen::VectorXf& x_in )
         m_activation_out(n) = activation;
         m_z_weighted_input(n) = z;
     }
+
+    return true;
 }
 
 // init vectors and neurons
@@ -125,7 +127,7 @@ shared_ptr<Neuron> Layer::getNeuron( const unsigned int& nIdx )
 
 void Layer::setWeight( const float& weight )
 {
-    Eigen::VectorXf uniformWeight = Eigen::VectorXf::Constant(getNbrOfNeurons(), weight);
+    Eigen::VectorXf uniformWeight = Eigen::VectorXf::Constant(getNbrOfNeuronInputs(), weight);
 
     for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
         m_neurons.at(k)->setWeights( uniformWeight );
@@ -146,4 +148,16 @@ void Layer::resetRandomlyWeightsAndBiases()
     }
 }
 
+
+bool Layer::setActivationOutput( const Eigen::VectorXf& activation_out )
+{
+    if( activation_out.rows() != m_activation_out.rows() )
+    {
+        std::cout << "Error: Layer activation output mismatch" << std::endl;
+        return false;
+    }
+
+    m_activation_out = activation_out;
+    return true;
+}
 

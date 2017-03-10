@@ -51,6 +51,33 @@ void Network::initNetwork()
 
         nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
     }
+
+    m_activation_out = Eigen::VectorXf( m_NetworkStructure.back() ); // output activation vector has the size of the last layer (output layer)
+}
+
+bool Network::feedForward( const Eigen::VectorXf& x_in )
+{
+    // first layer does not perform any operation. It's activation output is just x_in.
+    if( ! getLayer(0)->setActivationOutput(x_in) )
+    {
+        cout << "Error: Input signal size mismatch" << endl;
+        return false;
+    }
+
+    for( unsigned int k = 1; k < m_Layers.size(); k++ )
+    {
+        // Pass output signal from former layer to next layer.
+        if( ! getLayer( k )->feedForward(  getLayer( k-1 )->getOutputActivation()  ) )
+        {
+            cout << "Error: Outpt-Input signal size mismatch" << endl;
+            return false;
+        }
+    }
+
+    // network output signal is in the last layer
+    m_activation_out = m_Layers.back()->getOutputActivation();
+
+    return true;
 }
 
 unsigned int Network::getNumberOfLayer()

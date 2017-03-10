@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 #include "network.h"
 #include "layer.h"
+#include "neuron.h"
 
 
 TEST(NetworkTest, ConstructNetwork)
@@ -45,13 +46,68 @@ TEST(NetworkTest, ConstructNetwork)
     delete net;
 }
 
-TEST(NetworkTest, FeedForward)
+TEST(NetworkTest, FeedForward_1)
 {
-    std::vector<unsigned int> map1 = {1,8,20,4,2};
+    std::vector<unsigned int> map1 = {1,20,26,20,3};
     Network* net1 = new Network(map1);
+
+    // set all neural network to zero -> sigmoid(0) = 0.5
+    for( unsigned int k = 0; k < net1->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net1->getLayer( k );
+        l->setBias( 0.0 );
+        l->setWeight( 0.0 );
+    }
+
+    Eigen::VectorXf x1(1); x1 << 0.0;
+    ASSERT_TRUE(net1->feedForward(x1));
+    const Eigen::VectorXf out1 = net1->getOutputActivation();
+    ASSERT_NEAR( out1(0), 0.5, 0.0001 );
+    ASSERT_NEAR( out1(1), 0.5, 0.0001 );
+
+
+    Eigen::VectorXf x2(1); x2 << 10000.0;
+    ASSERT_TRUE(net1->feedForward(x2));
+    const Eigen::VectorXf out2 = net1->getOutputActivation();
+    ASSERT_NEAR( out2(0), 0.5, 0.0001 );
+    ASSERT_NEAR( out2(1), 0.5, 0.0001 );
 
 
     delete net1;
+}
+
+TEST(NetworkTest, FeedForward_Reference)
+{
+    std::vector<unsigned int> map = {1,2,1};
+    Network* net = new Network(map);
+
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setWeight( 1.0 );
+    }
+
+    std::vector<float> layer1_b; layer1_b.push_back(0.2); layer1_b.push_back(-0.3);
+    net->getLayer( 1 )->setBiases(layer1_b);
+
+    std::vector<float> layer2_b; layer2_b.push_back(0.4);
+    net->getLayer( 2 )->setBiases(layer2_b);
+
+    /*      IN              L1                                  L2
+     *
+     *               0.0*1.0+0.2 = 0.2 -> o(0.2)
+     *      0.0                                            o(  o(0.2)*1.0+o(-0.3)*1.0  +  0.4)
+     *               0.0*1.0-0.3 = -0.3 -> o(-0.3)
+     *
+     */
+
+    Eigen::VectorXf x(1); x << 0.0;
+    ASSERT_TRUE(net->feedForward(x));
+    const Eigen::VectorXf out = net->getOutputActivation();
+    float outputShouldBe = Neuron::sigmoid( Neuron::sigmoid(0.2) + Neuron::sigmoid(-0.3) + 0.4);
+    ASSERT_NEAR( out(0),  outputShouldBe, 0.0001 );
+
+    delete net;
 }
 
 

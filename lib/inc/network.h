@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <memory>
+#include <eigen3/Eigen/Dense>
 
 using namespace std;
 
@@ -47,6 +48,21 @@ public:
     ~Network();
 
     /**
+     * Compute the neural network output signal based on the input signal x_in.
+     * The output signal can be accessed with the function getOutputActivation().
+     * @param x_in Input signal.
+     * @return true if successful.
+     */
+    bool feedForward( const Eigen::VectorXf& x_in );
+
+    /**
+     * Get the output activation of this neural network. This function is usually
+     * called after feedForward() is executed.
+     * @return Output activation vector.
+     */
+    const Eigen::VectorXf& getOutputActivation() const { return m_activation_out; }
+
+    /**
      * Returns the number of layers.
      */
     unsigned int getNumberOfLayer();
@@ -66,6 +82,7 @@ private:
 
     const vector<unsigned int> m_NetworkStructure;
     vector< shared_ptr<Layer> > m_Layers;
+    Eigen::VectorXf m_activation_out;
 };
 
 #endif //_NETWORK_H_
