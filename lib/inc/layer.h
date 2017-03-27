@@ -121,6 +121,28 @@ public:
      */
     const Eigen::VectorXf& getWeightedInputZ() const { return m_z_weighted_input; }
 
+    /**
+     * When this is the output layer, this function computes the output layer error.
+     * The actual error can then be accessed by getOutputLayerError().
+     * @param expectedNetworkOutput The desired network output.
+     * @return Return true if operation was successful. Otherwise false
+     */
+    bool computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput );
+
+    /**
+     * Returns the computed output layer error.
+     * @return
+     */
+    const Eigen::VectorXf getOutputLayerError() const { return m_outputError; }
+
+    /**
+     * Computes component wise derrivative of the sigmoid function
+     * for each component in the vector z.
+     * @param z Vector in
+     * @return Vector holding the result.
+     */
+    static const Eigen::VectorXf d_sigmoid( const Eigen::VectorXf& z );
+
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
 
@@ -143,6 +165,8 @@ private:
 
     Eigen::VectorXf m_activation_out;
     Eigen::VectorXf m_z_weighted_input;
+
+    Eigen::VectorXf m_outputError;
 
 };
 

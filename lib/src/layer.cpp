@@ -161,3 +161,27 @@ bool Layer::setActivationOutput( const Eigen::VectorXf& activation_out )
     return true;
 }
 
+bool Layer::computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput )
+{
+    if( m_activation_out.rows() != expectedNetworkOutput.rows() )
+    {
+        std::cout << "Error: Layer activation output to label mismatch" << std::endl;
+        return false;
+    }
+
+    m_outputError = ((m_activation_out - expectedNetworkOutput).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
+    return true;
+}
+
+const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
+{
+    unsigned int nbrOfComponents = z.rows();
+    Eigen::VectorXf res = Eigen::VectorXf( nbrOfComponents );
+
+    for( unsigned int k = 0; k < nbrOfComponents; k++ )
+    {
+        res(k) = Neuron::d_sigmoid( z(k) );
+    }
+
+    return res;
+}

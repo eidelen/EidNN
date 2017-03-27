@@ -120,4 +120,41 @@ TEST(LayerTest, SetWeightsAndBiases)
     delete l;
 }
 
+TEST(LayerTest, D_Sigmoid)
+{
+    Eigen::VectorXf x(3);  x << 0, -100, +100;
+    Eigen::VectorXf f = Layer::d_sigmoid(x);
+
+    ASSERT_NEAR( f(0), 0.25, 0.0001 );
+    ASSERT_NEAR( f(1), 0.0, 0.0001 );
+    ASSERT_NEAR( f(2), 0.0, 0.0001 );
+}
+
+TEST(LayerTest, ComputeOutputError)
+{
+    Layer* l = new Layer( 2, 2 );
+    l->setBias(0.0);
+    l->setWeight(0.0);
+
+    Eigen::VectorXf x(2);  x << 0, 0;
+    l->feedForward( x ); // output should be computed equal to 0.5;
+
+    // if expected outcome is 0.5, the error of the last layer is 0.0.
+    Eigen::VectorXf y(2);  y << 0.5, 0.5;
+    ASSERT_TRUE( l->computeOutputLayerError(y) );
+    ASSERT_NEAR( l->getOutputLayerError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( l->getOutputLayerError()(1), 0.0, 0.0001 );
+
+    // wrong dimension
+    Eigen::VectorXf y_wrong(3);  y_wrong << 0.5, 0.5, 0.5;
+    ASSERT_FALSE( l->computeOutputLayerError(y_wrong) );
+
+    // actual error
+    Eigen::VectorXf y_next(2);  y_next << 0.5, 1.5;
+    ASSERT_TRUE( l->computeOutputLayerError(y_next) );
+    ASSERT_NEAR( l->getOutputLayerError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( l->getOutputLayerError()(1), -0.25, 0.0001 );
+
+    delete l;
+}
 
