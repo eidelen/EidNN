@@ -95,3 +95,30 @@ shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
 
     return m_Layers.at(layerIdx);
 }
+
+bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out )
+{
+    // updates output in all layers
+    if( ! feedForward(x_in) )
+        return false;
+
+
+    if( getOutputActivation().rows() != y_out.rows() )
+    {
+        cout << "Error: desired output signal mismatching dimension" << endl;
+        return false;
+    }
+
+
+    // Compute partial derivative in last layer: Equation 1
+
+
+
+
+
+
+
+
+
+    return true;
+}

@@ -61,10 +61,20 @@ public:
     /**
      * Compute the neural layer output signal based on the input signal x_in.
      * The output signal can be accessed with the function getOutputActivation().
+     * The computation is done for all neuron at once with the weight matrix.
      * @param x_in Input signal.
      * @return true if successful.
      */
     bool feedForward( const Eigen::VectorXf& x_in );
+
+    /**
+     * Compute the neural layer output signal based on the input signal x_in.
+     * The output signal can be accessed with the function getOutputActivation().
+     * The computation is done for each neuron, what is slow.
+     * @param x_in Input signal.
+     * @return true if successful.
+     */
+    bool feedForwardSlow( const Eigen::VectorXf& x_in );
 
     /**
      * Sets the weights-vector in each neuron of this layer.
@@ -158,6 +168,12 @@ private:
      */
     bool setActivationOutput( const Eigen::VectorXf& activation_out );
 
+    /**
+     * This function assembles the weight matrix out of the weights
+     * in each neuron of the layer and the corresponding bias vector.
+     */
+    void updateWeightMatrixAndBiasVector();
+
 private:
     vector< shared_ptr<Neuron> > m_neurons;
     const unsigned int m_nbr_of_neurons;
@@ -167,6 +183,8 @@ private:
     Eigen::VectorXf m_z_weighted_input;
 
     Eigen::VectorXf m_outputError;
+    Eigen::MatrixXf m_weightMatrix;
+    Eigen::VectorXf m_biasVector;
 
 };
 

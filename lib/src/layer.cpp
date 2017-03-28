@@ -60,6 +60,28 @@ bool Layer::feedForward( const Eigen::VectorXf& x_in )
         return false;
     }
 
+    updateWeightMatrixAndBiasVector(); // updates m_weightMatrix and m_biasVector
+
+    m_z_weighted_input = m_weightMatrix * x_in + m_biasVector;
+
+    // compute sigmoid for weighted input vector
+    for( unsigned int n = 0; n < m_z_weighted_input.rows(); n++ )
+    {
+        m_activation_out(n) = Neuron::sigmoid(m_z_weighted_input(n));
+    }
+
+    return true;
+}
+
+// Neuron wise computation
+bool Layer::feedForwardSlow( const Eigen::VectorXf& x_in )
+{
+    if( x_in.rows() != m_nbr_of_inputs )
+    {
+        std::cout << "Error: Layer input vector size mismatch" << std::endl;
+        return false;
+    }
+
     // feed input to every neuron in layer
     for( unsigned int n = 0; n < m_neurons.size(); n++ )
     {
@@ -74,6 +96,7 @@ bool Layer::feedForward( const Eigen::VectorXf& x_in )
     return true;
 }
 
+
 // init vectors and neurons
 void Layer::initLayer()
 {
@@ -82,6 +105,8 @@ void Layer::initLayer()
 
     m_activation_out = Eigen::VectorXf( m_nbr_of_neurons );
     m_z_weighted_input = Eigen::VectorXf( m_nbr_of_neurons );
+    m_weightMatrix = Eigen::MatrixXf( m_nbr_of_neurons , m_nbr_of_inputs );
+    m_biasVector = Eigen::VectorXf( m_nbr_of_neurons );
 }
 
 
@@ -184,4 +209,15 @@ const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
     }
 
     return res;
+}
+
+void Layer::updateWeightMatrixAndBiasVector()
+{
+    // assemble weight matrix based on weights in all neurons
+    for( unsigned int k = 0; k < m_nbr_of_neurons; k++ )
+    {
+        std::shared_ptr<Neuron> kNeuron = getNeuron(k);
+        m_weightMatrix.row(k) = kNeuron->getWeights().transpose();
+        m_biasVector(k) = kNeuron->getBias();
+    }
 }

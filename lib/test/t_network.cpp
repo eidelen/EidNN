@@ -110,6 +110,29 @@ TEST(NetworkTest, FeedForward_Reference)
     delete net;
 }
 
+TEST(NetworkTest, Backpropagation_input)
+{
+    std::vector<unsigned int> map = {1,4,2};
+    Network* net = new Network(map);
+
+    Eigen::VectorXf x(1); x << 0.0;
+    Eigen::VectorXf x_wrong_dimension(2); x_wrong_dimension << 0.0, 0.0;
+    Eigen::VectorXf y(2); y << 0.0, 0.0;
+    Eigen::VectorXf y_wrong_dimension(1); y_wrong_dimension << 0.0;
+
+    ASSERT_TRUE( net->backpropagation(x, y));
+    ASSERT_FALSE( net->backpropagation(x_wrong_dimension, y ));
+    ASSERT_FALSE( net->backpropagation( x, y_wrong_dimension ));
+
+    delete net;
+
+    Eigen::VectorXf a(2); a << 0.0, 1.0;
+    Eigen::VectorXf b(2); b << 2.0, 3.0;
+
+    std::cout << a + b << std::endl;
+
+}
+
 
 
 

@@ -74,6 +74,16 @@ public:
      */
     shared_ptr<Layer> getLayer( const unsigned int& layerIdx );
 
+    /**
+     * Computes the partial derivatives of each bias and each weight in the network.
+     * @param x_in Input signal.
+     * @param y_out Desired output signal.
+     * @return true if successful.
+     */
+    bool backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out );
+
+
+
 private:
 
     void initNetwork();
