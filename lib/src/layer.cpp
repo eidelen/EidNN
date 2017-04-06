@@ -154,22 +154,22 @@ void Layer::setWeight( const float& weight )
 {
     Eigen::VectorXf uniformWeight = Eigen::VectorXf::Constant(getNbrOfNeuronInputs(), weight);
 
-    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
-        m_neurons.at(k)->setWeights( uniformWeight );
+    for( shared_ptr<Neuron>& neuron : m_neurons )
+        neuron->setWeights( uniformWeight );
 }
 
 void Layer::setBias( const float& bias )
 {
-    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
-        m_neurons.at(k)->setBias( bias );
+    for( shared_ptr<Neuron>& neuron : m_neurons )
+        neuron->setBias( bias );
 }
 
 void Layer::resetRandomlyWeightsAndBiases()
 {
-    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+    for( shared_ptr<Neuron>& neuron : m_neurons )
     {
-        m_neurons.at(k)->setRandomWeights( 0.0, 1.0 );
-        m_neurons.at(k)->setRandomBias( 0.0, 1.0 );
+        neuron->setRandomWeights( 0.0, 1.0 );
+        neuron->setRandomBias( 0.0, 1.0 );
     }
 }
 
@@ -204,9 +204,7 @@ const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
     Eigen::VectorXf res = Eigen::VectorXf( nbrOfComponents );
 
     for( unsigned int k = 0; k < nbrOfComponents; k++ )
-    {
         res(k) = Neuron::d_sigmoid( z(k) );
-    }
 
     return res;
 }

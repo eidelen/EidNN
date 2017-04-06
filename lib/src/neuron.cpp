@@ -73,9 +73,7 @@ void Neuron::setRandomWeights( const float& mean, const float& deviation )
     std::normal_distribution<float> gNoise(mean, deviation);
 
     for( unsigned int i = 0; i < m_weights.rows(); i++ )
-    {
         m_weights(i) = gNoise(randomGenerator);
-    }
 }
 
 void Neuron::setBias( const float& bias )

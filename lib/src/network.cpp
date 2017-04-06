@@ -43,12 +43,9 @@ void Network::initNetwork()
 {
     unsigned int nbrOfInputs = 0; // for input layer, there is no input needed.
 
-    for( unsigned int lIdx = 0; lIdx < m_NetworkStructure.size(); lIdx++ )
+    for( unsigned int nbrOfNeuronsInLayer : m_NetworkStructure )
     {
-        unsigned int nbrOfNeuronsInLayer = m_NetworkStructure.at(lIdx);
-
         m_Layers.push_back( shared_ptr<Layer>( new Layer(nbrOfNeuronsInLayer, nbrOfInputs) ) );
-
         nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
     }
 
