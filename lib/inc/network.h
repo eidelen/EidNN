@@ -75,6 +75,12 @@ public:
     shared_ptr<Layer> getLayer( const unsigned int& layerIdx );
 
     /**
+     * Returns the last layer, also called output layer.
+     * @return Last layer of the network.
+     */
+    shared_ptr<Layer> getOutputLayer();
+
+    /**
      * Computes the partial derivatives of each bias and each weight in the network.
      * @param x_in Input signal.
      * @param y_out Desired output signal.

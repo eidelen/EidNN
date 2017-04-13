@@ -122,6 +122,8 @@ bool Layer::setWeights( const vector<Eigen::VectorXf>& weights )
         if( ! m_neurons.at(k)->setWeights( weights.at(k) ) )
             return false;
 
+    updateWeightMatrixAndBiasVector();
+
     return true;
 }
 
@@ -156,12 +158,16 @@ void Layer::setWeight( const float& weight )
 
     for( shared_ptr<Neuron>& neuron : m_neurons )
         neuron->setWeights( uniformWeight );
+
+    updateWeightMatrixAndBiasVector();
 }
 
 void Layer::setBias( const float& bias )
 {
     for( shared_ptr<Neuron>& neuron : m_neurons )
         neuron->setBias( bias );
+
+    updateWeightMatrixAndBiasVector();
 }
 
 void Layer::resetRandomlyWeightsAndBiases()
@@ -171,6 +177,8 @@ void Layer::resetRandomlyWeightsAndBiases()
         neuron->setRandomWeights( 0.0, 1.0 );
         neuron->setRandomBias( 0.0, 1.0 );
     }
+
+    updateWeightMatrixAndBiasVector();
 }
 
 
@@ -197,6 +205,19 @@ bool Layer::computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutpu
     m_outputError = ((m_activation_out - expectedNetworkOutput).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
     return true;
 }
+
+bool Layer::computeBackprogationError( const Eigen::VectorXf& errorNextLayer, const Eigen::MatrixXf& weightMatrixNextLayer )
+{
+    if( m_z_weighted_input.rows() != weightMatrixNextLayer.cols()  ||  errorNextLayer.rows() != weightMatrixNextLayer.rows() )
+    {
+        std::cout << "Error: computeBackprogationError Layer dimension mismatch" << std::endl;
+        return false;
+    }
+
+    m_backpropagationError = ((weightMatrixNextLayer.transpose() * errorNextLayer).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
+    return true;
+}
+
 
 const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
 {

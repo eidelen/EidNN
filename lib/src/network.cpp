@@ -107,15 +107,25 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
     }
 
 
-    // Compute partial derivative in last layer: Equation 1
+    // Compute output error in the last layer
+    std::shared_ptr<Layer> layerAfter = getOutputLayer();
+    layerAfter->computeOutputLayerError( y_out );
+    Eigen::VectorXf errAfter = layerAfter->getOutputLayerError();
+    Eigen::MatrixXf weightMatrixAfter = layerAfter->getWeigtMatrix();
 
+    for( int k = getNumberOfLayer() - 2; k >= 0; k-- )
+    {
+        std::shared_ptr<Layer> thisLayer = getLayer(k);
+        thisLayer->computeBackprogationError( errAfter, weightMatrixAfter );
 
-
-
-
-
-
-
+        errAfter = thisLayer->getBackpropagationError();
+        weightMatrixAfter = thisLayer->getWeigtMatrix();
+    }
 
     return true;
+}
+
+shared_ptr<Layer> Network::getOutputLayer()
+{
+    return getLayer( getNumberOfLayer() - 1 );
 }

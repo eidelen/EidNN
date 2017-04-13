@@ -120,17 +120,47 @@ TEST(NetworkTest, Backpropagation_input)
     Eigen::VectorXf y(2); y << 0.0, 0.0;
     Eigen::VectorXf y_wrong_dimension(1); y_wrong_dimension << 0.0;
 
+    // check invalid dimensions
     ASSERT_TRUE( net->backpropagation(x, y));
     ASSERT_FALSE( net->backpropagation(x_wrong_dimension, y ));
     ASSERT_FALSE( net->backpropagation( x, y_wrong_dimension ));
 
+
+    // check results
+
+    // set all neural network to zero -> sigmoid(0) = 0.5
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setBias( 0.0 );
+        l->setWeight( 0.0 );
+    }
+
+    // set expected outcome to 0.5. Therefore all errors in the network are 0.0
+    Eigen::VectorXf y_zero_error(2); y_zero_error << 0.5, 0.5;
+    net->backpropagation( x, y_zero_error );
+
+    for( unsigned int u = 0; u < net->getNumberOfLayer(); u++ )
+    {
+        std::shared_ptr<Layer> ll = net->getLayer( u );
+
+        Eigen::VectorXf err;
+        if( (u + 1) == net->getNumberOfLayer() )
+        {
+            // this is the last layer
+            err = ll->getOutputLayerError();
+        }
+        else
+        {
+            err = ll->getBackpropagationError();
+        }
+
+        // check that all are zero
+        for( unsigned int q = 0; q < err.rows(); q++ )
+            ASSERT_NEAR( err(q),  0.0, 0.0001 );
+    }
+
     delete net;
-
-    Eigen::VectorXf a(2); a << 0.0, 1.0;
-    Eigen::VectorXf b(2); b << 2.0, 3.0;
-
-    std::cout << a + b << std::endl;
-
 }
 
 

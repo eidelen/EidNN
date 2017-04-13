@@ -90,6 +90,13 @@ public:
     void setWeight( const float& weight );
 
     /**
+     * Returns the current weight matrix. It does not reassemble the matrix
+     * ( see updateWeightMatrixAndBiasVector() )
+     * @return
+     */
+    const Eigen::MatrixXf& getWeigtMatrix() { return m_weightMatrix; }
+
+    /**
      * Sets the bias of each neuron in this layer.
      * @param biases Vector of neuron biases.
      * @return true if successful
@@ -140,10 +147,24 @@ public:
     bool computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput );
 
     /**
+     * Computes the backpropagation error in this layer. The backpropagation error can be accessed
+     * by the function getBackpropagationError().
+     * @param expectedNetworkOutput The desired network output.
+     * @return Return true if operation was successful. Otherwise false
+     */
+    bool computeBackprogationError(const Eigen::VectorXf& errorNextLayer, const Eigen::MatrixXf& weightMatrixNextLayer );
+
+    /**
      * Returns the computed output layer error.
      * @return
      */
     const Eigen::VectorXf getOutputLayerError() const { return m_outputError; }
+
+    /**
+     * Returns the computed backprogation error in this layer.
+     * @return
+     */
+    const Eigen::VectorXf getBackpropagationError() const { return m_backpropagationError; }
 
     /**
      * Computes component wise derrivative of the sigmoid function
@@ -183,6 +204,7 @@ private:
     Eigen::VectorXf m_z_weighted_input;
 
     Eigen::VectorXf m_outputError;
+    Eigen::VectorXf m_backpropagationError;
     Eigen::MatrixXf m_weightMatrix;
     Eigen::VectorXf m_biasVector;
 
