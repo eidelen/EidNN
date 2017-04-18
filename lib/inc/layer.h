@@ -139,12 +139,12 @@ public:
     const Eigen::VectorXf& getWeightedInputZ() const { return m_z_weighted_input; }
 
     /**
-     * When this is the output layer, this function computes the output layer error.
-     * The actual error can then be accessed by getOutputLayerError().
+     * This function computes the backpropagation error in case this is the output layer.
+     * The actual error can then be accessed by getBackpropagationError().
      * @param expectedNetworkOutput The desired network output.
      * @return Return true if operation was successful. Otherwise false
      */
-    bool computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput );
+    bool computeBackpropagationOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput );
 
     /**
      * Computes the backpropagation error in this layer. The backpropagation error can be accessed
@@ -155,16 +155,15 @@ public:
     bool computeBackprogationError(const Eigen::VectorXf& errorNextLayer, const Eigen::MatrixXf& weightMatrixNextLayer );
 
     /**
-     * Returns the computed output layer error.
-     * @return
+     * Computes the partial derivatives for biases and weights within this layer.
      */
-    const Eigen::VectorXf getOutputLayerError() const { return m_outputError; }
+    void updateWeightsAndBiases();
 
     /**
      * Returns the computed backprogation error in this layer.
      * @return
      */
-    const Eigen::VectorXf getBackpropagationError() const { return m_backpropagationError; }
+    const Eigen::VectorXf getBackpropagationError() const { return m_backpropagationError; } 
 
     /**
      * Computes component wise derrivative of the sigmoid function
@@ -203,7 +202,6 @@ private:
     Eigen::VectorXf m_activation_out;
     Eigen::VectorXf m_z_weighted_input;
 
-    Eigen::VectorXf m_outputError;
     Eigen::VectorXf m_backpropagationError;
     Eigen::MatrixXf m_weightMatrix;
     Eigen::VectorXf m_biasVector;

@@ -189,19 +189,19 @@ TEST(LayerTest, ComputeOutputError)
 
     // if expected outcome is 0.5, the error of the last layer is 0.0.
     Eigen::VectorXf y(2);  y << 0.5, 0.5;
-    ASSERT_TRUE( l->computeOutputLayerError(y) );
-    ASSERT_NEAR( l->getOutputLayerError()(0), 0.0, 0.0001 );
-    ASSERT_NEAR( l->getOutputLayerError()(1), 0.0, 0.0001 );
+    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y) );
+    ASSERT_NEAR( l->getBackpropagationError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( l->getBackpropagationError()(1), 0.0, 0.0001 );
 
     // wrong dimension
     Eigen::VectorXf y_wrong(3);  y_wrong << 0.5, 0.5, 0.5;
-    ASSERT_FALSE( l->computeOutputLayerError(y_wrong) );
+    ASSERT_FALSE( l->computeBackpropagationOutputLayerError(y_wrong) );
 
     // actual error
     Eigen::VectorXf y_next(2);  y_next << 0.5, 1.5;
-    ASSERT_TRUE( l->computeOutputLayerError(y_next) );
-    ASSERT_NEAR( l->getOutputLayerError()(0), 0.0, 0.0001 );
-    ASSERT_NEAR( l->getOutputLayerError()(1), -0.25, 0.0001 );
+    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y_next) );
+    ASSERT_NEAR( l->getBackpropagationError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( l->getBackpropagationError()(1), -0.25, 0.0001 );
 
     delete l;
 }

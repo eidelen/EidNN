@@ -194,7 +194,7 @@ bool Layer::setActivationOutput( const Eigen::VectorXf& activation_out )
     return true;
 }
 
-bool Layer::computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput )
+bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput )
 {
     if( m_activation_out.rows() != expectedNetworkOutput.rows() )
     {
@@ -202,7 +202,7 @@ bool Layer::computeOutputLayerError( const Eigen::VectorXf& expectedNetworkOutpu
         return false;
     }
 
-    m_outputError = ((m_activation_out - expectedNetworkOutput).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
+    m_backpropagationError = ((m_activation_out - expectedNetworkOutput).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
     return true;
 }
 
@@ -239,4 +239,10 @@ void Layer::updateWeightMatrixAndBiasVector()
         m_weightMatrix.row(k) = kNeuron->getWeights().transpose();
         m_biasVector(k) = kNeuron->getBias();
     }
+}
+
+void Layer::updateWeightsAndBiases()
+{
+    //Eigen::VectorXf partialDerivativesBiases =
+
 }

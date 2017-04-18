@@ -109,8 +109,8 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
 
     // Compute output error in the last layer
     std::shared_ptr<Layer> layerAfter = getOutputLayer();
-    layerAfter->computeOutputLayerError( y_out );
-    Eigen::VectorXf errAfter = layerAfter->getOutputLayerError();
+    layerAfter->computeBackpropagationOutputLayerError( y_out );
+    Eigen::VectorXf errAfter = layerAfter->getBackpropagationError();
     Eigen::MatrixXf weightMatrixAfter = layerAfter->getWeigtMatrix();
 
     for( int k = getNumberOfLayer() - 2; k >= 0; k-- )

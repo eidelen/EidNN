@@ -145,15 +145,7 @@ TEST(NetworkTest, Backpropagation_input)
         std::shared_ptr<Layer> ll = net->getLayer( u );
 
         Eigen::VectorXf err;
-        if( (u + 1) == net->getNumberOfLayer() )
-        {
-            // this is the last layer
-            err = ll->getOutputLayerError();
-        }
-        else
-        {
-            err = ll->getBackpropagationError();
-        }
+        err = ll->getBackpropagationError();
 
         // check that all are zero
         for( unsigned int q = 0; q < err.rows(); q++ )
