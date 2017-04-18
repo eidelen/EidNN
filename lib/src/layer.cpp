@@ -60,6 +60,8 @@ bool Layer::feedForward( const Eigen::VectorXf& x_in )
         return false;
     }
 
+    m_activation_in = x_in;
+
     updateWeightMatrixAndBiasVector(); // updates m_weightMatrix and m_biasVector
 
     m_z_weighted_input = m_weightMatrix * x_in + m_biasVector;
@@ -82,6 +84,8 @@ bool Layer::feedForwardSlow( const Eigen::VectorXf& x_in )
         return false;
     }
 
+    m_activation_in = x_in;
+
     // feed input to every neuron in layer
     for( unsigned int n = 0; n < m_neurons.size(); n++ )
     {
@@ -103,10 +107,13 @@ void Layer::initLayer()
     for( unsigned int n = 0; n < m_nbr_of_neurons; n++ )
         m_neurons.push_back( shared_ptr<Neuron>( new Neuron( m_nbr_of_inputs ) ) );
 
+    m_activation_in = Eigen::VectorXf( m_nbr_of_inputs );
     m_activation_out = Eigen::VectorXf( m_nbr_of_neurons );
     m_z_weighted_input = Eigen::VectorXf( m_nbr_of_neurons );
     m_weightMatrix = Eigen::MatrixXf( m_nbr_of_neurons , m_nbr_of_inputs );
     m_biasVector = Eigen::VectorXf( m_nbr_of_neurons );
+    m_bias_partialDerivatives = Eigen::VectorXf( m_nbr_of_neurons );
+    m_weight_partialDerivatives = Eigen::MatrixXf( m_nbr_of_neurons , m_nbr_of_inputs );
 }
 
 
@@ -241,8 +248,23 @@ void Layer::updateWeightMatrixAndBiasVector()
     }
 }
 
+
+void Layer::computePartialDerivatives()
+{
+    // bias
+    m_bias_partialDerivatives = getBackpropagationError();
+
+
+    // weights
+    Eigen::VectorXf activation_in = getInputActivation();
+    Eigen::VectorXf error = getBackpropagationError();
+    m_weight_partialDerivatives = error * activation_in.transpose();
+}
+
 void Layer::updateWeightsAndBiases()
 {
-    //Eigen::VectorXf partialDerivativesBiases =
+    const Eigen::VectorXf partialDerivativesBiases = getBackpropagationError();
 
 }
+
+

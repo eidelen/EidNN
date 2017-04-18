@@ -136,7 +136,7 @@ TEST(NetworkTest, Backpropagation_input)
         l->setWeight( 0.0 );
     }
 
-    // set expected outcome to 0.5. Therefore all errors in the network are 0.0
+    // set expected outcome to 0.5. Therefore all errors and all partial derivatives in the network are 0.0
     Eigen::VectorXf y_zero_error(2); y_zero_error << 0.5, 0.5;
     net->backpropagation( x, y_zero_error );
 
@@ -150,7 +150,50 @@ TEST(NetworkTest, Backpropagation_input)
         // check that all are zero
         for( unsigned int q = 0; q < err.rows(); q++ )
             ASSERT_NEAR( err(q),  0.0, 0.0001 );
+
+        Eigen::VectorXf pd_biases = ll->getPartialDerivativesBiases();
+        for( unsigned int q = 0; q < pd_biases.rows(); q++ )
+            ASSERT_NEAR( pd_biases(q),  0.0, 0.0001 );
+
+        Eigen::MatrixXf pd_weights = ll->getPartialDerivativesWeights();
+        for( unsigned int q = 0; q < pd_weights.rows(); q++ )
+            for( unsigned int p = 0; p < pd_weights.cols(); p++ )
+                ASSERT_NEAR( pd_weights(q,p),  0.0, 0.0001 );
     }
+
+    delete net;
+}
+
+TEST(NetworkTest, Backpropagation_PartialDerivativesAndErrors)
+{
+    std::vector<unsigned int> map = {2,2,2};
+    Network* net = new Network(map);
+
+    // set whole neural network to zero -> sigmoid(0) = 0.5
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setBias( 0.0 );
+        l->setWeight( 0.0 );
+    }
+
+    // input & output
+    Eigen::VectorXf x(2); x << 0.0, 0.0;
+    Eigen::VectorXf y(2); y << 0.4, 0.5; // differ by 0.1 and 0.0
+
+    net->backpropagation(x, y);
+
+    // expected errors in outputlayer = [0.025, 0.0]
+    float outputLayerErr0 = 0.1 * Neuron::d_sigmoid(0.0);
+    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), outputLayerErr0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(1), 0.0, 0.0001 );
+
+
+    // to continou here: networks with initial weight zero do always have error 0.0. Is that true?
+    // anyway, create manually a network and write the corresponding thest code.
+
+
+
 
     delete net;
 }

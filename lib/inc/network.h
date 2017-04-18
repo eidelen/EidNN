@@ -81,7 +81,7 @@ public:
     shared_ptr<Layer> getOutputLayer();
 
     /**
-     * Computes the partial derivatives of each bias and each weight in the network.
+     * Computes backpropagation error and partial derivatives in each layer.
      * @param x_in Input signal.
      * @param y_out Desired output signal.
      * @return true if successful.

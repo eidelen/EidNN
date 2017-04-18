@@ -81,6 +81,11 @@ TEST(LayerTest, ActivationVector)
     ASSERT_NEAR( z2(1), 13, 0.0001 );
     ASSERT_NEAR( a2(1), Neuron::sigmoid(13), 0.0001 );
 
+    // check safing of input activation (should be x2)
+    const Eigen::VectorXf in_act = l->getInputActivation();
+    ASSERT_NEAR( x2(0), in_act(0), 0.0001 );
+    ASSERT_NEAR( x2(1), in_act(1), 0.0001 );
+
     delete l;
 }
 
@@ -128,6 +133,11 @@ TEST(LayerTest, ActivationVectorSlow)
     ASSERT_NEAR( a2(0), Neuron::sigmoid(5), 0.0001 );
     ASSERT_NEAR( z2(1), 13, 0.0001 );
     ASSERT_NEAR( a2(1), Neuron::sigmoid(13), 0.0001 );
+
+    // check safing of input activation (should be x2)
+    const Eigen::VectorXf in_act = l->getInputActivation();
+    ASSERT_NEAR( x2(0), in_act(0), 0.0001 );
+    ASSERT_NEAR( x2(1), in_act(1), 0.0001 );
 
     delete l;
 }

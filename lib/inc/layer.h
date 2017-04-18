@@ -131,6 +131,12 @@ public:
     const Eigen::VectorXf& getOutputActivation() const { return m_activation_out; }
 
     /**
+     * Get the input activation of this layer. This is set after calling feedForward().
+     * @return Input activation.
+     */
+    const Eigen::VectorXf& getInputActivation() const { return m_activation_in; }
+
+    /**
      * This is an intermediate result of calling feedForward(). It is the weighted input,
      * or one can also think of it as the activation output without performing the sigmoid
      * function.
@@ -155,6 +161,12 @@ public:
     bool computeBackprogationError(const Eigen::VectorXf& errorNextLayer, const Eigen::MatrixXf& weightMatrixNextLayer );
 
     /**
+     * Computes the partial derivatives of the biases and weights. Results can be
+     * accessed by getPartialDerivativesBiases() and getPartialDerivativesWeights().
+     */
+    void computePartialDerivatives();
+
+    /**
      * Computes the partial derivatives for biases and weights within this layer.
      */
     void updateWeightsAndBiases();
@@ -164,6 +176,18 @@ public:
      * @return
      */
     const Eigen::VectorXf getBackpropagationError() const { return m_backpropagationError; } 
+
+    /**
+     * Partial derivatives of the biases. This is set after calling computePartialDerivatives();
+     * @return
+     */
+    const Eigen::VectorXf getPartialDerivativesBiases() const { return m_bias_partialDerivatives; }
+
+    /**
+     * Partial derivatives of weights. This is set after calling computePartialDerivatives();
+     * @return
+     */
+    const Eigen::MatrixXf getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
 
     /**
      * Computes component wise derrivative of the sigmoid function
@@ -199,6 +223,7 @@ private:
     const unsigned int m_nbr_of_neurons;
     const unsigned int m_nbr_of_inputs;
 
+    Eigen::VectorXf m_activation_in;
     Eigen::VectorXf m_activation_out;
     Eigen::VectorXf m_z_weighted_input;
 
@@ -206,6 +231,8 @@ private:
     Eigen::MatrixXf m_weightMatrix;
     Eigen::VectorXf m_biasVector;
 
+    Eigen::VectorXf m_bias_partialDerivatives;
+    Eigen::MatrixXf m_weight_partialDerivatives;
 };
 
 #endif //_LAYER_H_
