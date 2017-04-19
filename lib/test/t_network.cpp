@@ -25,6 +25,7 @@
 #include "network.h"
 #include "layer.h"
 #include "neuron.h"
+#include "helpers.h"
 
 
 TEST(NetworkTest, ConstructNetwork)
@@ -164,36 +165,52 @@ TEST(NetworkTest, Backpropagation_input)
     delete net;
 }
 
-TEST(NetworkTest, Backpropagation_PartialDerivativesAndErrors)
+TEST(NetworkTest, Backpropagation_Errors)
 {
-    std::vector<unsigned int> map = {2,2,2};
+    std::vector<unsigned int> map = {1,2};
     Network* net = new Network(map);
 
-    // set whole neural network to zero -> sigmoid(0) = 0.5
+    // set whole neural network weights to 0.1 and biases to 0.2
     for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
     {
         std::shared_ptr<Layer> l = net->getLayer( k );
-        l->setBias( 0.0 );
-        l->setWeight( 0.0 );
+        l->setBias( 0.1 );
+        l->setWeight( 0.2 );
     }
 
     // input & output
-    Eigen::VectorXf x(2); x << 0.0, 0.0;
-    Eigen::VectorXf y(2); y << 0.4, 0.5; // differ by 0.1 and 0.0
+    Eigen::VectorXf x(1); x << 0.0;  // this leads to network output of [0.52498, 0.52498]
 
+
+
+    //Test 1) create an expected value equal to the output -> no error
+    net->feedForward( x ); Eigen::VectorXf y = net->getOutputActivation();
     net->backpropagation(x, y);
 
-    // expected errors in outputlayer = [0.025, 0.0]
-    float outputLayerErr0 = 0.1 * Neuron::d_sigmoid(0.0);
-    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), outputLayerErr0, 0.0001 );
+    // expected errors in outputlayer = [0.0, 0.0]
+    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(1), 0.0, 0.0001 );
 
+    // partial derivatives are [0.0, 0.0]
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(1,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(1), 0.0, 0.0001 );
 
-    // to continou here: networks with initial weight zero do always have error 0.0. Is that true?
-    // anyway, create manually a network and write the corresponding thest code.
 
 
+    //Test 2) create an expected value where the first element is equal to the expected output -> no error
+    //        but the second element has an differs from the expectation
+    x << 2.0;
+    net->feedForward( x ); y = net->getOutputActivation();
+    y(1) = y(1) - 0.1; // alter output a bit
+    net->backpropagation(x,y);
 
+    // expected errors and derivatives for neuron 0 is 0.0
+    Eigen::VectorXf kx = net->getOutputLayer()->getBackpropagationError();
+    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(0), 0.0, 0.0001 );
 
     delete net;
 }

@@ -251,20 +251,19 @@ void Layer::updateWeightMatrixAndBiasVector()
 
 void Layer::computePartialDerivatives()
 {
-    // bias
-    m_bias_partialDerivatives = getBackpropagationError();
+    Eigen::VectorXf error = getBackpropagationError();
 
+    // bias
+    m_bias_partialDerivatives = error;
 
     // weights
-    Eigen::VectorXf activation_in = getInputActivation();
-    Eigen::VectorXf error = getBackpropagationError();
+    Eigen::VectorXf activation_in = getInputActivation(); 
     m_weight_partialDerivatives = error * activation_in.transpose();
 }
 
 void Layer::updateWeightsAndBiases()
 {
     const Eigen::VectorXf partialDerivativesBiases = getBackpropagationError();
-
 }
 
 

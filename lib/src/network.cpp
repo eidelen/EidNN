@@ -110,6 +110,7 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
     // Compute output error in the last layer
     std::shared_ptr<Layer> layerAfter = getOutputLayer();
     layerAfter->computeBackpropagationOutputLayerError( y_out );
+    layerAfter->computePartialDerivatives();
 
     for( int k = getNumberOfLayer() - 2; k >= 0; k-- )
     {
