@@ -24,6 +24,7 @@
 #include <iostream>
 #include "layer.h"
 #include "neuron.h"
+#include "helpers.h"
 
 using namespace std;
 
@@ -308,6 +309,13 @@ void Layer::updateWeightsAndBiases( const float& eta )
 
     const Eigen::MatrixXf newWeights = getWeigtMatrix() - (eta * getPartialDerivativesWeights() );
     setWeights( newWeights );
+}
+
+void Layer::print() const
+{
+    Helpers::printVector(getBiasVector(),"Biases");
+    Helpers::printMatrix(getWeigtMatrix(),"Weights");
+    Helpers::printVector(getBackpropagationError(),"Error");
 }
 
 

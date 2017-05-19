@@ -72,7 +72,7 @@ public:
      * @param layerIdx Layer index.
      * @return Null, if layer does not exist. Otherwise handle to layer.
      */
-    shared_ptr<Layer> getLayer( const unsigned int& layerIdx );
+    shared_ptr<Layer> getLayer(const size_t& layerIdx );
 
     /**
      * Returns the last layer, also called output layer.
@@ -89,6 +89,15 @@ public:
      */
     bool backpropagation(const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out , const float& eta);
 
+    /**
+     * Returns the magnitude of the error vector in the output layer. This error is
+     * initialized during the backpropagation.
+     * @return error magnitude
+     */
+    float getNetworkErrorMagnitude();
+
+
+    void print();
 
 
 private:

@@ -21,6 +21,7 @@
 **
 *****************************************************************************/
 
+#include <random>
 #include <gtest/gtest.h>
 #include "network.h"
 #include "layer.h"
@@ -190,6 +191,7 @@ TEST(NetworkTest, Backpropagation_Errors)
     // expected errors in outputlayer = [0.0, 0.0]
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(1), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getNetworkErrorMagnitude(), 0.0, 0.00001 );
 
     // partial derivatives are [0.0, 0.0]
     ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
@@ -206,6 +208,11 @@ TEST(NetworkTest, Backpropagation_Errors)
     y(1) = y(1) - 0.1; // alter output a bit
     net->backpropagation(x,y, 1.0);
 
+    // check error
+    float errMag = net->getNetworkErrorMagnitude();
+    ASSERT_NEAR( errMag, 0.02350037, 0.00001 );
+
+
     // expected errors and derivatives for neuron 0 is 0.0
     Eigen::VectorXf kx = net->getOutputLayer()->getBackpropagationError();
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
@@ -215,6 +222,62 @@ TEST(NetworkTest, Backpropagation_Errors)
     delete net;
 }
 
+TEST(NetworkTest, Backpropagate_Simple_Examples)
+{
+    // recognize positive numbers and negative numbers in the range of -100 to 100
+    std::vector<unsigned int> map = {1,2};
+    Network* net = new Network(map);
+
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_real_distribution<> dist(-10000, +10000);
+
+    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    {
+        for( int ts = 0; ts < 10; ts++ )
+        {
+            double valIn = dist(e2);
+            Eigen::VectorXf x(1);
+            x(0) = valIn;
+
+            Eigen::VectorXf y(2);
+            if( valIn > 0 )
+                y << 1.0, 0.0;
+            else
+                y << 0.0, 1.0;
+
+            net->backpropagation( x, y, 0.3 );
+        }
+
+        float nbrOfTests = 1000;
+        float nbrSuccessful = 0;
+
+        for( int test_s = 0; test_s < nbrOfTests; test_s++ )
+        {
+            double testVal = dist(e2);
+            Eigen::VectorXf x(1);
+            x(0) = testVal;
+
+            net->feedForward( x );
+            Eigen::VectorXf o_activation = net->getOutputActivation();
+
+            if( testVal > 0 )
+            {
+                if( o_activation(0) > o_activation(1) )
+                    nbrSuccessful = nbrSuccessful + 1.0f;
+            }
+            else
+            {
+                if( o_activation(1) > o_activation(0) )
+                    nbrSuccessful = nbrSuccessful + 1.0f;
+            }
+        }
+
+        std::cout << "Evolution " << evolutions <<  ": success rate = " << 100 * nbrSuccessful / nbrOfTests << "%" << std::endl;
+    }
+
+    delete  net;
+}
 
 
 

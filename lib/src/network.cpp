@@ -82,7 +82,7 @@ size_t Network::getNumberOfLayer()
     return m_NetworkStructure.size();
 }
 
-shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
+shared_ptr<Layer> Network::getLayer( const size_t& layerIdx )
 {
     if( layerIdx >= getNumberOfLayer() )
     {
@@ -133,4 +133,23 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
 shared_ptr<Layer> Network::getOutputLayer()
 {
     return getLayer( getNumberOfLayer() - 1 );
+}
+
+float Network::getNetworkErrorMagnitude()
+{
+    Eigen::VectorXf oErr =  getOutputLayer()->getBackpropagationError();
+    return oErr.norm();
+}
+
+void Network::print()
+{
+    // skip first layer -> input
+    for( size_t i = 1; i < getNumberOfLayer(); i++ )
+    {
+        shared_ptr<Layer> l = getLayer( i );
+
+        std::cout << "Layer " << i << ":" << std::endl;
+        getLayer( i )->print();
+        std::cout << std::endl << std::endl;
+    }
 }

@@ -223,6 +223,8 @@ public:
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
 
+    void print() const;
+
 private:
     void initLayer();
 
