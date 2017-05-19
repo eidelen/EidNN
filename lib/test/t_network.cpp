@@ -232,9 +232,9 @@ TEST(NetworkTest, Backpropagate_Simple_Examples)
     std::mt19937 e2(rd());
     std::uniform_real_distribution<> dist(-10000, +10000);
 
-    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    for( int evolutions = 0; evolutions < 50; evolutions++ )
     {
-        for( int ts = 0; ts < 10; ts++ )
+        for( int ts = 0; ts < 100; ts++ )
         {
             double valIn = dist(e2);
             Eigen::VectorXf x(1);
@@ -246,7 +246,7 @@ TEST(NetworkTest, Backpropagate_Simple_Examples)
             else
                 y << 0.0, 1.0;
 
-            net->backpropagation( x, y, 0.3 );
+            net->backpropagation( x, y, 0.25 );
         }
 
         float nbrOfTests = 1000;
@@ -263,12 +263,12 @@ TEST(NetworkTest, Backpropagate_Simple_Examples)
 
             if( testVal > 0 )
             {
-                if( o_activation(0) > o_activation(1) )
+                if( o_activation(0) > o_activation(1) && o_activation(0) > 0.99f ) // at least 99% sure that it is positive
                     nbrSuccessful = nbrSuccessful + 1.0f;
             }
             else
             {
-                if( o_activation(1) > o_activation(0) )
+                if( o_activation(1) > o_activation(0) && o_activation(1) > 0.99f ) // at least 99% sure that it is negative
                     nbrSuccessful = nbrSuccessful + 1.0f;
             }
         }
