@@ -175,6 +175,24 @@ TEST(LayerTest, SetWeightsAndBiases)
     l->resetRandomlyWeightsAndBiases();
     ASSERT_TRUE( fabs( l->getNeuron(0)->getBias() ) < 2.0 ); // Theoretically, this could fail. But this is very unlikely.
 
+    // set directly vector
+    Eigen::VectorXf bVector_wrongSize(3);  bVector_wrongSize << 1, 2, 3;
+    ASSERT_FALSE( l->setBiases( bVector_wrongSize ) );
+    Eigen::VectorXf bVector_rightSize(2);  bVector_rightSize << 6, 344;
+    ASSERT_TRUE( l->setBiases( bVector_rightSize ) );
+    ASSERT_NEAR( l->getNeuron(0)->getBias(), 6.0 , 0.0001 );
+    ASSERT_NEAR( l->getNeuron(1)->getBias(), 344.0 , 0.0001 );
+
+    // set directly matrix
+    Eigen::MatrixXf wMatrixWrong = Eigen::MatrixXf( 2 , 3 ); wMatrixWrong << 1,2,3,4,5,6;
+    ASSERT_FALSE( l->setWeights( wMatrixWrong ));
+    Eigen::MatrixXf wMatrixRight = Eigen::MatrixXf( 2 , 2 ); wMatrixRight << 10, 11,   15, 16;
+    ASSERT_TRUE( l->setWeights( wMatrixRight ));
+    ASSERT_NEAR( l->getNeuron(0)->getWeights()(0), 10.0, 0.0001 );
+    ASSERT_NEAR( l->getNeuron(0)->getWeights()(1), 11.0, 0.0001 );
+    ASSERT_NEAR( l->getNeuron(1)->getWeights()(0), 15.0, 0.0001 );
+    ASSERT_NEAR( l->getNeuron(1)->getWeights()(1), 16.0, 0.0001 );
+
     delete l;
 }
 

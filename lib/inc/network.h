@@ -65,7 +65,7 @@ public:
     /**
      * Returns the number of layers.
      */
-    unsigned int getNumberOfLayer();
+    size_t getNumberOfLayer();
 
     /**
      * Return a handle to the layer at index layerIdx.
@@ -84,9 +84,10 @@ public:
      * Computes backpropagation error and partial derivatives in each layer.
      * @param x_in Input signal.
      * @param y_out Desired output signal.
+     * @param eta Learning rate.
      * @return true if successful.
      */
-    bool backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out );
+    bool backpropagation(const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out , const float& eta);
 
 
 

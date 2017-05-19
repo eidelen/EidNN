@@ -84,6 +84,13 @@ public:
     bool setWeights( const vector<Eigen::VectorXf>& weights );
 
     /**
+     * Sets the weights in this layer.
+     * @param weights The weight matrix
+     * @return true if successful
+     */
+    bool setWeights( const Eigen::MatrixXf& weights );
+
+    /**
      * Sets the same weight for all neurons and all intputs
      * @param weights Weight value.
      */
@@ -94,7 +101,7 @@ public:
      * ( see updateWeightMatrixAndBiasVector() )
      * @return
      */
-    const Eigen::MatrixXf& getWeigtMatrix() { return m_weightMatrix; }
+    const Eigen::MatrixXf& getWeigtMatrix() const { return m_weightMatrix; }
 
     /**
      * Sets the bias of each neuron in this layer.
@@ -104,10 +111,24 @@ public:
     bool setBiases( const vector<float>& biases );
 
     /**
+     * Sets the bias of each neuron in this layer.
+     * @param biases Vector of neuron biases.
+     * @return true if successful
+     */
+    bool setBiases( const Eigen::VectorXf& biases );
+
+    /**
      * Sets the same bias for all neurons
      * @param bias Bias value.
      */
     void setBias( const float& bias );
+
+    /**
+     * Returns the current bias vector. It does not reassemble the vector
+     * ( see updateWeightMatrixAndBiasVector() )
+     * @return
+     */
+    const Eigen::VectorXf& getBiasVector() const { return m_biasVector; }
 
     /**
      * Resets all weights and biases of each neuron in this layer
@@ -167,9 +188,11 @@ public:
     void computePartialDerivatives();
 
     /**
-     * Computes the partial derivatives for biases and weights within this layer.
+     * Updates the biases and weights within this layer based on the computed
+     * derivatives and the learning rate.
+     * @param eta Learning rate
      */
-    void updateWeightsAndBiases();
+    void updateWeightsAndBiases( const float& eta );
 
     /**
      * Returns the computed backprogation error in this layer.

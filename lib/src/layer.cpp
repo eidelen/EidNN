@@ -134,6 +134,28 @@ bool Layer::setWeights( const vector<Eigen::VectorXf>& weights )
     return true;
 }
 
+bool Layer::setWeights( const Eigen::MatrixXf& weights )
+{
+    if( weights.rows() != m_weightMatrix.rows() || weights.cols() != m_weightMatrix.cols() )
+    {
+        std::cout << "Error: Weights matrix size mismatches" << std::endl;
+        return false;
+    }
+
+    // TODO: Remove neuron class and assign weights directly to m_weightmatrix !!
+
+    // assemble weight matrix based on weights in all neurons
+    for( unsigned int k = 0; k < m_nbr_of_neurons; k++ )
+    {
+        std::shared_ptr<Neuron> kNeuron = getNeuron(k);
+        kNeuron->setWeights( weights.row(k).transpose() );
+    }
+
+    updateWeightMatrixAndBiasVector();
+
+    return true;
+}
+
 bool Layer::setBiases( const vector<float>& biases )
 {
     if( biases.size() != getNbrOfNeurons() )
@@ -144,6 +166,25 @@ bool Layer::setBiases( const vector<float>& biases )
 
     for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
         m_neurons.at(k)->setBias( biases.at(k) );
+
+    updateWeightMatrixAndBiasVector();
+
+    return true;
+}
+
+bool Layer::setBiases( const Eigen::VectorXf& biases )
+{
+    if( biases.rows() != getNbrOfNeurons() )
+    {
+        std::cout << "Error: Bias Eigen vector size mismatches number of neurons" << std::endl;
+        return false;
+    }
+
+    for( unsigned int k = 0; k < getNbrOfNeurons(); k++ )
+        m_neurons.at(k)->setBias( biases(k) );
+
+    // TODO: remove Neuron class and work instead with weight matrix and bias vector in layer. Above for-loop can be deleted. But wait till the network is working.
+    updateWeightMatrixAndBiasVector();
 
     return true;
 }
@@ -228,7 +269,7 @@ bool Layer::computeBackprogationError( const Eigen::VectorXf& errorNextLayer, co
 
 const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
 {
-    unsigned int nbrOfComponents = z.rows();
+    long nbrOfComponents = z.rows();
     Eigen::VectorXf res = Eigen::VectorXf( nbrOfComponents );
 
     for( unsigned int k = 0; k < nbrOfComponents; k++ )
@@ -248,22 +289,25 @@ void Layer::updateWeightMatrixAndBiasVector()
     }
 }
 
-
 void Layer::computePartialDerivatives()
 {
-    Eigen::VectorXf error = getBackpropagationError();
+    Eigen::VectorXf delta = getBackpropagationError();
 
     // bias
-    m_bias_partialDerivatives = error;
+    m_bias_partialDerivatives = delta;
 
     // weights
     Eigen::VectorXf activation_in = getInputActivation(); 
-    m_weight_partialDerivatives = error * activation_in.transpose();
+    m_weight_partialDerivatives = delta * activation_in.transpose(); // This is different from the 4th-equation? Study!
 }
 
-void Layer::updateWeightsAndBiases()
+void Layer::updateWeightsAndBiases( const float& eta )
 {
-    const Eigen::VectorXf partialDerivativesBiases = getBackpropagationError();
+    const Eigen::VectorXf newBiases = getBiasVector() - (eta * getPartialDerivativesBiases());
+    setBiases( newBiases );
+
+    const Eigen::MatrixXf newWeights = getWeigtMatrix() - (eta * getPartialDerivativesWeights() );
+    setWeights( newWeights );
 }
 
 

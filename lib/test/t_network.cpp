@@ -122,9 +122,9 @@ TEST(NetworkTest, Backpropagation_input)
     Eigen::VectorXf y_wrong_dimension(1); y_wrong_dimension << 0.0;
 
     // check invalid dimensions
-    ASSERT_TRUE( net->backpropagation(x, y));
-    ASSERT_FALSE( net->backpropagation(x_wrong_dimension, y ));
-    ASSERT_FALSE( net->backpropagation( x, y_wrong_dimension ));
+    ASSERT_TRUE( net->backpropagation(x, y, 1.0 ));
+    ASSERT_FALSE( net->backpropagation(x_wrong_dimension, y, 1.0 ));
+    ASSERT_FALSE( net->backpropagation( x, y_wrong_dimension, 1.0 ));
 
 
     // check results
@@ -139,7 +139,7 @@ TEST(NetworkTest, Backpropagation_input)
 
     // set expected outcome to 0.5. Therefore all errors and all partial derivatives in the network are 0.0
     Eigen::VectorXf y_zero_error(2); y_zero_error << 0.5, 0.5;
-    net->backpropagation( x, y_zero_error );
+    net->backpropagation( x, y_zero_error, 1.0 );
 
     for( unsigned int u = 0; u < net->getNumberOfLayer(); u++ )
     {
@@ -185,7 +185,7 @@ TEST(NetworkTest, Backpropagation_Errors)
 
     //Test 1) create an expected value equal to the output -> no error
     net->feedForward( x ); Eigen::VectorXf y = net->getOutputActivation();
-    net->backpropagation(x, y);
+    net->backpropagation(x, y, 1.0);
 
     // expected errors in outputlayer = [0.0, 0.0]
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
@@ -200,11 +200,11 @@ TEST(NetworkTest, Backpropagation_Errors)
 
 
     //Test 2) create an expected value where the first element is equal to the expected output -> no error
-    //        but the second element has an differs from the expectation
+    //        but the second element differs from the expectation
     x << 2.0;
     net->feedForward( x ); y = net->getOutputActivation();
     y(1) = y(1) - 0.1; // alter output a bit
-    net->backpropagation(x,y);
+    net->backpropagation(x,y, 1.0);
 
     // expected errors and derivatives for neuron 0 is 0.0
     Eigen::VectorXf kx = net->getOutputLayer()->getBackpropagationError();
