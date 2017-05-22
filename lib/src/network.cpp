@@ -77,12 +77,12 @@ bool Network::feedForward( const Eigen::VectorXf& x_in )
     return true;
 }
 
-size_t Network::getNumberOfLayer()
+int Network::getNumberOfLayer()
 {
-    return m_NetworkStructure.size();
+    return int(m_NetworkStructure.size());
 }
 
-shared_ptr<Layer> Network::getLayer( const size_t& layerIdx )
+shared_ptr<Layer> Network::getLayer( const int& layerIdx )
 {
     if( layerIdx >= getNumberOfLayer() )
     {

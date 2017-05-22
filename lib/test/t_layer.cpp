@@ -89,59 +89,6 @@ TEST(LayerTest, ActivationVector)
     delete l;
 }
 
-TEST(LayerTest, ActivationVectorSlow)
-{
-    // make a layer with two neurons and two inputs
-    // neuron 0: w0 = 1, w1 = 2, b = 0
-    // neuron 1: w0 = 3, w1 = 4, b = 2
-
-    std::vector<Eigen::VectorXf> weights;
-    std::vector<float> biases;
-
-    Eigen::VectorXf w_n0(2);  w_n0 << 1, 2;
-    weights.push_back( w_n0 );
-    biases.push_back( 0 );
-
-    Eigen::VectorXf w_n1(2);  w_n1 << 3, 4;
-    weights.push_back( w_n1 );
-    biases.push_back( 2 );
-
-    Layer* l = new Layer( 2, weights, biases );
-
-    ASSERT_EQ( 2, l->getNbrOfNeurons() );
-    ASSERT_EQ( 2, l->getNbrOfNeuronInputs() );
-
-
-    Eigen::VectorXf x1(2);  x1 << 0, 0;
-    // for this input, the output should be:
-    // n0: 0  and n1: 2   ->  [ 0, 2 ]
-    l->feedForwardSlow(x1);
-    const Eigen::VectorXf z1 = l->getWeightedInputZ();
-    const Eigen::VectorXf a1 = l->getOutputActivation();
-    ASSERT_EQ( z1.rows(), 2 );
-    ASSERT_NEAR( z1(0), 0, 0.0001 );
-    ASSERT_NEAR( a1(0), Neuron::sigmoid(0), 0.0001 );
-    ASSERT_NEAR( z1(1), 2, 0.0001 );
-    ASSERT_NEAR( a1(1), Neuron::sigmoid(2), 0.0001 );
-
-    Eigen::VectorXf x2(2);  x2 << 1, 2;
-    // n0: 1*1 + 2*2 + 0 = 5    n1: 1*3 + 2*4 + 2 = 13
-    l->feedForwardSlow(x2);
-    const Eigen::VectorXf z2 = l->getWeightedInputZ();
-    const Eigen::VectorXf a2 = l->getOutputActivation();
-    ASSERT_NEAR( z2(0), 5, 0.0001 );
-    ASSERT_NEAR( a2(0), Neuron::sigmoid(5), 0.0001 );
-    ASSERT_NEAR( z2(1), 13, 0.0001 );
-    ASSERT_NEAR( a2(1), Neuron::sigmoid(13), 0.0001 );
-
-    // check safing of input activation (should be x2)
-    const Eigen::VectorXf in_act = l->getInputActivation();
-    ASSERT_NEAR( x2(0), in_act(0), 0.0001 );
-    ASSERT_NEAR( x2(1), in_act(1), 0.0001 );
-
-    delete l;
-}
-
 TEST(LayerTest, SetWeightsAndBiases)
 {
     Layer* l = new Layer( 2, 2 );
@@ -160,38 +107,38 @@ TEST(LayerTest, SetWeightsAndBiases)
     ASSERT_FALSE( l->setBiases( bV ) );
 
     // check some weights and biases
-    ASSERT_NEAR( (l->getNeuron(0)->getWeights())(0), 1, 0.0001 );
-    ASSERT_NEAR( (l->getNeuron(1)->getWeights())(1), 4 , 0.0001 );
-    ASSERT_NEAR( l->getNeuron(1)->getBias(), 6 , 0.0001 );
+    ASSERT_NEAR( (l->getWeigtMatrix()(0,0)), 1, 0.0001 );
+    ASSERT_NEAR( (l->getWeigtMatrix()(1,1)), 4 , 0.0001 );
+    ASSERT_NEAR( l->getBiasVector()(1), 6 , 0.0001 );
 
     // set uniform neuron settings
     l->setBias( 10.00 );
     l->setWeight( 13.00 );
-    ASSERT_NEAR( (l->getNeuron(0)->getWeights())(0), 13.00, 0.0001 );
-    ASSERT_NEAR( (l->getNeuron(1)->getWeights())(1), 13.00, 0.0001 );
-    ASSERT_NEAR( l->getNeuron(1)->getBias(), 10.00 , 0.0001 );
-    ASSERT_NEAR( l->getNeuron(0)->getBias(), 10.00 , 0.0001 );
+    ASSERT_NEAR( (l->getWeigtMatrix()(0,0)), 13.00, 0.0001 );
+    ASSERT_NEAR( (l->getWeigtMatrix()(1,1)), 13.00, 0.0001 );
+    ASSERT_NEAR( l->getBiasVector()(1), 10.00 , 0.0001 );
+    ASSERT_NEAR( l->getBiasVector()(0), 10.00 , 0.0001 );
 
     l->resetRandomlyWeightsAndBiases();
-    ASSERT_TRUE( fabs( l->getNeuron(0)->getBias() ) < 2.0 ); // Theoretically, this could fail. But this is very unlikely.
+    ASSERT_TRUE( fabs( l->getBiasVector()(0) ) < 2.0 ); // Theoretically, this could fail. But this is very unlikely.
 
     // set directly vector
     Eigen::VectorXf bVector_wrongSize(3);  bVector_wrongSize << 1, 2, 3;
     ASSERT_FALSE( l->setBiases( bVector_wrongSize ) );
     Eigen::VectorXf bVector_rightSize(2);  bVector_rightSize << 6, 344;
     ASSERT_TRUE( l->setBiases( bVector_rightSize ) );
-    ASSERT_NEAR( l->getNeuron(0)->getBias(), 6.0 , 0.0001 );
-    ASSERT_NEAR( l->getNeuron(1)->getBias(), 344.0 , 0.0001 );
+    ASSERT_NEAR( l->getBiasVector()(0), 6.0 , 0.0001 );
+    ASSERT_NEAR( l->getBiasVector()(1), 344.0 , 0.0001 );
 
     // set directly matrix
     Eigen::MatrixXf wMatrixWrong = Eigen::MatrixXf( 2 , 3 ); wMatrixWrong << 1,2,3,4,5,6;
     ASSERT_FALSE( l->setWeights( wMatrixWrong ));
     Eigen::MatrixXf wMatrixRight = Eigen::MatrixXf( 2 , 2 ); wMatrixRight << 10, 11,   15, 16;
     ASSERT_TRUE( l->setWeights( wMatrixRight ));
-    ASSERT_NEAR( l->getNeuron(0)->getWeights()(0), 10.0, 0.0001 );
-    ASSERT_NEAR( l->getNeuron(0)->getWeights()(1), 11.0, 0.0001 );
-    ASSERT_NEAR( l->getNeuron(1)->getWeights()(0), 15.0, 0.0001 );
-    ASSERT_NEAR( l->getNeuron(1)->getWeights()(1), 16.0, 0.0001 );
+    ASSERT_NEAR( l->getWeigtMatrix()(0,0), 10.0, 0.0001 );
+    ASSERT_NEAR( l->getWeigtMatrix()(0,1), 11.0, 0.0001 );
+    ASSERT_NEAR( l->getWeigtMatrix()(1,0), 15.0, 0.0001 );
+    ASSERT_NEAR( l->getWeigtMatrix()(1,1), 16.0, 0.0001 );
 
     delete l;
 }

@@ -23,78 +23,13 @@
 
 #include "neuron.h"
 #include <cmath>
-#include <iostream>
-#include <random>
 
-Neuron::Neuron( const unsigned int& nbr_of_input ) :
-    m_nbr_of_inputs( nbr_of_input )
-{
-    m_weights = Eigen::VectorXf(nbr_of_input);
-    m_bias = 0;
-
-    setRandomWeights( 0.0, 1.0 );
-    setRandomBias( 0.0, 1.0 );
-}
-
-Neuron::~Neuron()
-{
-
-}
-
-bool Neuron::feedForward(const Eigen::VectorXf& x_in , float& z, float &activation)
-{
-    if( x_in.rows() != m_nbr_of_inputs )
-    {
-        std::cout << "Error: Input vector size mismatch" << std::endl;
-        return false;
-    }
-
-    z = x_in.dot(m_weights) + m_bias;
-    activation = sigmoid(z);
-
-    return true;
-}
-
-bool Neuron::setWeights( const Eigen::VectorXf& weights )
-{
-    if( weights.rows() != m_nbr_of_inputs )
-    {
-        std::cout << "Error: Weight vector size mismatch" << std::endl;
-        return false;
-    }
-
-    m_weights = weights;
-    return true;
-}
-
-void Neuron::setRandomWeights( const float& mean, const float& deviation )
-{
-    std::default_random_engine randomGenerator;
-    std::normal_distribution<float> gNoise(mean, deviation);
-
-    for( unsigned int i = 0; i < m_weights.rows(); i++ )
-        m_weights(i) = gNoise(randomGenerator);
-}
-
-void Neuron::setBias( const float& bias )
-{
-    m_bias = bias;
-}
-
-void Neuron::setRandomBias( const float& mean, const float& deviation )
-{
-    std::default_random_engine randomGenerator;
-    std::normal_distribution<float> gNoise(mean, deviation);
-
-    setBias( gNoise(randomGenerator) );
-}
-
-float Neuron::sigmoid( const float& z )
+double Neuron::sigmoid( const double& z )
 {
     return 1.0 / ( 1.0 + std::exp(-z) );
 }
 
-float Neuron::d_sigmoid( const float& z )
+double Neuron::d_sigmoid( const double& z )
 {
     return sigmoid(z) * ( 1.0 - sigmoid(z) );
 }

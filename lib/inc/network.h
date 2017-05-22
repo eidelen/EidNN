@@ -21,8 +21,8 @@
 **
 *****************************************************************************/
 
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#ifndef NETWORKHEADER
+#define NETWORKHEADER
 
 #include <vector>
 #include <memory>
@@ -65,14 +65,14 @@ public:
     /**
      * Returns the number of layers.
      */
-    size_t getNumberOfLayer();
+    int getNumberOfLayer();
 
     /**
      * Return a handle to the layer at index layerIdx.
      * @param layerIdx Layer index.
      * @return Null, if layer does not exist. Otherwise handle to layer.
      */
-    shared_ptr<Layer> getLayer(const size_t& layerIdx );
+    shared_ptr<Layer> getLayer(const int& layerIdx );
 
     /**
      * Returns the last layer, also called output layer.
@@ -111,4 +111,4 @@ private:
     Eigen::VectorXf m_activation_out;
 };
 
-#endif //_NETWORK_H_
+#endif //NETWORKHEADER

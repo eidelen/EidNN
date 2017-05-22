@@ -21,8 +21,8 @@
 **
 *****************************************************************************/
 
-#ifndef _HELPERS_H
-#define _HELPERS_H
+#ifndef HELPERSHEADER
+#define HELPERSHEADER
 
 #include <string>
 #include <eigen3/Eigen/Dense>
@@ -36,4 +36,4 @@ public:
     static void printMatrix( const Eigen::MatrixXf& mat, const string& name );
 };
 
-#endif //_HELPERS_H
+#endif //HELPERSHEADER

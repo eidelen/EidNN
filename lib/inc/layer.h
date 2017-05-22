@@ -21,8 +21,8 @@
 **
 *****************************************************************************/
 
-#ifndef _LAYER_H_
-#define _LAYER_H_
+#ifndef LAYERHEADER
+#define LAYERHEADER
 
 
 #include <vector>
@@ -33,8 +33,6 @@
 #include "network.h"
 
 using namespace std;
-
-class Neuron;
 
 class Layer
 {
@@ -66,15 +64,6 @@ public:
      * @return true if successful.
      */
     bool feedForward( const Eigen::VectorXf& x_in );
-
-    /**
-     * Compute the neural layer output signal based on the input signal x_in.
-     * The output signal can be accessed with the function getOutputActivation().
-     * The computation is done for each neuron, what is slow.
-     * @param x_in Input signal.
-     * @return true if successful.
-     */
-    bool feedForwardSlow( const Eigen::VectorXf& x_in );
 
     /**
      * Sets the weights-vector in each neuron of this layer.
@@ -135,14 +124,6 @@ public:
      * with zero-mean Gaussian noise of standard deviation 1.0
      */
     void resetRandomlyWeightsAndBiases();
-
-    /**
-     * Gets a pointer to the neuron a position nIdx within this layer.
-     * @param nIdx
-     * @return shared_ptr<Neuron>
-     */
-    shared_ptr<Neuron> getNeuron( const unsigned int& nIdx );
-
 
     /**
      * Get the output activation of this layer. This function is usually called
@@ -237,14 +218,8 @@ private:
      */
     bool setActivationOutput( const Eigen::VectorXf& activation_out );
 
-    /**
-     * This function assembles the weight matrix out of the weights
-     * in each neuron of the layer and the corresponding bias vector.
-     */
-    void updateWeightMatrixAndBiasVector();
 
 private:
-    vector< shared_ptr<Neuron> > m_neurons;
     const unsigned int m_nbr_of_neurons;
     const unsigned int m_nbr_of_inputs;
 
@@ -260,4 +235,4 @@ private:
     Eigen::MatrixXf m_weight_partialDerivatives;
 };
 
-#endif //_LAYER_H_
+#endif //LAYERHEADER
