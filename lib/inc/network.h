@@ -53,26 +53,26 @@ public:
      * @param x_in Input signal.
      * @return true if successful.
      */
-    bool feedForward( const Eigen::VectorXf& x_in );
+    bool feedForward( const Eigen::VectorXd& x_in );
 
     /**
      * Get the output activation of this neural network. This function is usually
      * called after feedForward() is executed.
      * @return Output activation vector.
      */
-    const Eigen::VectorXf& getOutputActivation() const { return m_activation_out; }
+    const Eigen::VectorXd& getOutputActivation() const { return m_activation_out; }
 
     /**
      * Returns the number of layers.
      */
-    int getNumberOfLayer();
+    unsigned int getNumberOfLayer() const;
 
     /**
      * Return a handle to the layer at index layerIdx.
      * @param layerIdx Layer index.
      * @return Null, if layer does not exist. Otherwise handle to layer.
      */
-    shared_ptr<Layer> getLayer(const int& layerIdx );
+    shared_ptr<Layer> getLayer(const unsigned int &layerIdx );
 
     /**
      * Returns the last layer, also called output layer.
@@ -87,14 +87,14 @@ public:
      * @param eta Learning rate.
      * @return true if successful.
      */
-    bool backpropagation(const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out , const float& eta);
+    bool backpropagation(const Eigen::VectorXd x_in, const Eigen::VectorXd& y_out , const double& eta);
 
     /**
      * Returns the magnitude of the error vector in the output layer. This error is
      * initialized during the backpropagation.
      * @return error magnitude
      */
-    float getNetworkErrorMagnitude();
+    double getNetworkErrorMagnitude();
 
 
     void print();
@@ -108,7 +108,7 @@ private:
 
     const vector<unsigned int> m_NetworkStructure;
     vector< shared_ptr<Layer> > m_Layers;
-    Eigen::VectorXf m_activation_out;
+    Eigen::VectorXd m_activation_out;
 };
 
 #endif //NETWORKHEADER

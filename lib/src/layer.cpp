@@ -35,7 +35,7 @@ Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs) :
     initLayer();
 }
 
-Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXf>& weights, const vector<float>& biases ) :
+Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights, const vector<double>& biases ) :
     Layer::Layer( uint(weights.size()), nbr_of_inputs )
 {
     assert( weights.size() ==  biases.size() );
@@ -53,7 +53,7 @@ Layer::~Layer()
     // used smart pointers
 }
 
-bool Layer::feedForward( const Eigen::VectorXf& x_in )
+bool Layer::feedForward( const Eigen::VectorXd& x_in )
 {
     if( x_in.rows() != m_nbr_of_inputs )
     {
@@ -77,19 +77,19 @@ bool Layer::feedForward( const Eigen::VectorXf& x_in )
 // init vectors and neurons
 void Layer::initLayer()
 {
-    m_activation_in = Eigen::VectorXf( m_nbr_of_inputs );
-    m_activation_out = Eigen::VectorXf( m_nbr_of_neurons );
-    m_z_weighted_input = Eigen::VectorXf( m_nbr_of_neurons );
-    m_weightMatrix = Eigen::MatrixXf( m_nbr_of_neurons , m_nbr_of_inputs );
-    m_biasVector = Eigen::VectorXf( m_nbr_of_neurons );
-    m_bias_partialDerivatives = Eigen::VectorXf( m_nbr_of_neurons );
-    m_weight_partialDerivatives = Eigen::MatrixXf( m_nbr_of_neurons , m_nbr_of_inputs );
+    m_activation_in = Eigen::VectorXd( m_nbr_of_inputs );
+    m_activation_out = Eigen::VectorXd( m_nbr_of_neurons );
+    m_z_weighted_input = Eigen::VectorXd( m_nbr_of_neurons );
+    m_weightMatrix = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
+    m_biasVector = Eigen::VectorXd( m_nbr_of_neurons );
+    m_bias_partialDerivatives = Eigen::VectorXd( m_nbr_of_neurons );
+    m_weight_partialDerivatives = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
 
     resetRandomlyWeightsAndBiases();
 }
 
 
-bool Layer::setWeights( const vector<Eigen::VectorXf>& weights )
+bool Layer::setWeights( const vector<Eigen::VectorXd>& weights )
 {
     if( weights.size() != getNbrOfNeurons() )
     {
@@ -103,7 +103,7 @@ bool Layer::setWeights( const vector<Eigen::VectorXf>& weights )
     return true;
 }
 
-bool Layer::setWeights( const Eigen::MatrixXf& weights )
+bool Layer::setWeights( const Eigen::MatrixXd& weights )
 {
     if( weights.rows() != m_weightMatrix.rows() || weights.cols() != m_weightMatrix.cols() )
     {
@@ -115,7 +115,7 @@ bool Layer::setWeights( const Eigen::MatrixXf& weights )
     return true;
 }
 
-bool Layer::setBiases( const vector<float>& biases )
+bool Layer::setBiases( const vector<double>& biases )
 {
     if( biases.size() != getNbrOfNeurons() )
     {
@@ -129,7 +129,7 @@ bool Layer::setBiases( const vector<float>& biases )
     return true;
 }
 
-bool Layer::setBiases( const Eigen::VectorXf& biases )
+bool Layer::setBiases( const Eigen::VectorXd& biases )
 {
     if( biases.rows() != getNbrOfNeurons() )
     {
@@ -142,33 +142,32 @@ bool Layer::setBiases( const Eigen::VectorXf& biases )
     return true;
 }
 
-void Layer::setWeight( const float& weight )
+void Layer::setWeight( const double& weight )
 {
-    Eigen::VectorXf uniformWeight = Eigen::VectorXf::Constant(getNbrOfNeuronInputs(), weight);
+    Eigen::VectorXd uniformWeight = Eigen::VectorXd::Constant(getNbrOfNeuronInputs(), weight);
 
-    for( int n = 0; n < getNbrOfNeurons(); n++ )
+    for( unsigned int n = 0; n < getNbrOfNeurons(); n++ )
         m_weightMatrix.row(n) = uniformWeight.transpose();
-
 }
 
 
-void Layer::setBias( const float& bias )
+void Layer::setBias(const double &bias )
 {
-    m_biasVector = Eigen::VectorXf::Constant(getNbrOfNeurons(), bias);
+    m_biasVector = Eigen::VectorXd::Constant(getNbrOfNeurons(), bias);
 }
 
 
 void Layer::resetRandomlyWeightsAndBiases()
 {
     std::default_random_engine randomGenerator;
-    std::normal_distribution<float> gNoise(0.0, 1.0);
+    std::normal_distribution<double> gNoise(0.0, 1.0);
 
-    for( int i = 0; i < getNbrOfNeurons(); i++ )
+    for( unsigned int i = 0; i < getNbrOfNeurons(); i++ )
     {
         m_biasVector(i) = gNoise(randomGenerator);
 
-        Eigen::VectorXf thisWeights = Eigen::VectorXf( getNbrOfNeuronInputs() );
-        for( int k = 0; k < getNbrOfNeuronInputs(); k++ )
+        Eigen::VectorXd thisWeights = Eigen::VectorXd( getNbrOfNeuronInputs() );
+        for( unsigned int k = 0; k < getNbrOfNeuronInputs(); k++ )
             thisWeights(k) = gNoise(randomGenerator);
 
         m_weightMatrix.row(i) = thisWeights.transpose();
@@ -176,7 +175,7 @@ void Layer::resetRandomlyWeightsAndBiases()
 }
 
 
-bool Layer::setActivationOutput( const Eigen::VectorXf& activation_out )
+bool Layer::setActivationOutput( const Eigen::VectorXd& activation_out )
 {
     if( activation_out.rows() != m_activation_out.rows() )
     {
@@ -188,7 +187,7 @@ bool Layer::setActivationOutput( const Eigen::VectorXf& activation_out )
     return true;
 }
 
-bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXf& expectedNetworkOutput )
+bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXd& expectedNetworkOutput )
 {
     if( m_activation_out.rows() != expectedNetworkOutput.rows() )
     {
@@ -200,7 +199,7 @@ bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXf& expec
     return true;
 }
 
-bool Layer::computeBackprogationError( const Eigen::VectorXf& errorNextLayer, const Eigen::MatrixXf& weightMatrixNextLayer )
+bool Layer::computeBackprogationError( const Eigen::VectorXd& errorNextLayer, const Eigen::MatrixXd& weightMatrixNextLayer )
 {
     if( m_z_weighted_input.rows() != weightMatrixNextLayer.cols()  ||  errorNextLayer.rows() != weightMatrixNextLayer.rows() )
     {
@@ -213,10 +212,10 @@ bool Layer::computeBackprogationError( const Eigen::VectorXf& errorNextLayer, co
 }
 
 
-const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
+const Eigen::VectorXd Layer::d_sigmoid( const Eigen::VectorXd& z )
 {
     long nbrOfComponents = z.rows();
-    Eigen::VectorXf res = Eigen::VectorXf( nbrOfComponents );
+    Eigen::VectorXd res = Eigen::VectorXd( nbrOfComponents );
 
     for( unsigned int k = 0; k < nbrOfComponents; k++ )
         res(k) = Neuron::d_sigmoid( z(k) );
@@ -226,27 +225,29 @@ const Eigen::VectorXf Layer::d_sigmoid( const Eigen::VectorXf& z )
 
 void Layer::computePartialDerivatives()
 {
-    Eigen::VectorXf delta = getBackpropagationError();
+    Eigen::VectorXd delta = getBackpropagationError();
 
     // bias
     m_bias_partialDerivatives = delta;
 
     // weights
-    Eigen::VectorXf activation_in = getInputActivation(); 
+    Eigen::VectorXd activation_in = getInputActivation();
     m_weight_partialDerivatives = delta * activation_in.transpose(); // This is different from the 4th-equation? Study!
 }
 
-void Layer::updateWeightsAndBiases( const float& eta )
+void Layer::updateWeightsAndBiases(const double &eta )
 {
-    const Eigen::VectorXf newBiases = getBiasVector() - (eta * getPartialDerivativesBiases());
+    const Eigen::VectorXd newBiases = getBiasVector() - (eta * getPartialDerivativesBiases());
     setBiases( newBiases );
 
-    const Eigen::MatrixXf newWeights = getWeigtMatrix() - (eta * getPartialDerivativesWeights() );
+    const Eigen::MatrixXd newWeights = getWeigtMatrix() - (eta * getPartialDerivativesWeights() );
     setWeights( newWeights );
 }
 
 void Layer::print() const
 {
+    Eigen::VectorXd a;
+
     Helpers::printVector(getBiasVector(),"Biases");
     Helpers::printMatrix(getWeigtMatrix(),"Weights");
     Helpers::printVector(getBackpropagationError(),"Error");

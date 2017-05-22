@@ -61,16 +61,16 @@ TEST(NetworkTest, FeedForward_1)
         l->setWeight( 0.0 );
     }
 
-    Eigen::VectorXf x1(1); x1 << 0.0;
+    Eigen::VectorXd x1(1); x1 << 0.0;
     ASSERT_TRUE(net1->feedForward(x1));
-    const Eigen::VectorXf out1 = net1->getOutputActivation();
+    const Eigen::VectorXd out1 = net1->getOutputActivation();
     ASSERT_NEAR( out1(0), 0.5, 0.0001 );
     ASSERT_NEAR( out1(1), 0.5, 0.0001 );
 
 
-    Eigen::VectorXf x2(1); x2 << 10000.0;
+    Eigen::VectorXd x2(1); x2 << 10000.0;
     ASSERT_TRUE(net1->feedForward(x2));
-    const Eigen::VectorXf out2 = net1->getOutputActivation();
+    const Eigen::VectorXd out2 = net1->getOutputActivation();
     ASSERT_NEAR( out2(0), 0.5, 0.0001 );
     ASSERT_NEAR( out2(1), 0.5, 0.0001 );
 
@@ -89,10 +89,10 @@ TEST(NetworkTest, FeedForward_Reference)
         l->setWeight( 1.0 );
     }
 
-    std::vector<float> layer1_b; layer1_b.push_back(0.2); layer1_b.push_back(-0.3);
+    std::vector<double> layer1_b; layer1_b.push_back(0.2); layer1_b.push_back(-0.3);
     net->getLayer( 1 )->setBiases(layer1_b);
 
-    std::vector<float> layer2_b; layer2_b.push_back(0.4);
+    std::vector<double> layer2_b; layer2_b.push_back(0.4);
     net->getLayer( 2 )->setBiases(layer2_b);
 
     /*      IN              L1                                  L2
@@ -103,10 +103,10 @@ TEST(NetworkTest, FeedForward_Reference)
      *
      */
 
-    Eigen::VectorXf x(1); x << 0.0;
+    Eigen::VectorXd x(1); x << 0.0;
     ASSERT_TRUE(net->feedForward(x));
-    const Eigen::VectorXf out = net->getOutputActivation();
-    float outputShouldBe = Neuron::sigmoid( Neuron::sigmoid(0.2) + Neuron::sigmoid(-0.3) + 0.4);
+    const Eigen::VectorXd out = net->getOutputActivation();
+    double outputShouldBe = Neuron::sigmoid( Neuron::sigmoid(0.2) + Neuron::sigmoid(-0.3) + 0.4);
     ASSERT_NEAR( out(0),  outputShouldBe, 0.0001 );
 
     delete net;
@@ -117,10 +117,10 @@ TEST(NetworkTest, Backpropagation_input)
     std::vector<unsigned int> map = {1,4,2};
     Network* net = new Network(map);
 
-    Eigen::VectorXf x(1); x << 0.0;
-    Eigen::VectorXf x_wrong_dimension(2); x_wrong_dimension << 0.0, 0.0;
-    Eigen::VectorXf y(2); y << 0.0, 0.0;
-    Eigen::VectorXf y_wrong_dimension(1); y_wrong_dimension << 0.0;
+    Eigen::VectorXd x(1); x << 0.0;
+    Eigen::VectorXd x_wrong_dimension(2); x_wrong_dimension << 0.0, 0.0;
+    Eigen::VectorXd y(2); y << 0.0, 0.0;
+    Eigen::VectorXd y_wrong_dimension(1); y_wrong_dimension << 0.0;
 
     // check invalid dimensions
     ASSERT_TRUE( net->backpropagation(x, y, 1.0 ));
@@ -139,25 +139,25 @@ TEST(NetworkTest, Backpropagation_input)
     }
 
     // set expected outcome to 0.5. Therefore all errors and all partial derivatives in the network are 0.0
-    Eigen::VectorXf y_zero_error(2); y_zero_error << 0.5, 0.5;
+    Eigen::VectorXd y_zero_error(2); y_zero_error << 0.5, 0.5;
     net->backpropagation( x, y_zero_error, 1.0 );
 
     for( unsigned int u = 0; u < net->getNumberOfLayer(); u++ )
     {
         std::shared_ptr<Layer> ll = net->getLayer( u );
 
-        Eigen::VectorXf err;
+        Eigen::VectorXd err;
         err = ll->getBackpropagationError();
 
         // check that all are zero
         for( unsigned int q = 0; q < err.rows(); q++ )
             ASSERT_NEAR( err(q),  0.0, 0.0001 );
 
-        Eigen::VectorXf pd_biases = ll->getPartialDerivativesBiases();
+        Eigen::VectorXd pd_biases = ll->getPartialDerivativesBiases();
         for( unsigned int q = 0; q < pd_biases.rows(); q++ )
             ASSERT_NEAR( pd_biases(q),  0.0, 0.0001 );
 
-        Eigen::MatrixXf pd_weights = ll->getPartialDerivativesWeights();
+        Eigen::MatrixXd pd_weights = ll->getPartialDerivativesWeights();
         for( unsigned int q = 0; q < pd_weights.rows(); q++ )
             for( unsigned int p = 0; p < pd_weights.cols(); p++ )
                 ASSERT_NEAR( pd_weights(q,p),  0.0, 0.0001 );
@@ -180,12 +180,12 @@ TEST(NetworkTest, Backpropagation_Errors)
     }
 
     // input & output
-    Eigen::VectorXf x(1); x << 0.0;  // this leads to network output of [0.52498, 0.52498]
+    Eigen::VectorXd x(1); x << 0.0;  // this leads to network output of [0.52498, 0.52498]
 
 
 
     //Test 1) create an expected value equal to the output -> no error
-    net->feedForward( x ); Eigen::VectorXf y = net->getOutputActivation();
+    net->feedForward( x ); Eigen::VectorXd y = net->getOutputActivation();
     net->backpropagation(x, y, 1.0);
 
     // expected errors in outputlayer = [0.0, 0.0]
@@ -209,12 +209,12 @@ TEST(NetworkTest, Backpropagation_Errors)
     net->backpropagation(x,y, 1.0);
 
     // check error
-    float errMag = net->getNetworkErrorMagnitude();
+    double errMag = net->getNetworkErrorMagnitude();
     ASSERT_NEAR( errMag, 0.02350037, 0.00001 );
 
 
     // expected errors and derivatives for neuron 0 is 0.0
-    Eigen::VectorXf kx = net->getOutputLayer()->getBackpropagationError();
+    Eigen::VectorXd kx = net->getOutputLayer()->getBackpropagationError();
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
     ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
     ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(0), 0.0, 0.0001 );
@@ -237,10 +237,10 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
         for( int ts = 0; ts < 1000; ts++ )
         {
             double valIn = dist(e2);
-            Eigen::VectorXf x(1);
+            Eigen::VectorXd x(1);
             x(0) = valIn;
 
-            Eigen::VectorXf y(2);
+            Eigen::VectorXd y(2);
             if( valIn > 0 )
                 y << 1.0, 0.0;
             else
@@ -249,17 +249,17 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
             net->backpropagation( x, y, 0.25 );
         }
 
-        float nbrOfTests = 100;
-        float nbrSuccessful = 0;
+        double nbrOfTests = 100;
+        double nbrSuccessful = 0;
 
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
         {
             double testVal = dist(e2);
-            Eigen::VectorXf x(1);
+            Eigen::VectorXd x(1);
             x(0) = testVal;
 
             net->feedForward( x );
-            Eigen::VectorXf o_activation = net->getOutputActivation();
+            Eigen::VectorXd o_activation = net->getOutputActivation();
 
             if( testVal > 0 )
             {
@@ -294,14 +294,14 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
         choice.push_back( inp );
 
 
-    float bestResult = -1.0f;
+    double bestResult = -1.0f;
     for( int evolutions = 0; evolutions < 100; evolutions++ )
     {
         for( int ts = 0; ts < 1000; ts++ )
         {
 
             // generate input
-            Eigen::VectorXf x(3);
+            Eigen::VectorXd x(3);
             std:vector<int> set = choice;
             for( int i = 0; i < 3; i++ )
             {
@@ -318,9 +318,9 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             }
 
             // ... and corresponding output (index of maximum value)
-            Eigen::VectorXf y(3); y << 0, 0, 0;
+            Eigen::VectorXd y(3); y << 0, 0, 0;
             int maxIdx = 0;
-            float maxValue = -1;
+            double maxValue = -1;
             for( int i = 0; i < 3; i++ )
             {
                 if( x(i) > maxValue )
@@ -335,13 +335,13 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
         }
 
 
-        float nbrOfTests = 100;
-        float nbrSuccessful = 0;
+        double nbrOfTests = 100;
+        double nbrSuccessful = 0;
 
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
         {
             // generate input
-            Eigen::VectorXf x(3);
+            Eigen::VectorXd x(3);
             vector<int> set = choice;
             for( int i = 0; i < 3; i++ )
             {
@@ -358,9 +358,9 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             }
 
             // ... and corresponding output (index of maximum value)
-            Eigen::VectorXf y(3); y << 0, 0, 0;
+            Eigen::VectorXd y(3); y << 0, 0, 0;
             int maxIdx = 0;
-            float maxValue = -1;
+            double maxValue = -1;
             for( int i = 0; i < 3; i++ )
             {
                 if( x(i) > maxValue )
@@ -377,7 +377,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
                 nbrSuccessful = nbrSuccessful + 1.0f;
         }
 
-        float thisSuccessRate = 100 * nbrSuccessful / nbrOfTests;
+        double thisSuccessRate = 100 * nbrSuccessful / nbrOfTests;
         std::cout << "Evolution " << evolutions <<  ": success rate = " << thisSuccessRate << "%" << std::endl;
 
         if( bestResult < thisSuccessRate )
@@ -403,8 +403,8 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
     {
         for( int ts = 0; ts < 10000; ts++ )
         {
-            Eigen::VectorXf x(3);
-            Eigen::VectorXf y(3);
+            Eigen::VectorXd x(3);
+            Eigen::VectorXd y(3);
             for( uint i = 0; i < 3; i++ )
             {
                 x(i) =  dist(e2) ;
@@ -414,13 +414,13 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             net->backpropagation( x, y, 0.1 );
         }
 
-        float nbrOfTests = 100;
-        float nbrSuccessful = 0;
+        double nbrOfTests = 100;
+        double nbrSuccessful = 0;
 
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
         {
-            Eigen::VectorXf x(3);
-            Eigen::VectorXf y(3);
+            Eigen::VectorXd x(3);
+            Eigen::VectorXd y(3);
             for( uint i = 0; i < 3; i++ )
             {
                 x(i) = dist(e2);
@@ -429,10 +429,10 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
 
             net->feedForward( x );
 
-            Eigen::VectorXf o_activation = net->getOutputActivation();
+            Eigen::VectorXd o_activation = net->getOutputActivation();
 
             // compare o_activation against y
-            float diff = (o_activation - y).norm();
+            double diff = (o_activation - y).norm();
 
             if( diff < 0.5 )
                 nbrSuccessful = nbrSuccessful + 1.0f;

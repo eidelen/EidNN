@@ -27,13 +27,13 @@
 
 using namespace std;
 
-void Helpers::printVector( const Eigen::VectorXf& vector, const string& name )
+void Helpers::printVector( const Eigen::VectorXd& vector, const string& name )
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
     cout << name << ":" << endl << vector.format(CleanFmt) << endl;
 }
 
-void Helpers::printMatrix( const Eigen::MatrixXf& mat, const string& name )
+void Helpers::printMatrix( const Eigen::MatrixXd& mat, const string& name )
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
     cout << name << ":" << endl << mat.format(CleanFmt) << endl;

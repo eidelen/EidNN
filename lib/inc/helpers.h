@@ -32,8 +32,8 @@ using namespace std;
 class Helpers
 {
 public:
-    static void printVector( const Eigen::VectorXf& vector, const string& name );
-    static void printMatrix( const Eigen::MatrixXf& mat, const string& name );
+    static void printVector( const Eigen::VectorXd& vector, const string& name );
+    static void printMatrix( const Eigen::MatrixXd& mat, const string& name );
 };
 
 #endif //HELPERSHEADER

@@ -49,10 +49,10 @@ void Network::initNetwork()
         nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
     }
 
-    m_activation_out = Eigen::VectorXf( m_NetworkStructure.back() ); // output activation vector has the size of the last layer (output layer)
+    m_activation_out = Eigen::VectorXd( m_NetworkStructure.back() ); // output activation vector has the size of the last layer (output layer)
 }
 
-bool Network::feedForward( const Eigen::VectorXf& x_in )
+bool Network::feedForward( const Eigen::VectorXd& x_in )
 {
     // first layer does not perform any operation. It's activation output is just x_in.
     if( ! getLayer(0)->setActivationOutput(x_in) )
@@ -77,12 +77,12 @@ bool Network::feedForward( const Eigen::VectorXf& x_in )
     return true;
 }
 
-int Network::getNumberOfLayer()
+unsigned int Network::getNumberOfLayer() const
 {
-    return int(m_NetworkStructure.size());
+    return unsigned(m_NetworkStructure.size());
 }
 
-shared_ptr<Layer> Network::getLayer( const int& layerIdx )
+shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
 {
     if( layerIdx >= getNumberOfLayer() )
     {
@@ -93,7 +93,7 @@ shared_ptr<Layer> Network::getLayer( const int& layerIdx )
     return m_Layers.at(layerIdx);
 }
 
-bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf& y_out, const float& eta )
+bool Network::backpropagation( const Eigen::VectorXd x_in, const Eigen::VectorXd& y_out, const double& eta )
 {
     // updates output in all layers
     if( ! feedForward(x_in) )
@@ -113,9 +113,9 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
     layerAfter->computePartialDerivatives();
 
     // Compute error and partial derivatives in all remaining layers
-    for( int k = getNumberOfLayer() - 2; k >= 0; k-- )
+    for( int k = int(getNumberOfLayer()) - 2; k >= 0; k-- )
     {
-        std::shared_ptr<Layer> thisLayer = getLayer(k);
+        std::shared_ptr<Layer> thisLayer = getLayer( unsigned(k) );
         thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeigtMatrix() );
         thisLayer->computePartialDerivatives();
 
@@ -124,7 +124,7 @@ bool Network::backpropagation( const Eigen::VectorXf x_in, const Eigen::VectorXf
 
     // Update weights and biases with the computed derivatives and learning rate.
     // First layer doew not need to be updated -> no effect in input layer
-    for( size_t k = 1; k < getNumberOfLayer(); k++ )
+    for( unsigned int k = 1; k < getNumberOfLayer(); k++ )
         getLayer(k)->updateWeightsAndBiases( eta );
 
     return true;
@@ -135,16 +135,16 @@ shared_ptr<Layer> Network::getOutputLayer()
     return getLayer( getNumberOfLayer() - 1 );
 }
 
-float Network::getNetworkErrorMagnitude()
+double Network::getNetworkErrorMagnitude()
 {
-    Eigen::VectorXf oErr =  getOutputLayer()->getBackpropagationError();
+    Eigen::VectorXd oErr =  getOutputLayer()->getBackpropagationError();
     return oErr.norm();
 }
 
 void Network::print()
 {
     // skip first layer -> input
-    for( size_t i = 1; i < getNumberOfLayer(); i++ )
+    for( unsigned int i = 1; i < getNumberOfLayer(); i++ )
     {
         shared_ptr<Layer> l = getLayer( i );
 
