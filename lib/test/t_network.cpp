@@ -222,19 +222,19 @@ TEST(NetworkTest, Backpropagation_Errors)
     delete net;
 }
 
-TEST(NetworkTest, Backpropagate_Simple_Examples)
+TEST(NetworkTest, Backpropagate_Simple_Example)
 {
     // recognize positive numbers and negative numbers in the range of -100 to 100
-    std::vector<unsigned int> map = {1,2};
+    std::vector<unsigned int> map = {1,5,2};
     Network* net = new Network(map);
 
     std::random_device rd;
     std::mt19937 e2(rd());
     std::uniform_real_distribution<> dist(-10000, +10000);
 
-    for( int evolutions = 0; evolutions < 50; evolutions++ )
+    for( int evolutions = 0; evolutions < 100; evolutions++ )
     {
-        for( int ts = 0; ts < 100; ts++ )
+        for( int ts = 0; ts < 1000; ts++ )
         {
             double valIn = dist(e2);
             Eigen::VectorXf x(1);
@@ -249,7 +249,7 @@ TEST(NetworkTest, Backpropagate_Simple_Examples)
             net->backpropagation( x, y, 0.25 );
         }
 
-        float nbrOfTests = 1000;
+        float nbrOfTests = 100;
         float nbrSuccessful = 0;
 
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
@@ -278,6 +278,175 @@ TEST(NetworkTest, Backpropagate_Simple_Examples)
 
     delete  net;
 }
+
+TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
+{
+    // find the index of the biggest element in a vector
+    std::vector<unsigned int> map = {3,10,3};
+    Network* net = new Network(map);
+
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_real_distribution<> dist(0, 9);
+
+    std::vector<int> choice;
+    for( int inp = 0; inp < 10; inp++ )
+        choice.push_back( inp );
+
+
+    float bestResult = -1.0f;
+    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    {
+        for( int ts = 0; ts < 1000; ts++ )
+        {
+
+            // generate input
+            Eigen::VectorXf x(3);
+            std:vector<int> set = choice;
+            for( int i = 0; i < 3; i++ )
+            {
+                while( true )
+                {
+                    uint elemIdx = uint( floor(dist(e2)) );
+                    if( elemIdx < set.size() )
+                    {
+                        x(i) = set.at( elemIdx );
+                        set.erase( set.begin() + elemIdx );
+                        break;
+                    }
+                }
+            }
+
+            // ... and corresponding output (index of maximum value)
+            Eigen::VectorXf y(3); y << 0, 0, 0;
+            int maxIdx = 0;
+            float maxValue = -1;
+            for( int i = 0; i < 3; i++ )
+            {
+                if( x(i) > maxValue )
+                {
+                    maxValue = x(i);
+                    maxIdx = i;
+                }
+            }
+            y( maxIdx ) = 1.0;
+
+            net->backpropagation( x, y, 0.1f );
+        }
+
+
+        float nbrOfTests = 100;
+        float nbrSuccessful = 0;
+
+        for( int test_s = 0; test_s < nbrOfTests; test_s++ )
+        {
+            // generate input
+            Eigen::VectorXf x(3);
+            vector<int> set = choice;
+            for( int i = 0; i < 3; i++ )
+            {
+                while( true )
+                {
+                    uint elemIdx = uint( floor(dist(e2)) );
+                    if( elemIdx < set.size() )
+                    {
+                        x(i) = set.at( elemIdx );
+                        set.erase( set.begin() + elemIdx );
+                        break;
+                    }
+                }
+            }
+
+            // ... and corresponding output (index of maximum value)
+            Eigen::VectorXf y(3); y << 0, 0, 0;
+            int maxIdx = 0;
+            float maxValue = -1;
+            for( int i = 0; i < 3; i++ )
+            {
+                if( x(i) > maxValue )
+                {
+                    maxValue = x(i);
+                    maxIdx = i;
+                }
+            }
+            y( maxIdx ) = 1.0;
+
+            net->feedForward( x );
+
+            if( ( y - net->getOutputActivation() ).norm() < 0.10 )
+                nbrSuccessful = nbrSuccessful + 1.0f;
+        }
+
+        float thisSuccessRate = 100 * nbrSuccessful / nbrOfTests;
+        std::cout << "Evolution " << evolutions <<  ": success rate = " << thisSuccessRate << "%" << std::endl;
+
+        if( bestResult < thisSuccessRate )
+            bestResult = thisSuccessRate;
+    }
+
+    std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
+    delete  net;
+}
+
+/*
+TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
+{
+    // revert vector [1,0,0] -> [0,0,1]  and [2,1,0] -> [0,1,2]
+    std::vector<unsigned int> map = {3,20,20,3};
+    Network* net = new Network(map);
+
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_real_distribution<> dist(0, 2);
+
+    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    {
+        for( int ts = 0; ts < 10000; ts++ )
+        {
+            Eigen::VectorXf x(3);
+            Eigen::VectorXf y(3);
+            for( uint i = 0; i < 3; i++ )
+            {
+                x(i) =  dist(e2) ;
+                y(2-i) = x(i);
+            }
+
+            net->backpropagation( x, y, 0.1 );
+        }
+
+        float nbrOfTests = 100;
+        float nbrSuccessful = 0;
+
+        for( int test_s = 0; test_s < nbrOfTests; test_s++ )
+        {
+            Eigen::VectorXf x(3);
+            Eigen::VectorXf y(3);
+            for( uint i = 0; i < 3; i++ )
+            {
+                x(i) = dist(e2);
+                y(2-i) = x(i);
+            }
+
+            net->feedForward( x );
+
+            Eigen::VectorXf o_activation = net->getOutputActivation();
+
+            // compare o_activation against y
+            float diff = (o_activation - y).norm();
+
+            if( diff < 0.5 )
+                nbrSuccessful = nbrSuccessful + 1.0f;
+        }
+
+        std::cout << "Evolution " << evolutions <<  ": success rate = " << 100 * nbrSuccessful / nbrOfTests << "%" << std::endl;
+    }
+
+
+
+    delete  net;
+}
+*/
+
 
 
 
