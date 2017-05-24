@@ -81,13 +81,28 @@ public:
     shared_ptr<Layer> getOutputLayer();
 
     /**
-     * Computes backpropagation error and partial derivatives in each layer.
+     * Feedforward, backpropagate and update weigths and biases in each layer corresponding
+     * to the computed partial derivatives and the gradient descent method.
      * @param x_in Input signal.
      * @param y_out Desired output signal.
      * @param eta Learning rate.
      * @return true if successful.
      */
-    bool backpropagation(const Eigen::VectorXd x_in, const Eigen::VectorXd& y_out , const double& eta);
+    bool gradientDescent(const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out, const double& eta);
+
+    /**
+     * Feedforward, backpropagate and update weigths and biases in each layer corresponding
+     * to the computed partial derivatives and the stochastic gradient descent method.
+     * The stochastic gradient descent methods updates the weights and biases by the averaged
+     * partial derivatives of a randomly chosen batch of samples.
+     * @param samples Input signals.
+     * @param lables Desired output signals.
+     * @param batchsize Number of samples in the batch.
+     * @param eta
+     * @return true if successful.
+     */
+    bool stochasticGradientDescent(const std::vector<Eigen::VectorXd>& samples, const std::vector<Eigen::VectorXd>& lables,
+                                   const unsigned int& batchsize, const double& eta );
 
     /**
      * Returns the magnitude of the error vector in the output layer. This error is
@@ -101,6 +116,9 @@ public:
 
 
 private:
+
+    // Do feedforward and backprop. but weights and biases are not updated!
+    bool doFeedforwardAndBackpropagation( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out );
 
     void initNetwork();
 

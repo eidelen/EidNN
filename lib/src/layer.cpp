@@ -237,10 +237,15 @@ void Layer::computePartialDerivatives()
 
 void Layer::updateWeightsAndBiases(const double &eta )
 {
-    const Eigen::VectorXd newBiases = getBiasVector() - (eta * getPartialDerivativesBiases());
+    updateWeightsAndBiases(eta * getPartialDerivativesBiases(), eta * getPartialDerivativesWeights() );
+}
+
+void Layer::updateWeightsAndBiases(const Eigen::VectorXd& deltaBias, const Eigen::MatrixXd& deltaWeight)
+{
+    const Eigen::VectorXd newBiases = getBiasVector() - deltaBias;
     setBiases( newBiases );
 
-    const Eigen::MatrixXd newWeights = getWeigtMatrix() - (eta * getPartialDerivativesWeights() );
+    const Eigen::MatrixXd newWeights = getWeigtMatrix() - deltaWeight;
     setWeights( newWeights );
 }
 

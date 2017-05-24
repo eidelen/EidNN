@@ -123,9 +123,9 @@ TEST(NetworkTest, Backpropagation_input)
     Eigen::VectorXd y_wrong_dimension(1); y_wrong_dimension << 0.0;
 
     // check invalid dimensions
-    ASSERT_TRUE( net->backpropagation(x, y, 1.0 ));
-    ASSERT_FALSE( net->backpropagation(x_wrong_dimension, y, 1.0 ));
-    ASSERT_FALSE( net->backpropagation( x, y_wrong_dimension, 1.0 ));
+    ASSERT_TRUE( net->gradientDescent(x, y, 1.0 ));
+    ASSERT_FALSE( net->gradientDescent(x_wrong_dimension, y, 1.0 ));
+    ASSERT_FALSE( net->gradientDescent( x, y_wrong_dimension, 1.0 ));
 
 
     // check results
@@ -140,7 +140,7 @@ TEST(NetworkTest, Backpropagation_input)
 
     // set expected outcome to 0.5. Therefore all errors and all partial derivatives in the network are 0.0
     Eigen::VectorXd y_zero_error(2); y_zero_error << 0.5, 0.5;
-    net->backpropagation( x, y_zero_error, 1.0 );
+    net->gradientDescent( x, y_zero_error, 1.0 );
 
     for( unsigned int u = 0; u < net->getNumberOfLayer(); u++ )
     {
@@ -186,7 +186,7 @@ TEST(NetworkTest, Backpropagation_Errors)
 
     //Test 1) create an expected value equal to the output -> no error
     net->feedForward( x ); Eigen::VectorXd y = net->getOutputActivation();
-    net->backpropagation(x, y, 1.0);
+    net->gradientDescent(x, y, 1.0);
 
     // expected errors in outputlayer = [0.0, 0.0]
     ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
@@ -206,7 +206,7 @@ TEST(NetworkTest, Backpropagation_Errors)
     x << 2.0;
     net->feedForward( x ); y = net->getOutputActivation();
     y(1) = y(1) - 0.1; // alter output a bit
-    net->backpropagation(x,y, 1.0);
+    net->gradientDescent(x,y, 1.0);
 
     // check error
     double errMag = net->getNetworkErrorMagnitude();
@@ -232,7 +232,8 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
     std::mt19937 e2(rd());
     std::uniform_real_distribution<> dist(-10000, +10000);
 
-    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    double bestResult = -1.0;
+    for( int evolutions = 0; evolutions < 60; evolutions++ )
     {
         for( int ts = 0; ts < 1000; ts++ )
         {
@@ -246,7 +247,7 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
             else
                 y << 0.0, 1.0;
 
-            net->backpropagation( x, y, 0.25 );
+            net->gradientDescent( x, y, 0.25 );
         }
 
         double nbrOfTests = 100;
@@ -263,20 +264,27 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
 
             if( testVal > 0 )
             {
-                if( o_activation(0) > o_activation(1) && o_activation(0) > 0.99f ) // at least 99% sure that it is positive
+                if( o_activation(0) > o_activation(1) && o_activation(0) > 0.99 ) // at least 99% sure that it is positive
                     nbrSuccessful = nbrSuccessful + 1.0f;
             }
             else
             {
-                if( o_activation(1) > o_activation(0) && o_activation(1) > 0.99f ) // at least 99% sure that it is negative
+                if( o_activation(1) > o_activation(0) && o_activation(1) > 0.99 ) // at least 99% sure that it is negative
                     nbrSuccessful = nbrSuccessful + 1.0f;
             }
         }
 
+        double thisSuccessRate = 100 * nbrSuccessful / nbrOfTests;
+        if( bestResult < thisSuccessRate )
+            bestResult = thisSuccessRate;
+
         std::cout << "Evolution " << evolutions <<  ": success rate = " << 100 * nbrSuccessful / nbrOfTests << "%" << std::endl;
     }
 
+    std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
     delete  net;
+
+    ASSERT_GT( bestResult, 90 );
 }
 
 TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
@@ -294,8 +302,8 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
         choice.push_back( inp );
 
 
-    double bestResult = -1.0f;
-    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    double bestResult = -1.0;
+    for( int evolutions = 0; evolutions < 60; evolutions++ )
     {
         for( int ts = 0; ts < 1000; ts++ )
         {
@@ -331,7 +339,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             }
             y( maxIdx ) = 1.0;
 
-            net->backpropagation( x, y, 0.1f );
+            net->gradientDescent( x, y, 0.1f );
         }
 
 
@@ -386,67 +394,95 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
 
     std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
     delete  net;
+
+    ASSERT_GT( bestResult, 90 );
 }
 
-/*
-TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
+TEST(NetworkTest, Backpropagate_StochasticGD)
 {
-    // revert vector [1,0,0] -> [0,0,1]  and [2,1,0] -> [0,1,2]
-    std::vector<unsigned int> map = {3,20,20,3};
-    Network* net = new Network(map);
-
+    // recognize positive numbers and negative numbers with stochastic gradient descent
     std::random_device rd;
     std::mt19937 e2(rd());
-    std::uniform_real_distribution<> dist(0, 2);
+    std::uniform_real_distribution<> dist(-100, +100);
 
-    for( int evolutions = 0; evolutions < 100; evolutions++ )
+    // create training set
+    std::vector<Eigen::VectorXd> xin;
+    std::vector<Eigen::VectorXd> yout;
+    for( uint k = 0; k < 1000; k++ )
     {
-        for( int ts = 0; ts < 10000; ts++ )
-        {
-            Eigen::VectorXd x(3);
-            Eigen::VectorXd y(3);
-            for( uint i = 0; i < 3; i++ )
-            {
-                x(i) =  dist(e2) ;
-                y(2-i) = x(i);
-            }
+        double value = dist(e2);
+        Eigen::VectorXd thisSample(1);
+        Eigen::VectorXd thisLable(2);
 
-            net->backpropagation( x, y, 0.1 );
-        }
+        thisSample(0) = value;
 
-        double nbrOfTests = 100;
-        double nbrSuccessful = 0;
+        if( value > 0 )
+            thisLable << 1.0, 0.0;
+        else
+            thisLable << 0.0, 1.0;
 
-        for( int test_s = 0; test_s < nbrOfTests; test_s++ )
-        {
-            Eigen::VectorXd x(3);
-            Eigen::VectorXd y(3);
-            for( uint i = 0; i < 3; i++ )
-            {
-                x(i) = dist(e2);
-                y(2-i) = x(i);
-            }
-
-            net->feedForward( x );
-
-            Eigen::VectorXd o_activation = net->getOutputActivation();
-
-            // compare o_activation against y
-            double diff = (o_activation - y).norm();
-
-            if( diff < 0.5 )
-                nbrSuccessful = nbrSuccessful + 1.0f;
-        }
-
-        std::cout << "Evolution " << evolutions <<  ": success rate = " << 100 * nbrSuccessful / nbrOfTests << "%" << std::endl;
+        xin.push_back( thisSample );
+        yout.push_back( thisLable );
     }
 
+    // create test set
+    std::vector<Eigen::VectorXd> t_xin;
+    std::vector<Eigen::VectorXd> t_yout;
+    for( uint k = 0; k < 100; k++ )
+    {
+        double value = dist(e2);
+        Eigen::VectorXd thisSample(1);
+        Eigen::VectorXd thisLable(2);
 
+        thisSample(0) = value;
+
+        if( value > 0 )
+            thisLable << 1.0, 0.0;
+        else
+            thisLable << 0.0, 1.0;
+
+        t_xin.push_back( thisSample );
+        t_yout.push_back( thisLable );
+    }
+
+    std::vector<unsigned int> map = {1,5,2};
+    Network* net = new Network(map);
+    unsigned int nbrEpochs = 60;
+    unsigned int miniBatch = 20;
+    double bestResult = -1.0f;
+
+    for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
+    {
+        //training
+        for( size_t k = 0; k < xin.size() / miniBatch ; k++ )    // one epoch runs the number of overall samples.
+            net->stochasticGradientDescent( xin, yout, miniBatch, 0.1 );
+
+        // testing
+        double nbrSuccessful = 0;
+        for( size_t i = 0; i < t_xin.size(); i++ )
+        {
+            Eigen::VectorXd tx = t_xin.at(i);
+            Eigen::VectorXd ty = t_yout.at(i);
+
+            net->feedForward( tx );
+            double diff = (net->getOutputActivation() - ty).norm();
+
+            if( diff < 0.1 )
+                nbrSuccessful = nbrSuccessful + 1.0;
+        }
+
+        double thisSuccessRate = 100 * nbrSuccessful / double(t_xin.size());
+        if( bestResult < thisSuccessRate )
+            bestResult = thisSuccessRate;
+        std::cout << "Epoch " << epoch <<  ": success rate = " << 100 * nbrSuccessful / double(t_xin.size()) << "%" << std::endl;
+    }
+
+    std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
 
     delete  net;
-}
-*/
 
+    ASSERT_GT( bestResult, 90 );
+}
 
 
 

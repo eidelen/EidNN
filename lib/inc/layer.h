@@ -176,6 +176,13 @@ public:
     void updateWeightsAndBiases( const double& eta );
 
     /**
+     * Corrects the biases and weights within this layer by the passed values.
+     * @param deltaBias
+     * @param deltaWeight
+     */
+    void updateWeightsAndBiases( const Eigen::VectorXd& deltaBias, const Eigen::MatrixXd& deltaWeight );
+
+    /**
      * Returns the computed backprogation error in this layer.
      * @return
      */

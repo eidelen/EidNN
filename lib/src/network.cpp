@@ -24,6 +24,7 @@
 #include "network.h"
 #include "layer.h"
 
+#include <random>
 #include <iostream>
 
 using namespace std;
@@ -93,39 +94,76 @@ shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
     return m_Layers.at(layerIdx);
 }
 
-bool Network::backpropagation( const Eigen::VectorXd x_in, const Eigen::VectorXd& y_out, const double& eta )
+bool Network::gradientDescent( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out, const double& eta )
 {
-    // updates output in all layers
-    if( ! feedForward(x_in) )
+    if( ! doFeedforwardAndBackpropagation(x_in, y_out ) )
         return false;
-
-
-    if( getOutputActivation().rows() != y_out.rows() )
-    {
-        cout << "Error: desired output signal mismatching dimension" << endl;
-        return false;
-    }
-
-
-    // Compute output error in the last layer
-    std::shared_ptr<Layer> layerAfter = getOutputLayer();
-    layerAfter->computeBackpropagationOutputLayerError( y_out );
-    layerAfter->computePartialDerivatives();
-
-    // Compute error and partial derivatives in all remaining layers
-    for( int k = int(getNumberOfLayer()) - 2; k >= 0; k-- )
-    {
-        std::shared_ptr<Layer> thisLayer = getLayer( unsigned(k) );
-        thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeigtMatrix() );
-        thisLayer->computePartialDerivatives();
-
-        layerAfter = thisLayer;
-    }
 
     // Update weights and biases with the computed derivatives and learning rate.
-    // First layer doew not need to be updated -> no effect in input layer
+    // First layer does not need to be updated -> it is just input layer
     for( unsigned int k = 1; k < getNumberOfLayer(); k++ )
         getLayer(k)->updateWeightsAndBiases( eta );
+
+    return true;
+}
+
+bool Network::stochasticGradientDescent(const std::vector<Eigen::VectorXd>& samples, const std::vector<Eigen::VectorXd>& lables,
+                                        const unsigned int& batchsize, const double& eta)
+{
+    if( samples.size() != lables.size() )
+    {
+        cout << "Error: number of samples and lables mismatch" << endl;
+        return false;
+    }
+
+    size_t nbrOfSamples = samples.size();
+
+    if( nbrOfSamples < batchsize )
+    {
+        cout << "Error: batchsize exceeds number of available smaples" << endl;
+        return false;
+    }
+
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
+
+    // initialize pd sum vectors and matrices - skip first layer (input layer)
+    std::vector<Eigen::VectorXd> biasPDSum;
+    std::vector<Eigen::MatrixXd> weightPDSum;
+    for( unsigned int i = 1; i < getNumberOfLayer(); i++ )
+    {
+        const std::shared_ptr<Layer>& l = getLayer(i);
+        Eigen::VectorXd biasPDInit = Eigen::VectorXd::Constant( l->getNbrOfNeurons(), 0.0 );
+        Eigen::MatrixXd weightPDInit = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), l->getNbrOfNeuronInputs(), 0.0 );
+        biasPDSum.push_back( biasPDInit );
+        weightPDSum.push_back( weightPDInit );
+    }
+
+
+    for( unsigned int b = 0; b < batchsize; b++ )
+    {
+        // randomly choose a sample
+        size_t rIdx = size_t( iDist(e2) );
+        doFeedforwardAndBackpropagation( samples.at(rIdx), lables.at(rIdx) );
+
+        // accumulate partial derivatives of each layer
+        for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
+        {
+            const std::shared_ptr<Layer>& l = getLayer(j);
+            biasPDSum.at(j-1) = biasPDSum.at(j-1) + l->getPartialDerivativesBiases();
+            weightPDSum.at(j-1) = weightPDSum.at(j-1) + l->getPartialDerivativesWeights();
+        }
+    }
+
+    // update weights and biases with the average partial derivatives
+    for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
+    {
+        const std::shared_ptr<Layer>& l = getLayer(j);
+        Eigen::VectorXd avgPDBias = biasPDSum.at(j-1) * ( eta / double(batchsize) );
+        Eigen::MatrixXd avgPDWeights = weightPDSum.at(j-1) * ( eta / double(batchsize) );
+        l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
+    }
 
     return true;
 }
@@ -152,4 +190,34 @@ void Network::print()
         getLayer( i )->print();
         std::cout << std::endl << std::endl;
     }
+}
+
+bool Network::doFeedforwardAndBackpropagation( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out )
+{
+    // updates output in all layers
+    if( ! feedForward(x_in) )
+        return false;
+
+    if( getOutputActivation().rows() != y_out.rows() )
+    {
+        cout << "Error: desired output signal mismatching dimension" << endl;
+        return false;
+    }
+
+    // Compute output error in the last layer
+    std::shared_ptr<Layer> layerAfter = getOutputLayer();
+    layerAfter->computeBackpropagationOutputLayerError( y_out );
+    layerAfter->computePartialDerivatives();
+
+    // Compute error and partial derivatives in all remaining layers
+    for( int k = int(getNumberOfLayer()) - 2; k >= 0; k-- )
+    {
+        std::shared_ptr<Layer> thisLayer = getLayer( unsigned(k) );
+        thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeigtMatrix() );
+        thisLayer->computePartialDerivatives();
+
+        layerAfter = thisLayer;
+    }
+
+    return true;
 }
