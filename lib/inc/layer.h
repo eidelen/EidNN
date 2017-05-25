@@ -63,7 +63,7 @@ public:
      * @param x_in Input signal.
      * @return true if successful.
      */
-    bool feedForward( const Eigen::VectorXd& x_in );
+    bool feedForward( const Eigen::MatrixXd& x_in );
 
     /**
      * Sets the weights-vector in each neuron of this layer.
@@ -130,13 +130,13 @@ public:
      * after executing feedForward().
      * @return Output activation Vector
      */
-    const Eigen::VectorXd& getOutputActivation() const { return m_activation_out; }
+    const Eigen::MatrixXd& getOutputActivation() const { return m_activation_out; }
 
     /**
      * Get the input activation of this layer. This is set after calling feedForward().
      * @return Input activation.
      */
-    const Eigen::VectorXd& getInputActivation() const { return m_activation_in; }
+    const Eigen::MatrixXd& getInputActivation() const { return m_activation_in; }
 
     /**
      * This is an intermediate result of calling feedForward(). It is the weighted input,
@@ -144,7 +144,7 @@ public:
      * function.
      * @return weighted input.
      */
-    const Eigen::VectorXd& getWeightedInputZ() const { return m_z_weighted_input; }
+    const Eigen::MatrixXd& getWeightedInputZ() const { return m_z_weighted_input; }
 
     /**
      * This function computes the backpropagation error in case this is the output layer.
@@ -152,7 +152,7 @@ public:
      * @param expectedNetworkOutput The desired network output.
      * @return Return true if operation was successful. Otherwise false
      */
-    bool computeBackpropagationOutputLayerError( const Eigen::VectorXd& expectedNetworkOutput );
+    bool computeBackpropagationOutputLayerError( const Eigen::MatrixXd& expectedNetworkOutput );
 
     /**
      * Computes the backpropagation error in this layer. The backpropagation error can be accessed
@@ -160,7 +160,7 @@ public:
      * @param expectedNetworkOutput The desired network output.
      * @return Return true if operation was successful. Otherwise false
      */
-    bool computeBackprogationError(const Eigen::VectorXd& errorNextLayer, const Eigen::MatrixXd& weightMatrixNextLayer );
+    bool computeBackprogationError(const Eigen::MatrixXd& errorNextLayer, const Eigen::MatrixXd& weightMatrixNextLayer );
 
     /**
      * Computes the partial derivatives of the biases and weights. Results can be
@@ -186,7 +186,7 @@ public:
      * Returns the computed backprogation error in this layer.
      * @return
      */
-    const Eigen::VectorXd getBackpropagationError() const { return m_backpropagationError; }
+    const Eigen::MatrixXd getBackpropagationError() const { return m_backpropagationError; }
 
     /**
      * Partial derivatives of the biases. This is set after calling computePartialDerivatives();
@@ -230,15 +230,15 @@ private:
     const unsigned int m_nbr_of_neurons;
     const unsigned int m_nbr_of_inputs;
 
-    Eigen::VectorXd m_activation_in;
-    Eigen::VectorXd m_activation_out;
-    Eigen::VectorXd m_z_weighted_input;
+    Eigen::MatrixXd m_activation_in;
+    Eigen::MatrixXd m_activation_out;
+    Eigen::MatrixXd m_z_weighted_input;
 
-    Eigen::VectorXd m_backpropagationError;
+    Eigen::MatrixXd m_backpropagationError;
     Eigen::MatrixXd m_weightMatrix;
     Eigen::VectorXd m_biasVector;
 
-    Eigen::VectorXd m_bias_partialDerivatives;
+    Eigen::MatrixXd m_bias_partialDerivatives;
     Eigen::MatrixXd m_weight_partialDerivatives;
 };
 

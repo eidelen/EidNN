@@ -48,12 +48,29 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
     }
 }
 
+// init vectors and neurons
+void Layer::initLayer()
+{
+    m_weightMatrix = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
+    m_biasVector = Eigen::VectorXd( m_nbr_of_neurons );
+    resetRandomlyWeightsAndBiases();
+
+    // init with size 1 -> dimensionso of these matrices will change corrsponding to input signal
+    m_activation_in = Eigen::MatrixXd( 1, 1 );
+    m_activation_out = Eigen::MatrixXd( 1, 1 );
+    m_z_weighted_input = Eigen::MatrixXd( 1, 1 );
+    m_bias_partialDerivatives = Eigen::MatrixXd( 1, 1 );
+    m_weight_partialDerivatives = Eigen::MatrixXd( 1 , 1 );
+    m_backpropagationError =  Eigen::MatrixXd( 1 , 1 );
+}
+
+
 Layer::~Layer()
 {
     // used smart pointers
 }
 
-bool Layer::feedForward( const Eigen::VectorXd& x_in )
+bool Layer::feedForward(const Eigen::MatrixXd &x_in )
 {
     if( x_in.rows() != m_nbr_of_inputs )
     {
@@ -62,30 +79,15 @@ bool Layer::feedForward( const Eigen::VectorXd& x_in )
     }
 
     m_activation_in = x_in;
-    m_z_weighted_input = m_weightMatrix * x_in + m_biasVector;
+    m_z_weighted_input = m_weightMatrix * x_in + m_biasVector.replicate(1, x_in.cols());
 
     // compute sigmoid for weighted input vector
-    for( unsigned int n = 0; n < m_z_weighted_input.rows(); n++ )
-    {
-        m_activation_out(n) = Neuron::sigmoid( m_z_weighted_input(n) );
-    }
+    m_activation_out = Eigen::MatrixXd(m_z_weighted_input.rows(), m_z_weighted_input.cols());
+    for( unsigned int m = 0; m < m_z_weighted_input.rows(); m++ )
+        for( unsigned int n = 0; n < m_z_weighted_input.cols(); n++ )
+            m_activation_out(m,n) = Neuron::sigmoid( m_z_weighted_input(m,n) );
 
     return true;
-}
-
-
-// init vectors and neurons
-void Layer::initLayer()
-{
-    m_activation_in = Eigen::VectorXd( m_nbr_of_inputs );
-    m_activation_out = Eigen::VectorXd( m_nbr_of_neurons );
-    m_z_weighted_input = Eigen::VectorXd( m_nbr_of_neurons );
-    m_weightMatrix = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
-    m_biasVector = Eigen::VectorXd( m_nbr_of_neurons );
-    m_bias_partialDerivatives = Eigen::VectorXd( m_nbr_of_neurons );
-    m_weight_partialDerivatives = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
-
-    resetRandomlyWeightsAndBiases();
 }
 
 
@@ -177,17 +179,11 @@ void Layer::resetRandomlyWeightsAndBiases()
 
 bool Layer::setActivationOutput( const Eigen::VectorXd& activation_out )
 {
-    if( activation_out.rows() != m_activation_out.rows() )
-    {
-        std::cout << "Error: Layer activation output mismatch" << std::endl;
-        return false;
-    }
-
     m_activation_out = activation_out;
     return true;
 }
 
-bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXd& expectedNetworkOutput )
+bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expectedNetworkOutput )
 {
     if( m_activation_out.rows() != expectedNetworkOutput.rows() )
     {
@@ -199,7 +195,7 @@ bool Layer::computeBackpropagationOutputLayerError( const Eigen::VectorXd& expec
     return true;
 }
 
-bool Layer::computeBackprogationError( const Eigen::VectorXd& errorNextLayer, const Eigen::MatrixXd& weightMatrixNextLayer )
+bool Layer::computeBackprogationError(const Eigen::MatrixXd &errorNextLayer, const Eigen::MatrixXd& weightMatrixNextLayer )
 {
     if( m_z_weighted_input.rows() != weightMatrixNextLayer.cols()  ||  errorNextLayer.rows() != weightMatrixNextLayer.rows() )
     {
@@ -225,14 +221,13 @@ const Eigen::VectorXd Layer::d_sigmoid( const Eigen::VectorXd& z )
 
 void Layer::computePartialDerivatives()
 {
-    Eigen::VectorXd delta = getBackpropagationError();
+    Eigen::MatrixXd delta = getBackpropagationError();
 
     // bias
     m_bias_partialDerivatives = delta;
 
     // weights
-    Eigen::VectorXd activation_in = getInputActivation();
-    m_weight_partialDerivatives = delta * activation_in.transpose(); // This is different from the 4th-equation? Study!
+    m_weight_partialDerivatives = delta * getInputActivation().transpose(); // This is different from the 4th-equation? Study!
 }
 
 void Layer::updateWeightsAndBiases(const double &eta )

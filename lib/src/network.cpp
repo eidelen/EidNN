@@ -209,8 +209,8 @@ bool Network::doFeedforwardAndBackpropagation( const Eigen::VectorXd& x_in, cons
     layerAfter->computeBackpropagationOutputLayerError( y_out );
     layerAfter->computePartialDerivatives();
 
-    // Compute error and partial derivatives in all remaining layers
-    for( int k = int(getNumberOfLayer()) - 2; k >= 0; k-- )
+    // Compute error and partial derivatives in all remaining layers, but not input layer
+    for( int k = int(getNumberOfLayer()) - 2; k > 0; k-- )
     {
         std::shared_ptr<Layer> thisLayer = getLayer( unsigned(k) );
         thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeigtMatrix() );

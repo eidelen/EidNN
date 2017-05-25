@@ -142,7 +142,7 @@ TEST(NetworkTest, Backpropagation_input)
     Eigen::VectorXd y_zero_error(2); y_zero_error << 0.5, 0.5;
     net->gradientDescent( x, y_zero_error, 1.0 );
 
-    for( unsigned int u = 0; u < net->getNumberOfLayer(); u++ )
+    for( unsigned int u = 1; u < net->getNumberOfLayer(); u++ )
     {
         std::shared_ptr<Layer> ll = net->getLayer( u );
 
