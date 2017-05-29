@@ -162,11 +162,11 @@ TEST(NetworkTest, Backpropagation_input)
         for( unsigned int q = 0; q < err.rows(); q++ )
             ASSERT_NEAR( err(q),  0.0, 0.0001 );
 
-        Eigen::VectorXd pd_biases = ll->getPartialDerivativesBiases();
+        Eigen::VectorXd pd_biases = ll->getPartialDerivativesBiases().at(0);
         for( unsigned int q = 0; q < pd_biases.rows(); q++ )
             ASSERT_NEAR( pd_biases(q),  0.0, 0.0001 );
 
-        Eigen::MatrixXd pd_weights = ll->getPartialDerivativesWeights();
+        Eigen::MatrixXd pd_weights = ll->getPartialDerivativesWeights().at(0);
         for( unsigned int q = 0; q < pd_weights.rows(); q++ )
             for( unsigned int p = 0; p < pd_weights.cols(); p++ )
                 ASSERT_NEAR( pd_weights(q,p),  0.0, 0.0001 );
@@ -203,10 +203,10 @@ TEST(NetworkTest, Backpropagation_Errors)
     ASSERT_NEAR( net->getNetworkErrorMagnitude(), 0.0, 0.00001 );
 
     // partial derivatives are [0.0, 0.0]
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(1,0), 0.0, 0.0001 );
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(0), 0.0, 0.0001 );
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(1), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights().at(0)(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights().at(0)(1,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases().at(0)(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases().at(0)(1,0), 0.0, 0.0001 );
 
 
 
@@ -224,9 +224,9 @@ TEST(NetworkTest, Backpropagation_Errors)
 
     // expected errors and derivatives for neuron 0 is 0.0
     Eigen::VectorXd kx = net->getOutputLayer()->getBackpropagationError();
-    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0), 0.0, 0.0001 );
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights()(0,0), 0.0, 0.0001 );
-    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getBackpropagationError()(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesWeights().at(0)(0,0), 0.0, 0.0001 );
+    ASSERT_NEAR( net->getOutputLayer()->getPartialDerivativesBiases().at(0)(0,0), 0.0, 0.0001 );
 
     delete net;
 }

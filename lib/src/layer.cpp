@@ -44,7 +44,7 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
     for( unsigned int n = 0; n < weights.size(); n++ )
     {
         m_weightMatrix.row(n) = weights.at(n).transpose();
-        m_biasVector(n) = biases.at(n);
+        m_biasVector(n,0) = biases.at(n);
     }
 }
 
@@ -52,15 +52,13 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
 void Layer::initLayer()
 {
     m_weightMatrix = Eigen::MatrixXd( m_nbr_of_neurons , m_nbr_of_inputs );
-    m_biasVector = Eigen::VectorXd( m_nbr_of_neurons );
+    m_biasVector = Eigen::MatrixXd( m_nbr_of_neurons, 1 );
     resetRandomlyWeightsAndBiases();
 
     // init with size 1 -> dimensionso of these matrices will change corrsponding to input signal
     m_activation_in = Eigen::MatrixXd( 1, 1 );
     m_activation_out = Eigen::MatrixXd( 1, 1 );
     m_z_weighted_input = Eigen::MatrixXd( 1, 1 );
-    m_bias_partialDerivatives = Eigen::MatrixXd( 1, 1 );
-    m_weight_partialDerivatives = Eigen::MatrixXd( 1 , 1 );
     m_backpropagationError =  Eigen::MatrixXd( 1 , 1 );
 }
 
@@ -126,16 +124,16 @@ bool Layer::setBiases( const vector<double>& biases )
     }
 
     for( unsigned int n = 0; n < biases.size(); n++ )
-        m_biasVector(n) = biases.at(n);
+        m_biasVector(n,0) = biases.at(n);
 
     return true;
 }
 
-bool Layer::setBiases( const Eigen::VectorXd& biases )
+bool Layer::setBiases( const Eigen::MatrixXd& biases )
 {
-    if( biases.rows() != getNbrOfNeurons() )
+    if( biases.rows() != getNbrOfNeurons() || biases.cols() != 1 )
     {
-        std::cout << "Error: Bias Eigen vector size mismatches number of neurons" << std::endl;
+        std::cout << "Error: Bias Eigen vector size mismatches" << std::endl;
         return false;
     }
 
@@ -155,7 +153,7 @@ void Layer::setWeight( const double& weight )
 
 void Layer::setBias(const double &bias )
 {
-    m_biasVector = Eigen::VectorXd::Constant(getNbrOfNeurons(), bias);
+    m_biasVector = Eigen::MatrixXd::Constant(getNbrOfNeurons(), 1, bias);
 }
 
 
@@ -166,7 +164,7 @@ void Layer::resetRandomlyWeightsAndBiases()
 
     for( unsigned int i = 0; i < getNbrOfNeurons(); i++ )
     {
-        m_biasVector(i) = gNoise(randomGenerator);
+        m_biasVector(i,0) = gNoise(randomGenerator);
 
         Eigen::VectorXd thisWeights = Eigen::VectorXd( getNbrOfNeuronInputs() );
         for( unsigned int k = 0; k < getNbrOfNeuronInputs(); k++ )
@@ -191,7 +189,8 @@ bool Layer::setActivationOutput( const Eigen::MatrixXd& activation_out )
 
 bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expectedNetworkOutput )
 {
-    if( m_activation_out.rows() != expectedNetworkOutput.rows() ||  m_activation_out.cols() != expectedNetworkOutput.cols())
+    if( m_activation_out.rows() != expectedNetworkOutput.rows() ||
+            m_activation_out.cols() != expectedNetworkOutput.cols())
     {
         std::cout << "Error: Layer activation output to label mismatch" << std::endl;
         return false;
@@ -228,21 +227,29 @@ void Layer::computePartialDerivatives()
 {
     Eigen::MatrixXd delta = getBackpropagationError();
 
-    // bias
-    m_bias_partialDerivatives = delta;
+    m_bias_partialDerivatives.clear();
+    m_weight_partialDerivatives.clear();
 
-    // weights
-    m_weight_partialDerivatives = delta * getInputActivation().transpose(); // This is different from the 4th-equation? Study!
+    // compute derivatives for each passed sample
+    for( unsigned int k = 0; k < delta.cols(); k++ )
+    {
+        Eigen::MatrixXd thisDelta = delta.col(k);
+        m_bias_partialDerivatives.push_back( thisDelta );
+
+        Eigen::MatrixXd thisInputActivation = getInputActivation().col(k);
+        m_weight_partialDerivatives.push_back( delta.col(k) * thisInputActivation.transpose() ); // This is different from the 4th-equation? Study!
+    }
 }
 
-void Layer::updateWeightsAndBiases(const double &eta )
+void Layer::updateWeightsAndBiases(const double &eta, const unsigned int& sampleIdx )
 {
-    updateWeightsAndBiases(eta * getPartialDerivativesBiases(), eta * getPartialDerivativesWeights() );
+    updateWeightsAndBiases(eta * getPartialDerivativesBiases().at(sampleIdx), eta * getPartialDerivativesWeights().at(sampleIdx) );
 }
 
-void Layer::updateWeightsAndBiases(const Eigen::VectorXd& deltaBias, const Eigen::MatrixXd& deltaWeight)
+void Layer::updateWeightsAndBiases(const Eigen::MatrixXd& deltaBias, const Eigen::MatrixXd& deltaWeight)
 {
-    const Eigen::VectorXd newBiases = getBiasVector() - deltaBias;
+
+    const Eigen::MatrixXd newBiases = getBiasVector() - deltaBias;
     setBiases( newBiases );
 
     const Eigen::MatrixXd newWeights = getWeigtMatrix() - deltaWeight;

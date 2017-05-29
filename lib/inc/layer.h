@@ -104,7 +104,7 @@ public:
      * @param biases Vector of neuron biases.
      * @return true if successful
      */
-    bool setBiases( const Eigen::VectorXd& biases );
+    bool setBiases(const Eigen::MatrixXd &biases );
 
     /**
      * Sets the same bias for all neurons
@@ -117,7 +117,7 @@ public:
      * ( see updateWeightMatrixAndBiasVector() )
      * @return
      */
-    const Eigen::VectorXd& getBiasVector() const { return m_biasVector; }
+    const Eigen::MatrixXd& getBiasVector() const { return m_biasVector; }
 
     /**
      * Resets all weights and biases of each neuron in this layer
@@ -172,33 +172,38 @@ public:
      * Updates the biases and weights within this layer based on the computed
      * derivatives and the learning rate.
      * @param eta Learning rate
+     * @param sampleIdx Based on which sample's partial derivatives the weights and biases should be updated
      */
-    void updateWeightsAndBiases( const double& eta );
+    void updateWeightsAndBiases( const double& eta, const unsigned int& sampleIdx = 0  );
 
     /**
      * Corrects the biases and weights within this layer by the passed values.
      * @param deltaBias
      * @param deltaWeight
      */
-    void updateWeightsAndBiases( const Eigen::VectorXd& deltaBias, const Eigen::MatrixXd& deltaWeight );
+    void updateWeightsAndBiases(const Eigen::MatrixXd &deltaBias, const Eigen::MatrixXd& deltaWeight );
 
     /**
-     * Returns the computed backprogation error in this layer.
+     * Returns the computed backprogation error in this layer. Each column of the returned
+     * matrix corresponds to one input / output sample. If there was only one sample passed,
+     * the matrix has the form of m x 1 ( a vector).
      * @return
      */
     const Eigen::MatrixXd getBackpropagationError() const { return m_backpropagationError; }
 
     /**
-     * Partial derivatives of the biases. This is set after calling computePartialDerivatives();
+     * Partial derivatives of the biases. This is set after calling computePartialDerivatives().
+     * The vector holds the derivatives for each passed sample.
      * @return
      */
-    const Eigen::VectorXd getPartialDerivativesBiases() const { return m_bias_partialDerivatives; }
+    const vector<Eigen::MatrixXd>& getPartialDerivativesBiases() const { return m_bias_partialDerivatives; }
 
     /**
-     * Partial derivatives of weights. This is set after calling computePartialDerivatives();
+     * Partial derivatives of weights. This is set after calling computePartialDerivatives().
+     * The vector holds the derivatives for each passed sample.
      * @return
      */
-    const Eigen::MatrixXd getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
+    const vector<Eigen::MatrixXd>& getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
 
     /**
      * Computes component wise derrivative of the sigmoid function
@@ -236,10 +241,10 @@ private:
 
     Eigen::MatrixXd m_backpropagationError;
     Eigen::MatrixXd m_weightMatrix;
-    Eigen::VectorXd m_biasVector;
+    Eigen::MatrixXd m_biasVector;
 
-    Eigen::MatrixXd m_bias_partialDerivatives;
-    Eigen::MatrixXd m_weight_partialDerivatives;
+    vector<Eigen::MatrixXd> m_bias_partialDerivatives;
+    vector<Eigen::MatrixXd> m_weight_partialDerivatives;
 };
 
 #endif //LAYERHEADER
