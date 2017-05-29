@@ -185,7 +185,7 @@ bool Layer::setActivationOutput( const Eigen::VectorXd& activation_out )
 
 bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expectedNetworkOutput )
 {
-    if( m_activation_out.rows() != expectedNetworkOutput.rows() )
+    if( m_activation_out.rows() != expectedNetworkOutput.rows() ||  m_activation_out.cols() != expectedNetworkOutput.cols())
     {
         std::cout << "Error: Layer activation output to label mismatch" << std::endl;
         return false;
@@ -208,13 +208,12 @@ bool Layer::computeBackprogationError(const Eigen::MatrixXd &errorNextLayer, con
 }
 
 
-const Eigen::VectorXd Layer::d_sigmoid( const Eigen::VectorXd& z )
+const Eigen::MatrixXd Layer::d_sigmoid( const Eigen::MatrixXd& z )
 {
-    long nbrOfComponents = z.rows();
-    Eigen::VectorXd res = Eigen::VectorXd( nbrOfComponents );
-
-    for( unsigned int k = 0; k < nbrOfComponents; k++ )
-        res(k) = Neuron::d_sigmoid( z(k) );
+    Eigen::MatrixXd res = Eigen::MatrixXd( z.rows(), z.cols() );
+    for( unsigned int m = 0; m < z.rows(); m++ )
+        for( unsigned int n = 0; n < z.cols(); n++ )
+            res(m,n) = Neuron::d_sigmoid( z(m,n) );
 
     return res;
 }

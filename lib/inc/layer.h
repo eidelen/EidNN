@@ -206,7 +206,7 @@ public:
      * @param z Vector in
      * @return Vector holding the result.
      */
-    static const Eigen::VectorXd d_sigmoid( const Eigen::VectorXd& z );
+    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
 
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }

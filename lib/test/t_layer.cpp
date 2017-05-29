@@ -59,32 +59,62 @@ TEST(LayerTest, ActivationVector)
     ASSERT_EQ( 2, l->getNbrOfNeuronInputs() );
 
 
-    Eigen::VectorXd x1(2);  x1 << 0, 0;
+    Eigen::MatrixXd x1(2,1);  x1 << 0, 0;
     // for this input, the output should be:
     // n0: 0  and n1: 2   ->  [ 0, 2 ]
     l->feedForward(x1);
-    const Eigen::VectorXd z1 = l->getWeightedInputZ();
-    const Eigen::VectorXd a1 = l->getOutputActivation();
+    const Eigen::MatrixXd z1 = l->getWeightedInputZ();
+    const Eigen::MatrixXd a1 = l->getOutputActivation();
     ASSERT_EQ( z1.rows(), 2 );
-    ASSERT_NEAR( z1(0), 0, 0.0001 );
-    ASSERT_NEAR( a1(0), Neuron::sigmoid(0), 0.0001 );
-    ASSERT_NEAR( z1(1), 2, 0.0001 );
-    ASSERT_NEAR( a1(1), Neuron::sigmoid(2), 0.0001 );
+    ASSERT_EQ( z1.cols(), 1 );
+    ASSERT_NEAR( z1(0,0), 0, 0.0001 );
+    ASSERT_NEAR( a1(0,0), Neuron::sigmoid(0), 0.0001 );
+    ASSERT_NEAR( z1(1,0), 2, 0.0001 );
+    ASSERT_NEAR( a1(1,0), Neuron::sigmoid(2), 0.0001 );
 
-    Eigen::VectorXd x2(2);  x2 << 1, 2;
+    Eigen::MatrixXd x2(2,1);  x2 << 1, 2;
     // n0: 1*1 + 2*2 + 0 = 5    n1: 1*3 + 2*4 + 2 = 13
     l->feedForward(x2);
-    const Eigen::VectorXd z2 = l->getWeightedInputZ();
-    const Eigen::VectorXd a2 = l->getOutputActivation();
-    ASSERT_NEAR( z2(0), 5, 0.0001 );
-    ASSERT_NEAR( a2(0), Neuron::sigmoid(5), 0.0001 );
-    ASSERT_NEAR( z2(1), 13, 0.0001 );
-    ASSERT_NEAR( a2(1), Neuron::sigmoid(13), 0.0001 );
+    const Eigen::MatrixXd z2 = l->getWeightedInputZ();
+    const Eigen::MatrixXd a2 = l->getOutputActivation();
+    ASSERT_NEAR( z2(0,0), 5, 0.0001 );
+    ASSERT_NEAR( a2(0,0), Neuron::sigmoid(5), 0.0001 );
+    ASSERT_NEAR( z2(1,0), 13, 0.0001 );
+    ASSERT_NEAR( a2(1,0), Neuron::sigmoid(13), 0.0001 );
 
     // check safing of input activation (should be x2)
-    const Eigen::VectorXd in_act = l->getInputActivation();
-    ASSERT_NEAR( x2(0), in_act(0), 0.0001 );
-    ASSERT_NEAR( x2(1), in_act(1), 0.0001 );
+    const Eigen::MatrixXd in_act = l->getInputActivation();
+    ASSERT_NEAR( x2(0,0), in_act(0,0), 0.0001 );
+    ASSERT_NEAR( x2(1,0), in_act(1,0), 0.0001 );
+
+
+    // Multiple input / output -> same numbers as above.
+    unsigned int nbrSamples = 3;
+    Eigen::MatrixXd xM = x2.replicate(1,nbrSamples);
+    l->feedForward(xM);
+
+    const Eigen::MatrixXd zM = l->getWeightedInputZ();
+    const Eigen::MatrixXd aM = l->getOutputActivation();
+    const Eigen::MatrixXd in_actM = l->getInputActivation();
+
+    ASSERT_EQ( zM.rows(), 2 );
+    ASSERT_EQ( zM.cols(), nbrSamples );
+    ASSERT_EQ( aM.rows(), 2 );
+    ASSERT_EQ( aM.cols(), nbrSamples );
+    ASSERT_EQ( in_actM.rows(), 2 );
+    ASSERT_EQ( in_actM.cols(), nbrSamples );
+
+    for( unsigned int k = 0; k < nbrSamples; k++ )
+    {
+        ASSERT_NEAR( zM(0,k), 5, 0.0001 );
+        ASSERT_NEAR( aM(0,k), Neuron::sigmoid(5), 0.0001 );
+        ASSERT_NEAR( zM(1,k), 13, 0.0001 );
+        ASSERT_NEAR( aM(1,k), Neuron::sigmoid(13), 0.0001 );
+
+        // check safing of input activation (should be x2)
+        ASSERT_NEAR( xM(0,k), in_actM(0,k), 0.0001 );
+        ASSERT_NEAR( xM(1,k), in_actM(1,k), 0.0001 );
+    }
 
     delete l;
 }
@@ -177,6 +207,40 @@ TEST(LayerTest, ComputeOutputError)
     ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y_next) );
     ASSERT_NEAR( l->getBackpropagationError()(0), 0.0, 0.0001 );
     ASSERT_NEAR( l->getBackpropagationError()(1), -0.25, 0.0001 );
+
+    delete l;
+}
+
+TEST(LayerTest, ComputeOutputErrorMultipleInput)
+{
+    Layer* l = new Layer( 2, 2 );
+    l->setBias(0.0);
+    l->setWeight(0.0);
+
+    Eigen::MatrixXd x(2,3);  x << 0, 0, 0,0, 0,0;
+    l->feedForward( x ); // output should be computed equal to 0.5;
+
+    // if expected outcome is 0.5, the error of the last layer is 0.0.
+    Eigen::MatrixXd y(2,3);  y << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
+    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y) );
+    for( unsigned int k = 0; k<3; k++ )
+    {
+        ASSERT_NEAR( l->getBackpropagationError()(0,k), 0.0, 0.0001 );
+        ASSERT_NEAR( l->getBackpropagationError()(1,k), 0.0, 0.0001 );
+    }
+
+    // wrong dimension
+    Eigen::MatrixXd y_wrong(3,3);  y_wrong << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
+    ASSERT_FALSE( l->computeBackpropagationOutputLayerError(y_wrong) );
+
+    Eigen::MatrixXd y_wrong2(2,2);  y_wrong2 << 0.5, 0.5, 0.5, 0.5;
+    ASSERT_FALSE( l->computeBackpropagationOutputLayerError(y_wrong2) );
+/*
+    // actual error
+    Eigen::VectorXd y_next(2);  y_next << 0.5, 1.5;
+    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y_next) );
+    ASSERT_NEAR( l->getBackpropagationError()(0), 0.0, 0.0001 );
+    ASSERT_NEAR( l->getBackpropagationError()(1), -0.25, 0.0001 );*/
 
     delete l;
 }
