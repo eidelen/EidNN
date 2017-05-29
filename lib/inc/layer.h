@@ -223,7 +223,7 @@ private:
      * @param activation_out
      * @return True if successful.
      */
-    bool setActivationOutput( const Eigen::VectorXd& activation_out );
+    bool setActivationOutput(const Eigen::MatrixXd &activation_out );
 
 
 private:

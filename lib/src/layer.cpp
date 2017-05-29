@@ -177,8 +177,14 @@ void Layer::resetRandomlyWeightsAndBiases()
 }
 
 
-bool Layer::setActivationOutput( const Eigen::VectorXd& activation_out )
+bool Layer::setActivationOutput( const Eigen::MatrixXd& activation_out )
 {
+    if( activation_out.rows() != getNbrOfNeurons() )
+    {
+        std::cout << "Error: Activation output signal mismatch" << std::endl;
+        return false;
+    }
+
     m_activation_out = activation_out;
     return true;
 }

@@ -217,6 +217,9 @@ TEST(LayerTest, ComputeOutputErrorMultipleInput)
     l->setBias(0.0);
     l->setWeight(0.0);
 
+    Eigen::MatrixXd x0(2,4);  x0 << 0, 0, 0,0, 0,0, 0,0;
+    l->feedForward( x0 ); // output should be computed equal to 0.5;
+
     Eigen::MatrixXd x(2,3);  x << 0, 0, 0,0, 0,0;
     l->feedForward( x ); // output should be computed equal to 0.5;
 
@@ -235,12 +238,16 @@ TEST(LayerTest, ComputeOutputErrorMultipleInput)
 
     Eigen::MatrixXd y_wrong2(2,2);  y_wrong2 << 0.5, 0.5, 0.5, 0.5;
     ASSERT_FALSE( l->computeBackpropagationOutputLayerError(y_wrong2) );
-/*
+
     // actual error
-    Eigen::VectorXd y_next(2);  y_next << 0.5, 1.5;
-    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y_next) );
-    ASSERT_NEAR( l->getBackpropagationError()(0), 0.0, 0.0001 );
-    ASSERT_NEAR( l->getBackpropagationError()(1), -0.25, 0.0001 );*/
+    Eigen::MatrixXd y_true(2,3);  y_true << 0.5, 0.5, 0.5,   1.5, 1.5, 1.5;
+    ASSERT_TRUE( l->computeBackpropagationOutputLayerError(y_true) );
+
+    for( unsigned int k = 0; k<3; k++ )
+    {
+        ASSERT_NEAR( l->getBackpropagationError()(0,k), 0.0, 0.0001 );
+        ASSERT_NEAR( l->getBackpropagationError()(1,k), -0.25, 0.0001 );
+    }
 
     delete l;
 }

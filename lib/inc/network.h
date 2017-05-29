@@ -53,14 +53,14 @@ public:
      * @param x_in Input signal.
      * @return true if successful.
      */
-    bool feedForward( const Eigen::VectorXd& x_in );
+    bool feedForward(const Eigen::MatrixXd &x_in );
 
     /**
      * Get the output activation of this neural network. This function is usually
      * called after feedForward() is executed.
      * @return Output activation vector.
      */
-    const Eigen::VectorXd& getOutputActivation() const { return m_activation_out; }
+    const Eigen::MatrixXd& getOutputActivation() const { return m_activation_out; }
 
     /**
      * Returns the number of layers.
@@ -126,7 +126,7 @@ private:
 
     const vector<unsigned int> m_NetworkStructure;
     vector< shared_ptr<Layer> > m_Layers;
-    Eigen::VectorXd m_activation_out;
+    Eigen::MatrixXd m_activation_out;
 };
 
 #endif //NETWORKHEADER

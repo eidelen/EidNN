@@ -50,17 +50,14 @@ void Network::initNetwork()
         nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
     }
 
-    m_activation_out = Eigen::VectorXd( m_NetworkStructure.back() ); // output activation vector has the size of the last layer (output layer)
+    m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
 }
 
-bool Network::feedForward( const Eigen::VectorXd& x_in )
+bool Network::feedForward( const Eigen::MatrixXd& x_in )
 {
     // first layer does not perform any operation. It's activation output is just x_in.
     if( ! getLayer(0)->setActivationOutput(x_in) )
-    {
-        cout << "Error: Input signal size mismatch" << endl;
         return false;
-    }
 
     for( unsigned int k = 1; k < m_Layers.size(); k++ )
     {

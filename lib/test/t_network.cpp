@@ -103,11 +103,20 @@ TEST(NetworkTest, FeedForward_Reference)
      *
      */
 
-    Eigen::VectorXd x(1); x << 0.0;
+
+    Eigen::MatrixXd x(1,1); x << 0.0;
     ASSERT_TRUE(net->feedForward(x));
-    const Eigen::VectorXd out = net->getOutputActivation();
+    const Eigen::MatrixXd out = net->getOutputActivation();
     double outputShouldBe = Neuron::sigmoid( Neuron::sigmoid(0.2) + Neuron::sigmoid(-0.3) + 0.4);
-    ASSERT_NEAR( out(0),  outputShouldBe, 0.0001 );
+    ASSERT_NEAR( out(0,0),  outputShouldBe, 0.0001 );
+
+    // multiple input
+    Eigen::MatrixXd xM(1,3); xM << 0.0, 0.0, 0.0;
+    ASSERT_TRUE(net->feedForward(xM));
+    const Eigen::MatrixXd out2 = net->getOutputActivation();
+    for( unsigned int k = 0; k < 3; k++ )
+        ASSERT_NEAR( out2(0,k),  outputShouldBe, 0.0001 );
+
 
     delete net;
 }
