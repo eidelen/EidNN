@@ -88,7 +88,7 @@ public:
      * @param eta Learning rate.
      * @return true if successful.
      */
-    bool gradientDescent(const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out, const double& eta);
+    bool gradientDescent(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out, const double& eta);
 
     /**
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
@@ -101,7 +101,7 @@ public:
      * @param eta
      * @return true if successful.
      */
-    bool stochasticGradientDescent(const std::vector<Eigen::VectorXd>& samples, const std::vector<Eigen::VectorXd>& lables,
+    bool stochasticGradientDescent(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                    const unsigned int& batchsize, const double& eta );
 
     /**
@@ -118,7 +118,7 @@ public:
 private:
 
     // Do feedforward and backprop. but weights and biases are not updated!
-    bool doFeedforwardAndBackpropagation( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out );
+    bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
 
     void initNetwork();
 

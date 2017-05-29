@@ -91,7 +91,7 @@ shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
     return m_Layers.at(layerIdx);
 }
 
-bool Network::gradientDescent( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out, const double& eta )
+bool Network::gradientDescent( const Eigen::MatrixXd& x_in, const Eigen::MatrixXd& y_out, const double& eta )
 {
     if( ! doFeedforwardAndBackpropagation(x_in, y_out ) )
         return false;
@@ -104,7 +104,7 @@ bool Network::gradientDescent( const Eigen::VectorXd& x_in, const Eigen::VectorX
     return true;
 }
 
-bool Network::stochasticGradientDescent(const std::vector<Eigen::VectorXd>& samples, const std::vector<Eigen::VectorXd>& lables,
+bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
                                         const unsigned int& batchsize, const double& eta)
 {
     if( samples.size() != lables.size() )
@@ -189,7 +189,7 @@ void Network::print()
     }
 }
 
-bool Network::doFeedforwardAndBackpropagation( const Eigen::VectorXd& x_in, const Eigen::VectorXd& y_out )
+bool Network::doFeedforwardAndBackpropagation( const Eigen::MatrixXd& x_in, const Eigen::MatrixXd& y_out )
 {
     // updates output in all layers
     if( ! feedForward(x_in) )

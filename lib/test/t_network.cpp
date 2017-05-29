@@ -247,10 +247,10 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
         for( int ts = 0; ts < 1000; ts++ )
         {
             double valIn = dist(e2);
-            Eigen::VectorXd x(1);
-            x(0) = valIn;
+            Eigen::MatrixXd x(1,1);
+            x(0,0) = valIn;
 
-            Eigen::VectorXd y(2);
+            Eigen::MatrixXd y(2,1);
             if( valIn > 0 )
                 y << 1.0, 0.0;
             else
@@ -265,21 +265,21 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
         {
             double testVal = dist(e2);
-            Eigen::VectorXd x(1);
-            x(0) = testVal;
+            Eigen::MatrixXd x(1,1);
+            x(0,0) = testVal;
 
             net->feedForward( x );
-            Eigen::VectorXd o_activation = net->getOutputActivation();
+            Eigen::MatrixXd o_activation = net->getOutputActivation();
 
             if( testVal > 0 )
             {
-                if( o_activation(0) > o_activation(1) && o_activation(0) > 0.99 ) // at least 99% sure that it is positive
-                    nbrSuccessful = nbrSuccessful + 1.0f;
+                if( o_activation(0,0) > o_activation(1,0) && o_activation(0,0) > 0.99 ) // at least 99% sure that it is positive
+                    nbrSuccessful = nbrSuccessful + 1.0;
             }
             else
             {
-                if( o_activation(1) > o_activation(0) && o_activation(1) > 0.99 ) // at least 99% sure that it is negative
-                    nbrSuccessful = nbrSuccessful + 1.0f;
+                if( o_activation(1,0) > o_activation(0,0) && o_activation(1,0) > 0.99 ) // at least 99% sure that it is negative
+                    nbrSuccessful = nbrSuccessful + 1.0;
             }
         }
 
@@ -318,8 +318,8 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
         {
 
             // generate input
-            Eigen::VectorXd x(3);
-            std:vector<int> set = choice;
+            Eigen::MatrixXd x(3,1);
+            vector<int> set = choice;
             for( int i = 0; i < 3; i++ )
             {
                 while( true )
@@ -327,7 +327,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
                     uint elemIdx = uint( floor(dist(e2)) );
                     if( elemIdx < set.size() )
                     {
-                        x(i) = set.at( elemIdx );
+                        x(i,0) = set.at( elemIdx );
                         set.erase( set.begin() + elemIdx );
                         break;
                     }
@@ -335,20 +335,20 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             }
 
             // ... and corresponding output (index of maximum value)
-            Eigen::VectorXd y(3); y << 0, 0, 0;
+            Eigen::MatrixXd y(3,1); y << 0, 0, 0;
             int maxIdx = 0;
             double maxValue = -1;
             for( int i = 0; i < 3; i++ )
             {
-                if( x(i) > maxValue )
+                if( x(i,0) > maxValue )
                 {
-                    maxValue = x(i);
+                    maxValue = x(i,0);
                     maxIdx = i;
                 }
             }
-            y( maxIdx ) = 1.0;
+            y(maxIdx,0) = 1.0;
 
-            net->gradientDescent( x, y, 0.1f );
+            net->gradientDescent( x, y, 0.1 );
         }
 
 
@@ -358,7 +358,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
         for( int test_s = 0; test_s < nbrOfTests; test_s++ )
         {
             // generate input
-            Eigen::VectorXd x(3);
+            Eigen::MatrixXd x(3,1);
             vector<int> set = choice;
             for( int i = 0; i < 3; i++ )
             {
@@ -367,7 +367,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
                     uint elemIdx = uint( floor(dist(e2)) );
                     if( elemIdx < set.size() )
                     {
-                        x(i) = set.at( elemIdx );
+                        x(i,0) = set.at( elemIdx );
                         set.erase( set.begin() + elemIdx );
                         break;
                     }
@@ -375,23 +375,23 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
             }
 
             // ... and corresponding output (index of maximum value)
-            Eigen::VectorXd y(3); y << 0, 0, 0;
+            Eigen::MatrixXd y(3,1); y << 0, 0, 0;
             int maxIdx = 0;
             double maxValue = -1;
             for( int i = 0; i < 3; i++ )
             {
-                if( x(i) > maxValue )
+                if( x(i,0) > maxValue )
                 {
-                    maxValue = x(i);
+                    maxValue = x(i,0);
                     maxIdx = i;
                 }
             }
-            y( maxIdx ) = 1.0;
+            y(maxIdx,0) = 1.0;
 
             net->feedForward( x );
 
             if( ( y - net->getOutputActivation() ).norm() < 0.10 )
-                nbrSuccessful = nbrSuccessful + 1.0f;
+                nbrSuccessful = nbrSuccessful + 1.0;
         }
 
         double thisSuccessRate = 100 * nbrSuccessful / nbrOfTests;
@@ -415,15 +415,15 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
     std::uniform_real_distribution<> dist(-100, +100);
 
     // create training set
-    std::vector<Eigen::VectorXd> xin;
-    std::vector<Eigen::VectorXd> yout;
+    std::vector<Eigen::MatrixXd> xin;
+    std::vector<Eigen::MatrixXd> yout;
     for( uint k = 0; k < 1000; k++ )
     {
         double value = dist(e2);
-        Eigen::VectorXd thisSample(1);
-        Eigen::VectorXd thisLable(2);
+        Eigen::MatrixXd thisSample(1,1);
+        Eigen::MatrixXd thisLable(2,1);
 
-        thisSample(0) = value;
+        thisSample(0,0) = value;
 
         if( value > 0 )
             thisLable << 1.0, 0.0;
@@ -435,15 +435,15 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
     }
 
     // create test set
-    std::vector<Eigen::VectorXd> t_xin;
-    std::vector<Eigen::VectorXd> t_yout;
+    std::vector<Eigen::MatrixXd> t_xin;
+    std::vector<Eigen::MatrixXd> t_yout;
     for( uint k = 0; k < 100; k++ )
     {
         double value = dist(e2);
-        Eigen::VectorXd thisSample(1);
-        Eigen::VectorXd thisLable(2);
+        Eigen::MatrixXd thisSample(1,1);
+        Eigen::MatrixXd thisLable(2,1);
 
-        thisSample(0) = value;
+        thisSample(0,0) = value;
 
         if( value > 0 )
             thisLable << 1.0, 0.0;
@@ -458,7 +458,7 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
     Network* net = new Network(map);
     unsigned int nbrEpochs = 60;
     unsigned int miniBatch = 20;
-    double bestResult = -1.0f;
+    double bestResult = -1.0;
 
     for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
     {
@@ -470,8 +470,8 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
         double nbrSuccessful = 0;
         for( size_t i = 0; i < t_xin.size(); i++ )
         {
-            Eigen::VectorXd tx = t_xin.at(i);
-            Eigen::VectorXd ty = t_yout.at(i);
+            Eigen::MatrixXd tx = t_xin.at(i);
+            Eigen::MatrixXd ty = t_yout.at(i);
 
             net->feedForward( tx );
             double diff = (net->getOutputActivation() - ty).norm();
