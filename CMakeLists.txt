@@ -5,4 +5,7 @@ PROJECT(eidnn)
 # library
 #---------------------------------------------------------------------
 add_subdirectory(lib)
+add_subdirectory(examples/mnist)
+
+
 

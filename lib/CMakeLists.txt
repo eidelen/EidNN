@@ -16,7 +16,6 @@ FILE(GLOB_RECURSE  EIDNN_INCLUDES        inc/*.h)
 FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
 
 ADD_LIBRARY(eidnnlib SHARED ${EIDNN_INCLUDES} ${EIDNN_SOURCES} )
-#TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${NATK_LIBRARY} )
 
 
 option(TESTEIDNN  "TEST" OFF)
@@ -31,4 +30,9 @@ IF(${TESTEIDNN})
     add_executable(runTests ${EIDNN_TESTS_INC} ${EIDNN_TESTS_SRC})
     target_link_libraries(runTests ${GTEST_LIBRARIES} pthread eidnnlib )
 ENDIF()
+
+
+
+
+
 
