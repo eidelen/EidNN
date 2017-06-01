@@ -11,3 +11,6 @@ Resources:
 
 License:
 I doubt that somebody wants to use anything from this project :) If so, feel free to do whatever you want.
+
+#  Acknowledgments
+- [Simple C++ reader for MNIST dataset](https://github.com/wichtounet/mnist), written by wichtounet
