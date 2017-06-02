@@ -17,6 +17,9 @@ public:
     ~Widget();
 
 private:
+    void showAImage();
+
+private:
     Ui::Widget* ui;
 };
 
