@@ -231,6 +231,34 @@ TEST(NetworkTest, Backpropagation_Errors)
     delete net;
 }
 
+
+TEST(NetworkTest, Backpropagation_MNIST_INPUT)
+{
+    std::vector<unsigned int> map = {784,30,10};
+    Network* net = new Network(map);
+
+    Eigen::MatrixXd xin = Eigen::MatrixXd::Constant(784,1, 128.0);
+    Eigen::MatrixXd yout = Eigen::MatrixXd::Constant(10,1, 0.0);
+    yout(2,0) = 1.0;
+
+    for( int k = 0; k < 1000 ; k++ )
+        net->gradientDescent(xin,yout,0.1);
+
+    net->gradientDescent(xin,yout,0.1);
+
+    Eigen::MatrixXd err = net->getOutputLayer()->getBackpropagationError();
+    std::cout << "Error = " << err.norm() << ": " << err.transpose() << std::endl;
+
+    net->feedForward(xin);
+    Eigen::MatrixXd outSignal = net->getOutputActivation();
+
+    std::cout << "Outsignal = " << outSignal.transpose() << std::endl;
+    std::cout << "Lable = " << " : " << yout.transpose() << std::endl;
+
+
+    delete net;
+}
+
 TEST(NetworkTest, Backpropagate_Simple_Example)
 {
     // recognize positive numbers and negative numbers in the range of -100 to 100
