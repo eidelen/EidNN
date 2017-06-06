@@ -2,6 +2,7 @@
 #include "ui_widget.h"
 #include "layer.h"
 #include "mnist/mnist_reader.hpp"
+#include "mnist/mnist_utils.hpp"
 
 #include "QPixmap"
 #include "QImage"
@@ -50,17 +51,21 @@ Widget::~Widget()
 void Widget::prepareSamples()
 {
     auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>();
+    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>();
+    mnist::normalize_dataset(mnistinputNormalized);
 
     // Load training data
     m_trainingSet.clear();
     for( size_t k = 0; k < mnistinput.training_images.size(); k++ )
     {
-        Eigen::MatrixXd xIn; uint8_t lable;
+        Eigen::MatrixXd xIn; Eigen::MatrixXd xInNormalized; uint8_t lable;
         loadMNISTSample( mnistinput.training_images, mnistinput.training_labels, k, xIn, lable );
+        loadMNISTSample( mnistinputNormalized.training_images, mnistinputNormalized.training_labels, k, xInNormalized, lable );
         Eigen::MatrixXd yOut = lableToOutputVector( lable );
 
         NNSample thisSample;
-        thisSample.input = xIn; thisSample.output = yOut; thisSample.lable = lable;
+        thisSample.input = xIn; thisSample.normalizedinput = xInNormalized;
+        thisSample.output = yOut; thisSample.lable = lable;
         m_trainingSet.push_back( thisSample );
     }
 
@@ -68,15 +73,16 @@ void Widget::prepareSamples()
     m_testingSet.clear();
     for( size_t k = 0; k < mnistinput.test_images.size(); k++ )
     {
-        Eigen::MatrixXd xIn; uint8_t lable;
+        Eigen::MatrixXd xIn; Eigen::MatrixXd xInNormalized; uint8_t lable;
         loadMNISTSample( mnistinput.test_images, mnistinput.test_labels, k, xIn, lable );
+        loadMNISTSample( mnistinputNormalized.test_images, mnistinputNormalized.test_labels, k, xInNormalized, lable );
         Eigen::MatrixXd yOut = lableToOutputVector( lable );
 
         NNSample thisSample;
-        thisSample.input = xIn; thisSample.output = yOut; thisSample.lable = lable;
+        thisSample.input = xIn; thisSample.normalizedinput = xInNormalized;
+        thisSample.output = yOut; thisSample.lable = lable;
         m_testingSet.push_back( thisSample );
     }
-
 }
 
 bool Widget::loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
@@ -125,20 +131,20 @@ void Widget::displayMNISTImage( const size_t& idx )
 
 void Widget::sameImage()
 {
-    std::vector<unsigned int> map = {784,30,10};
+    std::vector<unsigned int> map = {784,100,10};
     Network* net = new Network(map);
 
     NNSample sample = m_trainingSet.at(0);
 
     for( int k = 0; k < 10000; k++ )
     {
-        net->gradientDescent(sample.input,sample.output,3.0);
+        net->gradientDescent(sample.normalizedinput,sample.output,3.0);
     }
 
     Eigen::MatrixXd err = net->getOutputLayer()->getBackpropagationError();
     std::cout << "Error = " << err.norm() << ": " << err.transpose() << std::endl;
 
-    net->feedForward(sample.input);
+    net->feedForward(sample.normalizedinput);
     Eigen::MatrixXd outSignal = net->getOutputActivation();
 
     std::cout << "Outsignal = " << outSignal.transpose() << std::endl;
@@ -149,7 +155,7 @@ void Widget::sameImage()
 
 void Widget::learn()
 {
-    std::vector<unsigned int> map = {784,30,10};
+    std::vector<unsigned int> map = {784,40,10};
     Network* net = new Network(map);
     unsigned int nbrEpochs = 1000;
 
@@ -159,7 +165,7 @@ void Widget::learn()
     for( size_t z = 0; z < m_trainingSet.size(); z++ )
     {
         batchout.push_back( m_trainingSet.at(z).output );
-        batchin.push_back( m_trainingSet.at(z).input );
+        batchin.push_back( m_trainingSet.at(z).normalizedinput );
     }
 
     int batchsize = 10;
@@ -167,9 +173,9 @@ void Widget::learn()
     for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
     {
         // training
-        for( size_t k = 0; k < 6000; k++ )
+        for( size_t k = 0; k < batchin.size()/batchsize; k++ )
         {
-            net->stochasticGradientDescent(batchin, batchout, batchsize, 0.2 );
+            net->stochasticGradientDescent(batchin, batchout, batchsize, 3.0 );
         }
 
 
@@ -179,7 +185,7 @@ void Widget::learn()
         {
             NNSample sample = m_testingSet.at(t);
 
-            net->feedForward(sample.input);
+            net->feedForward(sample.normalizedinput);
             Eigen::MatrixXd out = net->getOutputActivation();
             double maxElement = 0.0;
             int maxIdx = 0;
@@ -194,7 +200,8 @@ void Widget::learn()
 
             if( maxIdx == sample.lable )
                 successfull = successfull + 1;
-
+            else
+                maxIdx = 0;
 
         }
 

@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include <QMainWindow>
+#include <QThread>
 #include <vector>
 
 namespace Ui
@@ -14,6 +15,7 @@ namespace Ui
 struct NNSample
 {
     Eigen::MatrixXd input;
+    Eigen::MatrixXd normalizedinput;
     Eigen::MatrixXd output;
     uint8_t lable;
 };
@@ -40,6 +42,7 @@ private:
     std::vector<NNSample> m_trainingSet;
     std::vector<NNSample> m_testingSet;
     size_t m_currentIdx;
+
 };
 
 #endif // WIDGET_H
