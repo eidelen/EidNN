@@ -23,6 +23,7 @@
 
 #include "network.h"
 #include "layer.h"
+#include "network_cb.h"
 
 #include <random>
 #include <iostream>
@@ -121,6 +122,21 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
         return false;
     }
 
+    // one epoch
+    unsigned long nbrOfBatches = nbrOfSamples / batchsize;
+    for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
+    {
+        doStochasticGradientDescentBatch(samples, lables, batchsize, eta);
+    }
+
+    return true;
+}
+
+bool Network::doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
+                                               const unsigned int& batchsize, const double& eta )
+{
+    size_t nbrOfSamples = samples.size();
+
     std::random_device rd;
     std::mt19937 e2(rd());
     std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
@@ -128,43 +144,39 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     Eigen::MatrixXd batch_in( samples.at(0).rows(), batchsize );
     Eigen::MatrixXd batch_out( lables.at(0).rows(), batchsize );
 
-    unsigned int nbrOfBatches = nbrOfSamples / batchsize;
-
-    for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
+    // generate a random sample set
+    for( unsigned int b = 0; b < batchsize; b++ )
     {
-        // generate a random sample set
-        for( unsigned int b = 0; b < batchsize; b++ )
+        size_t rIdx = size_t( iDist(e2) );
+        batch_in.col(b) = samples.at(rIdx);
+        batch_out.col(b) = lables.at(rIdx);
+    }
+
+    // this computes the whole batch at once
+    if( !doFeedforwardAndBackpropagation( batch_in, batch_out ) )
+        return false;
+
+    // compute average partial derivatives over all samples in all layers
+    for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
+    {
+        const std::shared_ptr<Layer>& l = getLayer(j);
+
+        Eigen::MatrixXd biasSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), 1, 0.0 );
+        Eigen::MatrixXd weightSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), l->getNbrOfNeuronInputs(), 0.0 );
+
+        vector<Eigen::MatrixXd> pd_biases = l->getPartialDerivativesBiases();
+        vector<Eigen::MatrixXd> pd_weigths = l->getPartialDerivativesWeights();
+
+        for( unsigned int k = 0; k < pd_biases.size(); k++ )
         {
-            size_t rIdx = size_t( iDist(e2) );
-            batch_in.col(b) = samples.at(rIdx);
-            batch_out.col(b) = lables.at(rIdx);
+            biasSum = biasSum + pd_biases.at(k);
+            weightSum = weightSum + pd_weigths.at(k);
         }
 
-        // this computes the whole batch at once
-        doFeedforwardAndBackpropagation( batch_in, batch_out );
-
-        // compute average partial derivatives over all samples in all layers
-        for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
-        {
-            const std::shared_ptr<Layer>& l = getLayer(j);
-
-            Eigen::MatrixXd biasSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), 1, 0.0 );
-            Eigen::MatrixXd weightSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), l->getNbrOfNeuronInputs(), 0.0 );
-
-            vector<Eigen::MatrixXd> pd_biases = l->getPartialDerivativesBiases();
-            vector<Eigen::MatrixXd> pd_weigths = l->getPartialDerivativesWeights();
-
-            for( unsigned int k = 0; k < pd_biases.size(); k++ )
-            {
-                biasSum = biasSum + pd_biases.at(k);
-                weightSum = weightSum + pd_weigths.at(k);
-            }
-
-            // update weights and biases in layer
-            Eigen::MatrixXd avgPDBias = biasSum * ( eta / double(batchsize) );
-            Eigen::MatrixXd avgPDWeights = weightSum * ( eta / double(batchsize) );
-            l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
-        }
+        // update weights and biases in layer
+        Eigen::MatrixXd avgPDBias = biasSum * ( eta / double(batchsize) );
+        Eigen::MatrixXd avgPDWeights = weightSum * ( eta / double(batchsize) );
+        l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
     }
 
     return true;

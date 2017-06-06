@@ -31,6 +31,7 @@
 using namespace std;
 
 class Layer;
+class NetworkOperationCallback;
 
 class Network
 {
@@ -105,6 +106,8 @@ public:
     bool stochasticGradientDescent(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                    const unsigned int& batchsize, const double& eta );
 
+    bool stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
+                                        const unsigned int& batchsize, const double& eta );
     /**
      * Returns the magnitude of the error vector in the output layer. This error is
      * initialized during the backpropagation.
@@ -112,6 +115,11 @@ public:
      */
     double getNetworkErrorMagnitude();
 
+    /**
+     * Set an observer, which gets informed about operation progress.
+     * @param observer A pointer to an observer.
+     */
+    void setObserver( NetworkOperationCallback* observer ) { m_oberserver = observer; }
 
     void print();
 
@@ -121,6 +129,9 @@ private:
     // Do feedforward and backprop. but weights and biases are not updated!
     bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
 
+    bool doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
+                                          const unsigned int& batchsize, const double& eta );
+
     void initNetwork();
 
 private:
@@ -128,6 +139,8 @@ private:
     const vector<unsigned int> m_NetworkStructure;
     vector< shared_ptr<Layer> > m_Layers;
     Eigen::MatrixXd m_activation_out;
+
+    NetworkOperationCallback* m_oberserver;
 };
 
 #endif //NETWORKHEADER
