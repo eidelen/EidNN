@@ -490,9 +490,8 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
 
     for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
     {
-        //training
-        for( size_t k = 0; k < xin.size() / miniBatch ; k++ )    // one epoch runs the number of overall samples.
-            net->stochasticGradientDescent( xin, yout, miniBatch, 0.1 );
+        //training: one epoch
+        net->stochasticGradientDescent( xin, yout, miniBatch, 0.1 );
 
         // testing
         double nbrSuccessful = 0;

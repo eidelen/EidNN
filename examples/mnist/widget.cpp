@@ -168,16 +168,12 @@ void Widget::learn()
         batchin.push_back( m_trainingSet.at(z).normalizedinput );
     }
 
-    int batchsize = 10;
+    unsigned int batchsize = 10;
 
     for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
     {
         // training
-        for( size_t k = 0; k < batchin.size()/batchsize; k++ )
-        {
-            net->stochasticGradientDescent(batchin, batchout, batchsize, 3.0 );
-        }
-
+        net->stochasticGradientDescent(batchin, batchout, batchsize, 3.0 );
 
         // test
         double successfull = 0;

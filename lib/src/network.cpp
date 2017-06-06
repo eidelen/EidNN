@@ -125,44 +125,46 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     std::mt19937 e2(rd());
     std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
 
-
     Eigen::MatrixXd batch_in( samples.at(0).rows(), batchsize );
     Eigen::MatrixXd batch_out( lables.at(0).rows(), batchsize );
 
+    unsigned int nbrOfBatches = nbrOfSamples / batchsize;
 
-    for( unsigned int b = 0; b < batchsize; b++ )
+    for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
     {
-        // randomly choose a sample and lable and append to input matrix and output matrix
-        size_t rIdx = size_t( iDist(e2) );
-        batch_in.col(b) = samples.at(rIdx);
-        batch_out.col(b) = lables.at(rIdx);
-    }
-
-    // this computes the whole batch at once
-    doFeedforwardAndBackpropagation( batch_in, batch_out );
-
-    // compute average partial derivatives over all samples in all layers
-    for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
-    {
-        const std::shared_ptr<Layer>& l = getLayer(j);
-
-        Eigen::MatrixXd biasSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), 1, 0.0 );
-        Eigen::MatrixXd weightSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), l->getNbrOfNeuronInputs(), 0.0 );
-
-        vector<Eigen::MatrixXd> pd_biases = l->getPartialDerivativesBiases();
-        vector<Eigen::MatrixXd> pd_weigths = l->getPartialDerivativesWeights();
-
-        for( unsigned int k = 0; k < pd_biases.size(); k++ )
+        // generate a random sample set
+        for( unsigned int b = 0; b < batchsize; b++ )
         {
-            biasSum = biasSum + pd_biases.at(k);
-            weightSum = weightSum + pd_weigths.at(k);
+            size_t rIdx = size_t( iDist(e2) );
+            batch_in.col(b) = samples.at(rIdx);
+            batch_out.col(b) = lables.at(rIdx);
         }
 
-        // update weights and biases in layer
-        Eigen::MatrixXd avgPDBias = biasSum * ( eta / double(batchsize) );
-        Eigen::MatrixXd avgPDWeights = weightSum * ( eta / double(batchsize) );
-        l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
+        // this computes the whole batch at once
+        doFeedforwardAndBackpropagation( batch_in, batch_out );
 
+        // compute average partial derivatives over all samples in all layers
+        for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
+        {
+            const std::shared_ptr<Layer>& l = getLayer(j);
+
+            Eigen::MatrixXd biasSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), 1, 0.0 );
+            Eigen::MatrixXd weightSum = Eigen::MatrixXd::Constant( l->getNbrOfNeurons(), l->getNbrOfNeuronInputs(), 0.0 );
+
+            vector<Eigen::MatrixXd> pd_biases = l->getPartialDerivativesBiases();
+            vector<Eigen::MatrixXd> pd_weigths = l->getPartialDerivativesWeights();
+
+            for( unsigned int k = 0; k < pd_biases.size(); k++ )
+            {
+                biasSum = biasSum + pd_biases.at(k);
+                weightSum = weightSum + pd_weigths.at(k);
+            }
+
+            // update weights and biases in layer
+            Eigen::MatrixXd avgPDBias = biasSum * ( eta / double(batchsize) );
+            Eigen::MatrixXd avgPDWeights = weightSum * ( eta / double(batchsize) );
+            l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
+        }
     }
 
     return true;

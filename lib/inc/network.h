@@ -94,7 +94,8 @@ public:
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
      * to the computed partial derivatives and the stochastic gradient descent method.
      * The stochastic gradient descent methods updates the weights and biases by the averaged
-     * partial derivatives of a randomly chosen batch of samples.
+     * partial derivatives of a randomly chosen batch of samples. In total, nbrOfSamples / batchsize
+     * batches are executed -> this is called an epoch.
      * @param samples Input signals.
      * @param lables Desired output signals.
      * @param batchsize Number of samples in the batch.
