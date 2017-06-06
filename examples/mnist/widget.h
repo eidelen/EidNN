@@ -2,7 +2,6 @@
 #define WIDGET_H
 
 #include "network.h"
-#include "mnist/mnist_reader.hpp"
 #include <QMainWindow>
 #include <vector>
 
@@ -10,6 +9,14 @@ namespace Ui
 {
     class Widget;
 }
+
+
+struct NNSample
+{
+    Eigen::MatrixXd input;
+    Eigen::MatrixXd output;
+    uint8_t lable;
+};
 
 class Widget : public QMainWindow
 {
@@ -25,10 +32,13 @@ private:
     void displayMNISTImage(const size_t &idx);
     void learn();
     void sameImage();
+    void prepareSamples();
+    Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
 
 private:
     Ui::Widget* ui;
-    mnist::MNIST_dataset< std::vector, std::vector<double>, uint8_t> m_mnist;
+    std::vector<NNSample> m_trainingSet;
+    std::vector<NNSample> m_testingSet;
     size_t m_currentIdx;
 };
 
