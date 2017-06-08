@@ -37,8 +37,8 @@
     <rect>
      <x>50</x>
      <y>210</y>
-     <width>194</width>
-     <height>33</height>
+     <width>203</width>
+     <height>41</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -81,6 +81,19 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="learnPB">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>270</y>
+     <width>89</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Learn</string>
+   </property>
   </widget>
  </widget>
  <resources/>

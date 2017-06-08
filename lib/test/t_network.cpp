@@ -22,6 +22,7 @@
 *****************************************************************************/
 
 #include <random>
+#include <thread>
 #include <gtest/gtest.h>
 #include "network.h"
 #include "layer.h"
@@ -267,10 +268,10 @@ TEST(NetworkTest, Backpropagate_Simple_Example)
 
     std::random_device rd;
     std::mt19937 e2(rd());
-    std::uniform_real_distribution<> dist(-10000, +10000);
+    std::uniform_real_distribution<> dist(-100, +100);
 
     double bestResult = -1.0;
-    for( int evolutions = 0; evolutions < 60; evolutions++ )
+    for( int evolutions = 0; evolutions < 40; evolutions++ )
     {
         for( int ts = 0; ts < 1000; ts++ )
         {
@@ -340,7 +341,7 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
 
 
     double bestResult = -1.0;
-    for( int evolutions = 0; evolutions < 60; evolutions++ )
+    for( int evolutions = 0; evolutions < 40; evolutions++ )
     {
         for( int ts = 0; ts < 1000; ts++ )
         {
@@ -435,6 +436,22 @@ TEST(NetworkTest, Backpropagate_Multilayer_Input_Example)
     ASSERT_GT( bestResult, 90 );
 }
 
+class TestCallback: public NetworkOperationCallback
+{
+public:
+    TestCallback(){}
+    ~TestCallback(){}
+    void networkOperationProgress(const NetworkOperationId& opId, const NetworkOperationStatus& opStatus,
+                                  const double &progress)
+    {
+        m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress;
+    }
+
+    NetworkOperationId m_lastOpId;
+    NetworkOperationStatus m_lastOpStatus;
+    double m_lastProgress;
+};
+
 TEST(NetworkTest, Backpropagate_StochasticGD)
 {
     // recognize positive numbers and negative numbers with stochastic gradient descent
@@ -484,7 +501,11 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
 
     std::vector<unsigned int> map = {1,5,2};
     Network* net = new Network(map);
-    unsigned int nbrEpochs = 60;
+
+    TestCallback* tb = new TestCallback();
+    net->setObserver( tb );
+
+    unsigned int nbrEpochs = 40;
     unsigned int miniBatch = 20;
     double bestResult = -1.0;
 
@@ -515,9 +536,75 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
 
     std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
 
-    delete  net;
-
     ASSERT_GT( bestResult, 90 );
+    ASSERT_TRUE(  tb->m_lastOpId == NetworkOperationCallback::OpStochasticGradientDescent );
+    ASSERT_TRUE( tb->m_lastOpStatus == NetworkOperationCallback::OpResultOk );
+    ASSERT_GT( tb->m_lastProgress, 0.99 );
+
+    delete net;
+    delete tb;
+}
+
+
+class TestCallback2: public NetworkOperationCallback
+{
+public:
+    TestCallback2(){}
+    ~TestCallback2(){}
+    void networkOperationProgress(const NetworkOperationId& , const NetworkOperationStatus& status,
+                                  const double &progress)
+    {
+        std::cout << "Async CB: " << progress*100 << "%" << std::endl;
+        m_lastStatus = status;
+    }
+
+    NetworkOperationStatus m_lastStatus;
+};
+
+TEST(NetworkTest, Backpropagate_StochasticGD_Async)
+{
+    // recognize positive numbers and negative numbers with stochastic gradient descent
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_real_distribution<> dist(-1, +1);
+
+    // create training set
+    std::vector<Eigen::MatrixXd> xin;
+    std::vector<Eigen::MatrixXd> yout;
+    for( uint k = 0; k < 1000; k++ )
+    {
+        double value = dist(e2);
+        Eigen::MatrixXd thisSample(1,1);
+        Eigen::MatrixXd thisLable(2,1);
+
+        thisSample(0,0) = value;
+
+        if( value > 0 )
+            thisLable << 1.0, 0.0;
+        else
+            thisLable << 0.0, 1.0;
+
+        xin.push_back( thisSample );
+        yout.push_back( thisLable );
+    }
+
+    std::vector<unsigned int> map = {1,5,2};
+    Network* net = new Network(map);
+
+    TestCallback2* tb = new TestCallback2();
+    net->setObserver( tb );
+
+    ASSERT_TRUE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) );
+    ASSERT_FALSE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) ); // since already async operation in progress;
+    ASSERT_TRUE( net->isOperationInProgress() );
+
+    net->getCurrentAsyncOperation().join(); // waits till thread ends
+
+    ASSERT_FALSE( net->isOperationInProgress() );
+    ASSERT_EQ( tb->m_lastStatus, NetworkOperationCallback::OpResultOk );
+
+    delete net;
+    delete tb;
 }
 
 

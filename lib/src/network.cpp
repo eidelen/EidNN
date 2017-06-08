@@ -23,7 +23,6 @@
 
 #include "network.h"
 #include "layer.h"
-#include "network_cb.h"
 
 #include <random>
 #include <iostream>
@@ -31,7 +30,7 @@
 using namespace std;
 
 Network::Network( const vector<unsigned int> networkStructure ) :
-    m_NetworkStructure( networkStructure )
+    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_operationInProgress( false )
 {
     initNetwork();
 }
@@ -105,31 +104,51 @@ bool Network::gradientDescent( const Eigen::MatrixXd& x_in, const Eigen::MatrixX
     return true;
 }
 
+bool Network::stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
+                                             const unsigned int& batchsize, const double& eta)
+{
+    if( isOperationInProgress() )
+        return false;
+
+    m_operationInProgress = true;
+    if( m_asyncOperation.joinable() )
+            m_asyncOperation.join();
+    m_asyncOperation = std::thread(&Network::stochasticGradientDescent, this,  samples, lables, batchsize, eta);
+    return true;
+}
+
 bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
                                         const unsigned int& batchsize, const double& eta)
-{
+{    
+    bool retValue = false;
+    size_t nbrOfSamples = samples.size();
+
     if( samples.size() != lables.size() )
     {
         cout << "Error: number of samples and lables mismatch" << endl;
-        return false;
+        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
     }
-
-    size_t nbrOfSamples = samples.size();
-
-    if( nbrOfSamples < batchsize )
+    else if( nbrOfSamples < batchsize )
     {
         cout << "Error: batchsize exceeds number of available smaples" << endl;
-        return false;
+        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
     }
-
-    // one epoch
-    unsigned long nbrOfBatches = nbrOfSamples / batchsize;
-    for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
+    else
     {
-        doStochasticGradientDescentBatch(samples, lables, batchsize, eta);
+        // one epoch
+        unsigned long nbrOfBatches = nbrOfSamples / batchsize;
+        for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
+        {
+            doStochasticGradientDescentBatch(samples, lables, batchsize, eta);
+            sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpInProgress, double(batch)/double(nbrOfBatches) );
+        }
+
+        retValue = true;
+        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0 );
     }
 
-    return true;
+    m_operationInProgress = false;
+    return retValue;
 }
 
 bool Network::doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
@@ -234,4 +253,12 @@ bool Network::doFeedforwardAndBackpropagation( const Eigen::MatrixXd& x_in, cons
     }
 
     return true;
+}
+
+void Network::sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& opId,
+                                      const NetworkOperationCallback::NetworkOperationStatus& opStatus,
+                                      const double& progress  )
+{
+    if( m_oberserver != NULL )
+        m_oberserver->networkOperationProgress( opId, opStatus, progress );
 }

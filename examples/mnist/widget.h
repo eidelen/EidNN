@@ -2,9 +2,11 @@
 #define WIDGET_H
 
 #include "network.h"
+#include "network_cb.h"
 #include <QMainWindow>
 #include <QThread>
 #include <vector>
+#include <memory>
 
 namespace Ui
 {
@@ -20,13 +22,19 @@ struct NNSample
     uint8_t lable;
 };
 
-class Widget : public QMainWindow
+class Widget : public QMainWindow, public NetworkOperationCallback
 {
     Q_OBJECT
 
 public:
     explicit Widget(QWidget* parent = 0);
     ~Widget();
+
+
+    // NetworkOperationCallback interface
+public:
+    void networkOperationProgress( const NetworkOperationId &opId, const NetworkOperationStatus &opStatus,
+                                   const double &progress );
 
 private:
     bool loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
@@ -41,7 +49,10 @@ private:
     Ui::Widget* ui;
     std::vector<NNSample> m_trainingSet;
     std::vector<NNSample> m_testingSet;
+    std::vector<Eigen::MatrixXd> m_batchin;
+    std::vector<Eigen::MatrixXd> m_batchout;
     size_t m_currentIdx;
+    std::shared_ptr<Network> m_net;
 
 };
 

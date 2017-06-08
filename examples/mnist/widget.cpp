@@ -14,6 +14,13 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
 
     // load mnist data set
     prepareSamples();
+
+    // prepare network
+    std::vector<unsigned int> map = {784,40,10};
+    m_net.reset( new Network(map) );
+    m_net->setObserver( this );
+
+
     m_currentIdx = 0;
     displayMNISTImage( m_currentIdx );
 
@@ -37,9 +44,10 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
         displayMNISTImage( m_currentIdx );
     });
 
-    learn();
-    //sameImage();
-
+    connect( ui->learnPB, &QPushButton::pressed, [=]( )
+    {
+        learn();
+    });
 }
 
 Widget::~Widget()
@@ -82,6 +90,14 @@ void Widget::prepareSamples()
         thisSample.input = xIn; thisSample.normalizedinput = xInNormalized;
         thisSample.output = yOut; thisSample.lable = lable;
         m_testingSet.push_back( thisSample );
+    }
+
+    // Prepare mini batchs
+    m_batchin.clear(); m_batchout.clear();
+    for( size_t z = 0; z < 2000 ; z++ ) //m_trainingSet.size(); z++ )
+    {
+        m_batchout.push_back( m_trainingSet.at(z).output );
+        m_batchin.push_back( m_trainingSet.at(z).normalizedinput );
     }
 }
 
@@ -129,82 +145,20 @@ void Widget::displayMNISTImage( const size_t& idx )
     ui->trainingLable->setText( QString::number(sample.lable, 10) );
 }
 
-void Widget::sameImage()
-{
-    std::vector<unsigned int> map = {784,100,10};
-    Network* net = new Network(map);
-
-    NNSample sample = m_trainingSet.at(0);
-
-    for( int k = 0; k < 10000; k++ )
-    {
-        net->gradientDescent(sample.normalizedinput,sample.output,3.0);
-    }
-
-    Eigen::MatrixXd err = net->getOutputLayer()->getBackpropagationError();
-    std::cout << "Error = " << err.norm() << ": " << err.transpose() << std::endl;
-
-    net->feedForward(sample.normalizedinput);
-    Eigen::MatrixXd outSignal = net->getOutputActivation();
-
-    std::cout << "Outsignal = " << outSignal.transpose() << std::endl;
-    std::cout << "Lable = " << int(sample.lable)  << " : " << sample.output.transpose() << std::endl;
-
-    delete net;
-}
-
 void Widget::learn()
 {
-    std::vector<unsigned int> map = {784,40,10};
-    Network* net = new Network(map);
-    unsigned int nbrEpochs = 1000;
+    unsigned int batchsize = 10;  
+    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, batchsize, 3.0 );
+}
 
-    // prepare batch
-    std::vector<Eigen::MatrixXd> batchin;
-    std::vector<Eigen::MatrixXd> batchout;
-    for( size_t z = 0; z < m_trainingSet.size(); z++ )
-    {
-        batchout.push_back( m_trainingSet.at(z).output );
-        batchin.push_back( m_trainingSet.at(z).normalizedinput );
-    }
+void Widget::networkOperationProgress( const NetworkOperationId &opId, const NetworkOperationStatus &opStatus,
+                                       const double &progress )
+{
 
-    unsigned int batchsize = 10;
+    if( opStatus == NetworkOperationCallback::OpResultOk )
+        std::cout << "Done" << std::endl;
 
-    for( unsigned int epoch = 0; epoch < nbrEpochs; epoch++ )
-    {
-        // training
-        net->stochasticGradientDescent(batchin, batchout, batchsize, 3.0 );
-
-        // test
-        double successfull = 0;
-        for( size_t t = 0; t < m_testingSet.size(); t++ )
-        {
-            NNSample sample = m_testingSet.at(t);
-
-            net->feedForward(sample.normalizedinput);
-            Eigen::MatrixXd out = net->getOutputActivation();
-            double maxElement = 0.0;
-            int maxIdx = 0;
-            for( int j = 0; j < out.rows(); j++ )
-            {
-                if( maxElement < out(j,0) )
-                {
-                    maxElement =  out(j,0);
-                    maxIdx = j;
-                }
-            }
-
-            if( maxIdx == sample.lable )
-                successfull = successfull + 1;
-            else
-                maxIdx = 0;
-
-        }
-
-        std::cout << "Epoch " << epoch <<  ": success rate = " << 100 * successfull / double(m_testingSet.size()) << "% , bkError: " << net->getOutputLayer()->getBackpropagationError().norm() << std::endl;
-    }
-
-    delete net;
+    std::cout << progress << std::endl;
 }
 
 

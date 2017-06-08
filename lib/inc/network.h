@@ -26,12 +26,15 @@
 
 #include <vector>
 #include <memory>
+#include <thread>
+#include <atomic>
 #include <eigen3/Eigen/Dense>
+
+#include "network_cb.h"
 
 using namespace std;
 
 class Layer;
-class NetworkOperationCallback;
 
 class Network
 {
@@ -106,6 +109,19 @@ public:
     bool stochasticGradientDescent(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                    const unsigned int& batchsize, const double& eta );
 
+    /**
+     * Feedforward, backpropagate and update weigths and biases in each layer corresponding
+     * to the computed partial derivatives and the stochastic gradient descent method.
+     * The stochastic gradient descent methods updates the weights and biases by the averaged
+     * partial derivatives of a randomly chosen batch of samples. In total, nbrOfSamples / batchsize
+     * batches are executed -> this is called an epoch. The computation is performed in another
+     * thread. The user gets informed over the NetworkOperationCallback interface.
+     * @param samples Input signals.
+     * @param lables Desired output signals.
+     * @param batchsize Number of samples in the batch.
+     * @param eta
+     * @return true if successful.
+     */
     bool stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                         const unsigned int& batchsize, const double& eta );
     /**
@@ -121,10 +137,24 @@ public:
      */
     void setObserver( NetworkOperationCallback* observer ) { m_oberserver = observer; }
 
+    /**
+    * Return a handle to the current NN operation thread.
+    * @return Handle to compuation thread.
+    */
+    std::thread& getCurrentAsyncOperation() { return m_asyncOperation; }
+
+    /**
+     * Indicates if an asynchronous operation is ongoing or not.
+     * @return True if operation in progress. Otherwise false.
+     */
+    bool isOperationInProgress() { return m_operationInProgress; }
+
     void print();
 
 
 private:
+
+    void initNetwork();
 
     // Do feedforward and backprop. but weights and biases are not updated!
     bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
@@ -132,7 +162,9 @@ private:
     bool doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                           const unsigned int& batchsize, const double& eta );
 
-    void initNetwork();
+    void sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& opId,
+                       const NetworkOperationCallback::NetworkOperationStatus& opStatus, const double& progress  );
+
 
 private:
 
@@ -141,6 +173,8 @@ private:
     Eigen::MatrixXd m_activation_out;
 
     NetworkOperationCallback* m_oberserver;
+    std::thread m_asyncOperation;
+    std::atomic<bool> m_operationInProgress;
 };
 
 #endif //NETWORKHEADER
