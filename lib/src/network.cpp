@@ -30,14 +30,15 @@
 using namespace std;
 
 Network::Network( const vector<unsigned int> networkStructure ) :
-    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_operationInProgress( false )
+    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_asyncOperation{}, m_operationInProgress( false )
 {
     initNetwork();
 }
 
 Network::~Network()
 {
-
+    if( m_asyncOperation.joinable() )
+        m_asyncOperation.detach();
 }
 
 void Network::initNetwork()
@@ -107,12 +108,9 @@ bool Network::gradientDescent( const Eigen::MatrixXd& x_in, const Eigen::MatrixX
 bool Network::stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                              const unsigned int& batchsize, const double& eta)
 {
-    if( isOperationInProgress() )
+    if( !prepareForNextAsynchronousOperation() )
         return false;
 
-    m_operationInProgress = true;
-    if( m_asyncOperation.joinable() )
-            m_asyncOperation.join();
     m_asyncOperation = std::thread(&Network::stochasticGradientDescent, this,  samples, lables, batchsize, eta);
     return true;
 }
@@ -137,9 +135,26 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     {
         // one epoch
         unsigned long nbrOfBatches = nbrOfSamples / batchsize;
+
+        // random generator
+        std::random_device rd;
+        std::mt19937 e2(rd());
+        std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
+
+        Eigen::MatrixXd batch_in( samples.at(0).rows(), batchsize );
+        Eigen::MatrixXd batch_out( lables.at(0).rows(), batchsize );
+
         for( unsigned int batch = 0; batch < nbrOfBatches; batch++ )
         {
-            doStochasticGradientDescentBatch(samples, lables, batchsize, eta);
+            // generate a random sample set
+            for( unsigned int b = 0; b < batchsize; b++ )
+            {
+                size_t rIdx = size_t( iDist(e2) );
+                batch_in.col(b) = samples.at(rIdx);
+                batch_out.col(b) = lables.at(rIdx);
+            }
+
+            doStochasticGradientDescentBatch(batch_in, batch_out, eta);
             sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpInProgress, double(batch)/double(nbrOfBatches) );
         }
 
@@ -151,29 +166,13 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     return retValue;
 }
 
-bool Network::doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
-                                               const unsigned int& batchsize, const double& eta )
+bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta )
 {
-    size_t nbrOfSamples = samples.size();
-
-    std::random_device rd;
-    std::mt19937 e2(rd());
-    std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
-
-    Eigen::MatrixXd batch_in( samples.at(0).rows(), batchsize );
-    Eigen::MatrixXd batch_out( lables.at(0).rows(), batchsize );
-
-    // generate a random sample set
-    for( unsigned int b = 0; b < batchsize; b++ )
-    {
-        size_t rIdx = size_t( iDist(e2) );
-        batch_in.col(b) = samples.at(rIdx);
-        batch_out.col(b) = lables.at(rIdx);
-    }
-
-    // this computes the whole batch at once
+    // this feedforwards the whole batch at once
     if( !doFeedforwardAndBackpropagation( batch_in, batch_out ) )
         return false;
+
+    long batchsize = batch_in.cols();
 
     // compute average partial derivatives over all samples in all layers
     for( unsigned int j = 1; j < getNumberOfLayer(); j++ )
@@ -261,4 +260,19 @@ void Network::sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& 
 {
     if( m_oberserver != NULL )
         m_oberserver->networkOperationProgress( opId, opStatus, progress );
+}
+
+bool Network::prepareForNextAsynchronousOperation()
+{
+    if( isOperationInProgress() )
+    {
+        cout << "Error: Asynchronous operation already in progress" << endl;
+        return false;
+    }
+
+    m_operationInProgress = true;
+    if( m_asyncOperation.joinable() ) // Join former thread if done yet
+        m_asyncOperation.join();
+
+    return true;
 }

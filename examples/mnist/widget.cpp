@@ -16,7 +16,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
     prepareSamples();
 
     // prepare network
-    std::vector<unsigned int> map = {784,40,10};
+    std::vector<unsigned int> map = {784,30,10};
     m_net.reset( new Network(map) );
     m_net->setObserver( this );
 
@@ -48,6 +48,8 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
     {
         learn();
     });
+
+    connect( this, SIGNAL(readyForTesting()), this, SLOT(startNNTesting()));
 }
 
 Widget::~Widget()
@@ -94,7 +96,7 @@ void Widget::prepareSamples()
 
     // Prepare mini batchs
     m_batchin.clear(); m_batchout.clear();
-    for( size_t z = 0; z < 2000 ; z++ ) //m_trainingSet.size(); z++ )
+    for( size_t z = 0; z < m_trainingSet.size(); z++ )
     {
         m_batchout.push_back( m_trainingSet.at(z).output );
         m_batchin.push_back( m_trainingSet.at(z).normalizedinput );
@@ -151,14 +153,55 @@ void Widget::learn()
     m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, batchsize, 3.0 );
 }
 
-void Widget::networkOperationProgress( const NetworkOperationId &opId, const NetworkOperationStatus &opStatus,
+void Widget::startNNTesting()
+{
+    ui->LearnLable->setText("Testing...");
+    double successfull = 0.0;
+    for( size_t t = 0; t < m_testingSet.size(); t++ )
+    {
+        NNSample sample = m_testingSet.at(t);
+        m_net->feedForward( sample.normalizedinput );
+        Eigen::MatrixXd out = m_net->getOutputActivation();
+
+        // check maximum element index
+        double maxElement = 0.0;
+        int maxIdx = 0;
+        for( int j = 0; j < out.rows(); j++ )
+        {
+            if( maxElement < out(j,0) )
+            {
+                maxElement =  out(j,0);
+                maxIdx = j;
+            }
+        }
+
+        if( maxIdx == sample.lable )
+            successfull = successfull + 1;
+
+        ui->learnProgressBar->setValue( int(round(double(t)/double(m_testingSet.size()))) );
+    }
+
+    double successRate = double(successfull)/double(m_testingSet.size()) * 100.0;
+
+    QString testingRes; testingRes.sprintf("Testing result = %.2f%%", successRate);
+    ui->LearnLable->setText(testingRes);
+
+    std::cout << successRate << std::endl;
+
+    learn();
+}
+
+void Widget::networkOperationProgress( const NetworkOperationId & opId, const NetworkOperationStatus &opStatus,
                                        const double &progress )
 {
+    ui->learnProgressBar->setValue( int(round(progress * 100.0)) );
 
-    if( opStatus == NetworkOperationCallback::OpResultOk )
-        std::cout << "Done" << std::endl;
-
-    std::cout << progress << std::endl;
+    if( opId == NetworkOperationCallback::OpStochasticGradientDescent )
+    {
+        ui->LearnLable->setText("SGD learning...");
+        if( opStatus == NetworkOperationCallback::OpResultOk )
+            emit readyForTesting();
+    }
 }
 
 

@@ -45,6 +45,12 @@ private:
     void prepareSamples();
     Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
 
+public slots:
+    void startNNTesting();
+
+signals:
+    void readyForTesting();
+
 private:
     Ui::Widget* ui;
     std::vector<NNSample> m_trainingSet;

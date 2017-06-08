@@ -159,12 +159,12 @@ private:
     // Do feedforward and backprop. but weights and biases are not updated!
     bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
 
-    bool doStochasticGradientDescentBatch(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
-                                          const unsigned int& batchsize, const double& eta );
+    bool doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta);
 
     void sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& opId,
                        const NetworkOperationCallback::NetworkOperationStatus& opStatus, const double& progress  );
 
+    bool prepareForNextAsynchronousOperation();
 
 private:
 

@@ -600,6 +600,9 @@ TEST(NetworkTest, Backpropagate_StochasticGD_Async)
 
     net->getCurrentAsyncOperation().join(); // waits till thread ends
 
+    ASSERT_TRUE(net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) ); // call a third time, now it should work again
+    net->getCurrentAsyncOperation().join(); // waits till thread ends
+
     ASSERT_FALSE( net->isOperationInProgress() );
     ASSERT_EQ( tb->m_lastStatus, NetworkOperationCallback::OpResultOk );
 
