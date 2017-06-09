@@ -23,6 +23,7 @@
 
 #include "network.h"
 #include "layer.h"
+#include "helpers.h"
 
 #include <random>
 #include <iostream>
@@ -124,12 +125,10 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     if( samples.size() != lables.size() )
     {
         cout << "Error: number of samples and lables mismatch" << endl;
-        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
     }
     else if( nbrOfSamples < batchsize )
     {
         cout << "Error: batchsize exceeds number of available smaples" << endl;
-        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
     }
     else
     {
@@ -159,10 +158,15 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
         }
 
         retValue = true;
-        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0 );
     }
 
     m_operationInProgress = false;
+
+    if( retValue )
+        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0 );
+    else
+        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
+
     return retValue;
 }
 
@@ -273,6 +277,93 @@ bool Network::prepareForNextAsynchronousOperation()
     m_operationInProgress = true;
     if( m_asyncOperation.joinable() ) // Join former thread if done yet
         m_asyncOperation.join();
+
+    return true;
+}
+
+bool Network::testNetworkAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                       const double& euclideanDistanceThreshold )
+{
+    if( !prepareForNextAsynchronousOperation() )
+        return false;
+
+    m_asyncOperation = std::thread(&Network::doTestAsync, this,  samples, lables, euclideanDistanceThreshold);
+    return true;
+}
+
+// this intermediate function is necessary because testNetwork results are passed by reference
+void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                           const double& euclideanDistanceThreshold )
+{
+    double successRateEuclidean; double successRateMaxIdx; std::vector<size_t> failedSamples;
+    bool res = testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, failedSamples );
+
+    m_operationInProgress = false;
+
+    if( m_oberserver != NULL )
+    {
+        if( res )
+        {
+            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
+            m_oberserver->networkTestResults( successRateEuclidean, successRateMaxIdx, failedSamples );
+        }
+        else
+        {
+            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultErr, 1.0 );
+        }
+    }
+}
+
+bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                            const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
+                            double& successRateIdenticalMax, std::vector<size_t>& failedSamplesIdx )
+{
+    if( samples.size() != lables.size() )
+    {
+        cout << "Error: samples and lables size mismatch" << endl;
+        return false;
+    }
+
+    failedSamplesIdx.clear();
+
+    size_t nbrOfTestSamples = samples.size();
+    successRateEuclideanDistance = 0.0; successRateIdenticalMax = 0.0;
+
+    for( size_t t = 0; t < nbrOfTestSamples; t++ )
+    {
+        if( !feedForward(samples.at(t)) )
+            return false;
+
+        Eigen::MatrixXd outputSignal = getOutputActivation();
+        Eigen::MatrixXd expectedSignal = lables.at(t);
+
+        // Test Euclidean distance
+        double euclideanDistance = (outputSignal-expectedSignal).norm();
+        bool euclideanRequirement = euclideanDistance < euclideanDistanceThreshold;
+        if( euclideanRequirement )
+            successRateEuclideanDistance = successRateEuclideanDistance + 1.0;
+
+        // Test max elements identical
+        unsigned long expected_m, expected_n, out_m, out_n; double maxElem;
+        Helpers::maxElement(expectedSignal, expected_m, expected_n, maxElem);
+        Helpers::maxElement(outputSignal, out_m, out_n, maxElem);
+        bool maxIdenticalRequirement = out_m == expected_m;
+        if( maxIdenticalRequirement ) // since vector, both n are anyway 0
+            successRateIdenticalMax = successRateIdenticalMax + 1.0;
+
+        // overall failed -> if one of the two conditions not fullfilled
+        if( !euclideanRequirement || !maxIdenticalRequirement )
+            failedSamplesIdx.push_back( t );
+
+        if( t % 10 == 0 ) // send progress only for every 10th sample
+            sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpInProgress, double(t)/double(nbrOfTestSamples) );
+    }
+
+    // normalise success rates
+    successRateEuclideanDistance = successRateEuclideanDistance / double(nbrOfTestSamples);
+    successRateIdenticalMax = successRateIdenticalMax / double(nbrOfTestSamples);
+
+    sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
 
     return true;
 }

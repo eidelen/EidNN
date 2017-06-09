@@ -232,34 +232,6 @@ TEST(NetworkTest, Backpropagation_Errors)
     delete net;
 }
 
-
-TEST(NetworkTest, Backpropagation_MNIST_INPUT)
-{
-    std::vector<unsigned int> map = {784,30,10};
-    Network* net = new Network(map);
-
-    Eigen::MatrixXd xin = Eigen::MatrixXd::Constant(784,1, 128.0);
-    Eigen::MatrixXd yout = Eigen::MatrixXd::Constant(10,1, 0.0);
-    yout(2,0) = 1.0;
-
-    for( int k = 0; k < 1000 ; k++ )
-        net->gradientDescent(xin,yout,0.1);
-
-    net->gradientDescent(xin,yout,0.1);
-
-    Eigen::MatrixXd err = net->getOutputLayer()->getBackpropagationError();
-    std::cout << "Error = " << err.norm() << ": " << err.transpose() << std::endl;
-
-    net->feedForward(xin);
-    Eigen::MatrixXd outSignal = net->getOutputActivation();
-
-    std::cout << "Outsignal = " << outSignal.transpose() << std::endl;
-    std::cout << "Lable = " << " : " << yout.transpose() << std::endl;
-
-
-    delete net;
-}
-
 TEST(NetworkTest, Backpropagate_Simple_Example)
 {
     // recognize positive numbers and negative numbers in the range of -100 to 100
@@ -447,9 +419,13 @@ public:
         m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress;
     }
 
+    void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx,
+                            const std::vector<std::size_t>& failedSamplesIdx){}
+
     NetworkOperationId m_lastOpId;
     NetworkOperationStatus m_lastOpStatus;
     double m_lastProgress;
+
 };
 
 TEST(NetworkTest, Backpropagate_StochasticGD)
@@ -515,28 +491,18 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
         net->stochasticGradientDescent( xin, yout, miniBatch, 0.1 );
 
         // testing
-        double nbrSuccessful = 0;
-        for( size_t i = 0; i < t_xin.size(); i++ )
-        {
-            Eigen::MatrixXd tx = t_xin.at(i);
-            Eigen::MatrixXd ty = t_yout.at(i);
+        double successRateEuc; double successRateMaxIdx; std::vector<size_t> failedSamples;
+        net->testNetwork(t_xin, t_yout, 0.1, successRateEuc, successRateMaxIdx, failedSamples);
 
-            net->feedForward( tx );
-            double diff = (net->getOutputActivation() - ty).norm();
+        if( bestResult < successRateEuc )
+            bestResult = successRateEuc;
 
-            if( diff < 0.1 )
-                nbrSuccessful = nbrSuccessful + 1.0;
-        }
-
-        double thisSuccessRate = 100 * nbrSuccessful / double(t_xin.size());
-        if( bestResult < thisSuccessRate )
-            bestResult = thisSuccessRate;
-        std::cout << "Epoch " << epoch <<  ": success rate = " << 100 * nbrSuccessful / double(t_xin.size()) << "%" << std::endl;
+        std::cout << "Epoch " << epoch <<  ": success rate L2 = " << 100 * successRateEuc << "%, success rate MAX = " <<  100 * successRateMaxIdx << "%" << std::endl;
     }
 
-    std::cout << "Best Result =  " << bestResult <<  "%" << std::endl;
+    std::cout << "Best Result =  " << bestResult * 100 <<  "%" << std::endl;
 
-    ASSERT_GT( bestResult, 90 );
+    ASSERT_GT( bestResult, 0.9 );
     ASSERT_TRUE(  tb->m_lastOpId == NetworkOperationCallback::OpStochasticGradientDescent );
     ASSERT_TRUE( tb->m_lastOpStatus == NetworkOperationCallback::OpResultOk );
     ASSERT_GT( tb->m_lastProgress, 0.99 );
@@ -557,6 +523,9 @@ public:
         std::cout << "Async CB: " << progress*100 << "%" << std::endl;
         m_lastStatus = status;
     }
+
+    void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx,
+                            const std::vector<std::size_t>& failedSamplesIdx){}
 
     NetworkOperationStatus m_lastStatus;
 };

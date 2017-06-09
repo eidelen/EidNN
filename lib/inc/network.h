@@ -124,6 +124,32 @@ public:
      */
     bool stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
                                         const unsigned int& batchsize, const double& eta );
+
+    /**
+     * Tests the network with given samples and lables.
+     * @param samples Input sample.
+     * @param lables Expected output.
+     * @param euclideanDistanceThreshold The threshold when compareing the Euclidean distance between expected output and actual output signal.
+     * @param successRateEuclideanDistance Success rate of testing the Euclidean distance.
+     * @param successRateIdenticalMax Success rate when testing that the maximum elements are identical.
+     * @param failedSamplesIdx Vector of sample indices which were NOT successful.
+     * @return True if successful. Otherwise false.
+     */
+    bool testNetwork( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                      const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
+                      double& successRateIdenticalMax, std::vector<size_t>& failedSamplesIdx );
+
+    /**
+     * Tests the network with given samples and lables. The computation is performed in another
+     * thread. The user gets informed over the NetworkOperationCallback interface.
+     * @param samples Input sample.
+     * @param lables Expected output.
+     * @param euclideanDistanceThreshold The threshold when compareing the Euclidean distance between expected output and actual output signal.
+     * @return True if successful. Otherwise false.
+     */
+    bool testNetworkAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                           const double& euclideanDistanceThreshold );
+
     /**
      * Returns the magnitude of the error vector in the output layer. This error is
      * initialized during the backpropagation.
@@ -165,6 +191,9 @@ private:
                        const NetworkOperationCallback::NetworkOperationStatus& opStatus, const double& progress  );
 
     bool prepareForNextAsynchronousOperation();
+
+    void doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
+                      const double& euclideanDistanceThreshold );
 
 private:
 

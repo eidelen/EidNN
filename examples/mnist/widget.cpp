@@ -1,14 +1,18 @@
 #include "widget.h"
 #include "ui_widget.h"
 #include "layer.h"
+#include "helpers.h"
 #include "mnist/mnist_reader.hpp"
 #include "mnist/mnist_utils.hpp"
 
-#include "QPixmap"
-#include "QImage"
+#include <QPixmap>
+#include <QImage>
+#include <QMutexLocker>
+#include <QStringListModel>
 
 
-Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
+Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
+    m_sr_L2(0), m_sr_MAX(0), m_progress(0)
 {
     ui->setupUi(this);
 
@@ -22,34 +26,50 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget)
 
 
     m_currentIdx = 0;
-    displayMNISTImage( m_currentIdx );
+    displayTestMNISTImage( m_currentIdx );
 
     connect( ui->formerSample, &QPushButton::pressed, [=]( )
     {
         if( m_currentIdx == 0 )
-            m_currentIdx = m_trainingSet.size() - 1;
+            m_currentIdx = m_testingSet.size() - 1;
         else
             m_currentIdx--;
 
-        displayMNISTImage( m_currentIdx );
+        displayTestMNISTImage( m_currentIdx );
     });
 
     connect( ui->nextSample, &QPushButton::pressed, [=]( )
     {
-        if( m_currentIdx == m_trainingSet.size() - 1 )
+        if( m_currentIdx == m_testingSet.size() - 1 )
             m_currentIdx = 0;
         else
             m_currentIdx++;
 
-        displayMNISTImage( m_currentIdx );
+        displayTestMNISTImage( m_currentIdx );
     });
 
     connect( ui->learnPB, &QPushButton::pressed, [=]( )
     {
-        learn();
+        doNNLearning();
     });
 
-    connect( this, SIGNAL(readyForTesting()), this, SLOT(startNNTesting()));
+    connect( ui->failedSampleList, &QListWidget::itemSelectionChanged, [=]( )
+    {
+        int currentitem = ui->failedSampleList->currentRow();
+        if( currentitem >= 0 && currentitem < m_failedSamples.size() )
+        {
+            size_t failedIdx = m_failedSamples.at( currentitem );
+            displayTestMNISTImage(failedIdx);
+        }
+    });
+
+    connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
+    connect( this, SIGNAL(readyForLearning()), this, SLOT(doNNLearning()));
+
+
+    m_uiUpdaterTimer = new QTimer( this );
+    connect(m_uiUpdaterTimer, SIGNAL(timeout()), this, SLOT(updateUi()));
+    m_uiUpdaterTimer->start( 100 );
 }
 
 Widget::~Widget()
@@ -94,12 +114,19 @@ void Widget::prepareSamples()
         m_testingSet.push_back( thisSample );
     }
 
-    // Prepare mini batchs
+    // Prepare batchs
     m_batchin.clear(); m_batchout.clear();
     for( size_t z = 0; z < m_trainingSet.size(); z++ )
     {
         m_batchout.push_back( m_trainingSet.at(z).output );
         m_batchin.push_back( m_trainingSet.at(z).normalizedinput );
+    }
+
+    m_testin.clear(); m_testout.clear();
+    for( size_t z = 0; z < m_testingSet.size(); z++ )
+    {
+        m_testout.push_back( m_testingSet.at(z).output );
+        m_testin.push_back( m_testingSet.at(z).normalizedinput );
     }
 }
 
@@ -126,9 +153,9 @@ Eigen::MatrixXd Widget::lableToOutputVector( const uint8_t& lable )
     return ret;
 }
 
-void Widget::displayMNISTImage( const size_t& idx )
+void Widget::displayTestMNISTImage( const size_t& idx )
 {
-    NNSample sample = m_trainingSet.at(idx);
+    NNSample sample = m_testingSet.at(idx);
 
     int img_size = 28;
     QImage img(img_size, img_size, QImage::Format_RGB32);
@@ -145,63 +172,85 @@ void Widget::displayMNISTImage( const size_t& idx )
     ui->imgLable->show();
 
     ui->trainingLable->setText( QString::number(sample.lable, 10) );
-}
 
-void Widget::learn()
-{
-    unsigned int batchsize = 10;  
-    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, batchsize, 3.0 );
-}
-
-void Widget::startNNTesting()
-{
-    ui->LearnLable->setText("Testing...");
-    double successfull = 0.0;
-    for( size_t t = 0; t < m_testingSet.size(); t++ )
+    if( !m_net->isOperationInProgress() )
     {
-        NNSample sample = m_testingSet.at(t);
-        m_net->feedForward( sample.normalizedinput );
-        Eigen::MatrixXd out = m_net->getOutputActivation();
+        // feedforward
+        m_net->feedForward(sample.normalizedinput);
+        Eigen::MatrixXd activationSignal = m_net->getOutputActivation();
+        QString actStr;
+        actStr.sprintf("Activation: [ %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]", activationSignal(0,0), activationSignal(1,0),
+                       activationSignal(2,0), activationSignal(3,0), activationSignal(4,0), activationSignal(5,0), activationSignal(6,0),
+                       activationSignal(7,0), activationSignal(8,0), activationSignal(9,0));
+        ui->activationLable->setText(actStr);
 
-        // check maximum element index
-        double maxElement = 0.0;
-        int maxIdx = 0;
-        for( int j = 0; j < out.rows(); j++ )
-        {
-            if( maxElement < out(j,0) )
-            {
-                maxElement =  out(j,0);
-                maxIdx = j;
-            }
-        }
-
-        if( maxIdx == sample.lable )
-            successfull = successfull + 1;
-
-        ui->learnProgressBar->setValue( int(round(double(t)/double(m_testingSet.size()))) );
+        unsigned long maxM, maxN; double maxVal;
+        Helpers::maxElement(activationSignal, maxM, maxN, maxVal);
+        QString classificationStr; classificationStr.sprintf("Classification: %lu", maxM);
+        ui->classificationLable->setText( classificationStr );
     }
+}
 
-    double successRate = double(successfull)/double(m_testingSet.size()) * 100.0;
+void Widget::updateUi()
+{
+    QString testingRes; testingRes.sprintf("Test result L2 = %.2f%%, MaxIdx = %.2f%%", m_sr_L2*100.0, m_sr_MAX * 100.0 );
+    ui->resultLable->setText(testingRes);
 
-    QString testingRes; testingRes.sprintf("Testing result = %.2f%%", successRate);
-    ui->LearnLable->setText(testingRes);
+    ui->operationProgressBar->setValue( int(round(m_progress * 100.0)) );
 
-    std::cout << successRate << std::endl;
+    QMutexLocker locker( &m_listMutex );
 
-    learn();
+    int currentSelectedRow = ui->failedSampleList->currentRow();
+    ui->failedSampleList->clear();
+    for( size_t i : m_failedSamples )
+    {
+        QString str; str.sprintf("idx = %lu", i );
+        ui->failedSampleList->addItem( str );
+    }
+    if( currentSelectedRow >= 0 && currentSelectedRow < m_failedSamples.size() )
+        ui->failedSampleList->setCurrentRow(currentSelectedRow);
+}
+
+void Widget::doNNLearning()
+{ 
+    ui->operationLable->setText("SGD learning...");
+    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, 3.0 );
+}
+
+void Widget::doNNTesting()
+{
+    ui->operationLable->setText("Network testing...");
+    m_net->testNetworkAsync( m_testin, m_testout, 0.50 );
 }
 
 void Widget::networkOperationProgress( const NetworkOperationId & opId, const NetworkOperationStatus &opStatus,
                                        const double &progress )
 {
-    ui->learnProgressBar->setValue( int(round(progress * 100.0)) );
+    m_progress = progress;
 
     if( opId == NetworkOperationCallback::OpStochasticGradientDescent )
     {
-        ui->LearnLable->setText("SGD learning...");
         if( opStatus == NetworkOperationCallback::OpResultOk )
             emit readyForTesting();
     }
+    else if( opId == NetworkOperationCallback::OpTestNetwork )
+    {}
+}
+
+void Widget::networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
+                                 const std::vector<std::size_t>& failedSamplesIdx )
+{
+    m_sr_L2 = successRateEuclidean;
+    m_sr_MAX = successRateMaxIdx;
+
+    QMutexLocker locker( &m_listMutex );
+    m_failedSamples = failedSamplesIdx;
+    locker.unlock();
+
+    std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
+
+    if( ui->keepLearingCB->isChecked() )
+        emit readyForLearning();
 }
 
 

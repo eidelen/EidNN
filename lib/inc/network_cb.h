@@ -24,7 +24,7 @@
 #ifndef NETWORKCALLBACKHEADER
 #define NETWORKCALLBACKHEADER
 
-#include <string>
+#include <vector>
 
 class NetworkOperationCallback
 {
@@ -32,7 +32,8 @@ public:
 
     enum NetworkOperationId
     {
-        OpStochasticGradientDescent = 0x00
+        OpStochasticGradientDescent = 0x00,
+        OpTestNetwork
     };
 
     enum NetworkOperationStatus
@@ -53,6 +54,14 @@ public:
      * @param progress Opration progress. This is a number between 0.0 and 1.0.
      */
     virtual void networkOperationProgress( const NetworkOperationId& opId, const NetworkOperationStatus& opStatus, const double& progress ) = 0;
+
+    /**
+     * Callback function which informs about the network test results.
+     * @param successRateEuclidean Success rate in terms of the Euclidean distance between expected and actual output.
+     * @param successRateMaxIdx Success rate in terms of identical maximum element.
+     */
+    virtual void networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
+                                     const std::vector<std::size_t>& failedSamplesIdx) = 0;
 
 };
 

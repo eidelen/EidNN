@@ -23,6 +23,7 @@
 
 #include <eigen3/Eigen/Dense>
 #include <iostream>
+#include <limits>
 #include "helpers.h"
 
 using namespace std;
@@ -37,4 +38,21 @@ void Helpers::printMatrix( const Eigen::MatrixXd& mat, const string& name )
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
     cout << name << ":" << endl << mat.format(CleanFmt) << endl;
+}
+
+void Helpers::maxElement( const Eigen::MatrixXd& mat, unsigned long& m_idx, unsigned long& n_idx, double& maxVal)
+{
+    maxVal = numeric_limits<double>::min();
+    for( unsigned int m = 0; m < mat.rows(); m++ )
+    {
+        for( unsigned int n = 0; n < mat.cols(); n++ )
+        {
+            double val = mat(m,n);
+            if( val > maxVal )
+            {
+                maxVal = val;
+                m_idx = m; n_idx = n;
+            }
+        }
+    }
 }

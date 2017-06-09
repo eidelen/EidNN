@@ -21,21 +21,21 @@
 **
 *****************************************************************************/
 
-#ifndef HELPERSHEADER
-#define HELPERSHEADER
+#include <gtest/gtest.h>
+#include "helpers.h"
 
-#include <string>
-#include <eigen3/Eigen/Dense>
-
-using namespace std;
-
-class Helpers
+TEST(HelperTest, maxElement)
 {
-public:
-    static void printVector( const Eigen::VectorXd& vector, const string& name );
-    static void printMatrix( const Eigen::MatrixXd& mat, const string& name );
+    Eigen::MatrixXd testMat( 2, 3 );
+    testMat << 1, 2, 101,  // maxElement at 0,2 with Value 101
+               4, 5,  6;
 
-    static void maxElement( const Eigen::MatrixXd& mat, unsigned long& m_idx, unsigned long& n_idx, double& maxVal);
-};
+    unsigned long m, n; double maxVal;
+    Helpers::maxElement(testMat,m,n,maxVal);
 
-#endif //HELPERSHEADER
+    ASSERT_EQ( m, 0 );
+    ASSERT_EQ( n, 2 );
+    ASSERT_NEAR( maxVal, 101.0, 0.0001);
+}
+
+
