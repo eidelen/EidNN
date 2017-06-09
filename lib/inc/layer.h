@@ -54,6 +54,12 @@ public:
      */
     Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights, const vector<double>& biases );
 
+    /**
+     * Copy-constructor
+     * @param l
+     */
+    Layer( const Layer& l );
+
     ~Layer();
 
     /**

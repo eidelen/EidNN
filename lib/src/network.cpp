@@ -36,6 +36,20 @@ Network::Network( const vector<unsigned int> networkStructure ) :
     initNetwork();
 }
 
+Network::Network( const Network& n ) : Network( n.getNetworkStructure() )
+{
+    m_Layers.clear();
+    /* Todo: Finish
+    n.get
+    for( unsigned int nbrOfNeuronsInLayer : m_NetworkStructure )
+    {
+        m_Layers.push_back( shared_ptr<Layer>( new Layer(nbrOfNeuronsInLayer, nbrOfInputs) ) );
+        nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
+    }
+    */
+}
+
+
 Network::~Network()
 {
     if( m_asyncOperation.joinable() )

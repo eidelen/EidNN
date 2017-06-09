@@ -503,7 +503,7 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
     std::cout << "Best Result =  " << bestResult * 100 <<  "%" << std::endl;
 
     ASSERT_GT( bestResult, 0.9 );
-    ASSERT_TRUE(  tb->m_lastOpId == NetworkOperationCallback::OpStochasticGradientDescent );
+    ASSERT_TRUE(  tb->m_lastOpId == NetworkOperationCallback::OpTestNetwork );
     ASSERT_TRUE( tb->m_lastOpStatus == NetworkOperationCallback::OpResultOk );
     ASSERT_GT( tb->m_lastProgress, 0.99 );
 

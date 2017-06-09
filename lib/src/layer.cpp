@@ -48,6 +48,13 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
     }
 }
 
+Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInputs() )
+{
+    // Note: Temporary results like activations and derivatives are not copied.
+    m_weightMatrix = l.getWeigtMatrix();
+    m_biasVector = l.getBiasVector();
+}
+
 // init vectors and neurons
 void Layer::initLayer()
 {

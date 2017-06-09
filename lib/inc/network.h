@@ -49,6 +49,12 @@ public:
      */
     Network( const vector<unsigned int> networkStructure );
 
+    /**
+     * Copy-Constructor
+     * @param n
+     */
+    Network( const Network& n );
+
     ~Network();
 
     /**
@@ -174,6 +180,12 @@ public:
      * @return True if operation in progress. Otherwise false.
      */
     bool isOperationInProgress() { return m_operationInProgress; }
+
+    /**
+     * Returns the structure of the neural network.
+     * @return
+     */
+    std::vector<unsigned int> getNetworkStructure() const { return m_NetworkStructure; }
 
     void print();
 
