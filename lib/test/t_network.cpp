@@ -579,5 +579,33 @@ TEST(NetworkTest, Backpropagate_StochasticGD_Async)
     delete tb;
 }
 
+TEST(NetworkTest, CopyConstructor)
+{
+    std::vector<unsigned int> map = {1,5,2,1};
+    Network* net = new Network(map);
+
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setBias( 0.2 * k );
+        l->setWeight( -0.3 );
+    }
+
+    Eigen::MatrixXd xin(1,1);  xin(0,0) = 0.5;
+    net->feedForward(xin);
+    Eigen::MatrixXd yout = net->getOutputActivation();
+
+    // copy network
+    Network* copy = new Network( *net );
+    delete net;
+
+    // check if feedforward gives same
+    copy->feedForward( xin );
+    Eigen::MatrixXd copyOut = copy->getOutputActivation();
+
+    ASSERT_NEAR( copyOut(0,0), yout(0,0), 0.0001 );
+
+    delete copy;
+}
 
 

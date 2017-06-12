@@ -83,6 +83,7 @@ public:
      * @return Null, if layer does not exist. Otherwise handle to layer.
      */
     shared_ptr<Layer> getLayer(const unsigned int &layerIdx );
+    shared_ptr<const Layer> getLayer(const unsigned int &layerIdx ) const;
 
     /**
      * Returns the last layer, also called output layer.

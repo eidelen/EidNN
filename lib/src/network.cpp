@@ -36,17 +36,19 @@ Network::Network( const vector<unsigned int> networkStructure ) :
     initNetwork();
 }
 
-Network::Network( const Network& n ) : Network( n.getNetworkStructure() )
+Network::Network( const Network& n ) :
+    m_NetworkStructure( n.getNetworkStructure() ), m_oberserver( n.m_oberserver ), m_asyncOperation{}, m_operationInProgress( false )
 {
+    // copy layers
     m_Layers.clear();
-    /* Todo: Finish
-    n.get
-    for( unsigned int nbrOfNeuronsInLayer : m_NetworkStructure )
+    for( unsigned int l = 0; l < n.getNumberOfLayer(); l++ )
     {
-        m_Layers.push_back( shared_ptr<Layer>( new Layer(nbrOfNeuronsInLayer, nbrOfInputs) ) );
-        nbrOfInputs = nbrOfNeuronsInLayer; // the next layer has same number of inputs as neurons in this layer.
+        const shared_ptr<const Layer> layer = n.getLayer(l);
+        shared_ptr<Layer> cp_layer( new Layer( *(layer.get()) ) );
+        m_Layers.push_back( cp_layer );
     }
-    */
+
+    m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
 }
 
 
@@ -102,6 +104,17 @@ shared_ptr<Layer> Network::getLayer( const unsigned int& layerIdx )
     {
         cout << "Error: getLayer out of index" << endl;
         return shared_ptr<Layer>(NULL);
+    }
+
+    return m_Layers.at(layerIdx);
+}
+
+shared_ptr<const Layer> Network::getLayer(const unsigned int &layerIdx ) const
+{
+    if( layerIdx >= getNumberOfLayer() )
+    {
+        cout << "Error: getLayer out of index" << endl;
+        return shared_ptr<const Layer>(NULL);
     }
 
     return m_Layers.at(layerIdx);
@@ -365,8 +378,8 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
         if( maxIdenticalRequirement ) // since vector, both n are anyway 0
             successRateIdenticalMax = successRateIdenticalMax + 1.0;
 
-        // overall failed -> if one of the two conditions not fullfilled
-        if( !euclideanRequirement || !maxIdenticalRequirement )
+        // overall failed -> if classification failed
+        if( !maxIdenticalRequirement )
             failedSamplesIdx.push_back( t );
 
         if( t % 10 == 0 ) // send progress only for every 10th sample
