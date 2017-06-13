@@ -60,6 +60,7 @@ public:
      */
     Layer( const Layer& l );
 
+
     ~Layer();
 
     /**
@@ -219,6 +220,11 @@ public:
      */
     static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
 
+
+    char* serialize() const;
+
+    static Layer* deserialize( const char* buf );
+
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
 
@@ -238,8 +244,8 @@ private:
 
 
 private:
-    const unsigned int m_nbr_of_neurons;
-    const unsigned int m_nbr_of_inputs;
+    unsigned int m_nbr_of_neurons;
+    unsigned int m_nbr_of_inputs;
 
     Eigen::MatrixXd m_activation_in;
     Eigen::MatrixXd m_activation_out;

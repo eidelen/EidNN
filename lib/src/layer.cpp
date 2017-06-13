@@ -55,6 +55,7 @@ Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInp
     m_biasVector = l.getBiasVector();
 }
 
+
 // init vectors and neurons
 void Layer::initLayer()
 {
@@ -271,6 +272,26 @@ void Layer::print() const
     Helpers::printMatrix(getWeigtMatrix(),"Weights");
     Helpers::printVector(getBackpropagationError(),"Error");
 }
+
+char* Layer::serialize() const
+{
+    // required buffer size
+    size_t sBufferSize = 2 * sizeof(unsigned int) +  (m_nbr_of_neurons * m_nbr_of_inputs + m_nbr_of_neurons) * sizeof(double);
+    char* buf = new char[sBufferSize];
+
+    size_t wp = 0;
+
+    // write layer settings
+   // (unsigned int)buf[wp] =
+
+    return buf;
+}
+
+Layer* Layer::deserialize( const char* buf )
+{
+
+}
+
 
 
 

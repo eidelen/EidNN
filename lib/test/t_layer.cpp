@@ -53,6 +53,25 @@ TEST(LayerTest, CopyConstructor)
     delete lcopy;
 }
 
+TEST(LayerTest, Serialization)
+{
+    Layer* l = new Layer(2,2);
+    l->setBias(0.2); l->setWeight(0.8);
+    char* buf = l->serialize();
+    Layer* lcopy = Layer::deserialize( buf );
+
+    ASSERT_NEAR( lcopy->getBiasVector()(0,0), 0.2, 0.0001 );
+    ASSERT_NEAR( lcopy->getBiasVector()(1,0), 0.2, 0.0001 );
+    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,0), 0.8, 0.0001 );
+    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,1), 0.8, 0.0001 );
+    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,0), 0.8, 0.0001 );
+    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,1), 0.8, 0.0001 );
+
+    delete l;
+    delete lcopy;
+}
+
+
 
 TEST(LayerTest, ActivationVector)
 {
