@@ -32,8 +32,6 @@
 
 #include "network_cb.h"
 
-using namespace std;
-
 class Layer;
 
 class Network
@@ -47,7 +45,7 @@ public:
      *                         neurons in the first layer, and the last vector item the
      *                         number of neurons in the last layer, the output layer.
      */
-    Network( const vector<unsigned int> networkStructure );
+    Network( const std::vector<unsigned int> networkStructure );
 
     /**
      * Copy-Constructor
@@ -82,14 +80,14 @@ public:
      * @param layerIdx Layer index.
      * @return Null, if layer does not exist. Otherwise handle to layer.
      */
-    shared_ptr<Layer> getLayer(const unsigned int &layerIdx );
-    shared_ptr<const Layer> getLayer(const unsigned int &layerIdx ) const;
+    std::shared_ptr<Layer> getLayer(const unsigned int &layerIdx );
+    std::shared_ptr<const Layer> getLayer(const unsigned int &layerIdx ) const;
 
     /**
      * Returns the last layer, also called output layer.
      * @return Last layer of the network.
      */
-    shared_ptr<Layer> getOutputLayer();
+    std::shared_ptr<Layer> getOutputLayer();
 
     /**
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
@@ -188,6 +186,19 @@ public:
      */
     std::vector<unsigned int> getNetworkStructure() const { return m_NetworkStructure; }
 
+    /**
+     * Serialize the network (layers).
+     * @return string holding binary representation of the network.
+     */
+    std::string serialize() const;
+
+    /**
+     * Deserialize a binary representation of a network.
+     * @param buffer Binaray data.
+     * @return Initialized network
+     */
+    static Network* deserialize(const std::string& buffer );
+
     void print();
 
 
@@ -210,8 +221,8 @@ private:
 
 private:
 
-    const vector<unsigned int> m_NetworkStructure;
-    vector< shared_ptr<Layer> > m_Layers;
+    const std::vector<unsigned int> m_NetworkStructure;
+    std::vector< std::shared_ptr<Layer> > m_Layers;
     Eigen::MatrixXd m_activation_out;
 
     NetworkOperationCallback* m_oberserver;

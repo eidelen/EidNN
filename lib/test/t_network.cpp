@@ -608,4 +608,33 @@ TEST(NetworkTest, CopyConstructor)
     delete copy;
 }
 
+TEST(NetworkTest, Serialize)
+{
+    std::vector<unsigned int> map = {1,5,2,1};
+    Network* net = new Network(map);
+
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setBias( 0.2 * k );
+        l->setWeight( -0.3 );
+    }
+
+    Eigen::MatrixXd xin(1,1);  xin(0,0) = 0.5;
+    net->feedForward(xin);
+    Eigen::MatrixXd yout = net->getOutputActivation();
+
+    // serialize and deserialize into new network.
+    // activation should be same as above
+    Network* copy = Network::deserialize( net->serialize() );
+    delete net;
+
+    copy->feedForward( xin );
+    Eigen::MatrixXd copyOut = copy->getOutputActivation();
+
+    ASSERT_NEAR( copyOut(0,0), yout(0,0), 0.0001 );
+
+    delete copy;
+}
+
 

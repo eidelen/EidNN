@@ -273,23 +273,61 @@ void Layer::print() const
     Helpers::printVector(getBackpropagationError(),"Error");
 }
 
-char* Layer::serialize() const
+std::string Layer::serialize( ) const
 {
-    // required buffer size
-    size_t sBufferSize = 2 * sizeof(unsigned int) +  (m_nbr_of_neurons * m_nbr_of_inputs + m_nbr_of_neurons) * sizeof(double);
-    char* buf = new char[sBufferSize];
+    unsigned int* topoBuf = new unsigned int[2];
+    topoBuf[0] = m_nbr_of_neurons;
+    topoBuf[1] = m_nbr_of_inputs;
 
-    size_t wp = 0;
+    size_t nbrOfDoublesWeightMatrix = m_nbr_of_neurons * m_nbr_of_inputs; // + m_nbr_of_neurons;
+    double* weightBuf = new double[ nbrOfDoublesWeightMatrix ];
+    for( size_t m = 0; m < m_nbr_of_neurons; m++ )
+        for( size_t n = 0; n < m_nbr_of_inputs; n++ )
+            weightBuf[ m*m_nbr_of_inputs + n ] = m_weightMatrix( long(m), long(n) );
 
-    // write layer settings
-   // (unsigned int)buf[wp] =
+    size_t nbrOfDoublesBias = m_nbr_of_neurons;
+    double* biasBuf = new double[ nbrOfDoublesBias ];
+    for( size_t m = 0; m < nbrOfDoublesBias; m++ )
+        biasBuf[ m ] = m_biasVector( long(m), 0 );
 
-    return buf;
+    string retBuffer;
+    retBuffer.append( string( (char*)topoBuf, 2*sizeof(unsigned int) ) );
+    retBuffer.append( string( (char*)weightBuf, nbrOfDoublesWeightMatrix*sizeof(double) ) );
+    retBuffer.append( string( (char*)biasBuf, nbrOfDoublesBias*sizeof(double) ) );
+
+    delete[] topoBuf;
+    delete[] weightBuf;
+    delete[] biasBuf;
+
+    return retBuffer;
 }
 
-Layer* Layer::deserialize( const char* buf )
+Layer* Layer::deserialize( const string& buffer )
 {
+    const char* buf = buffer.c_str();
 
+    unsigned int nbrOfNeurons = ((unsigned int*)(buf))[0];
+    unsigned int nbrOfInputs = ((unsigned int*)(buf))[1];
+    size_t offset = 2 * sizeof(unsigned int);
+
+    Eigen::MatrixXd weightMatrix = Eigen::MatrixXd( nbrOfNeurons , nbrOfInputs );
+    const double* weightBuf = (const double*)((buf + offset));
+    for( size_t m = 0; m < nbrOfNeurons; m++ )
+        for( size_t n = 0; n < nbrOfInputs; n++ )
+            weightMatrix( long(m), long(n) ) = weightBuf[ m*nbrOfInputs + n ] ;
+
+    offset = offset + nbrOfNeurons*nbrOfInputs*sizeof(double);
+
+    Eigen::MatrixXd biasVector = Eigen::MatrixXd( nbrOfNeurons, 1 );
+    const double* biasBuf = (const double*)((buf + offset));
+    for( size_t m = 0; m < nbrOfNeurons; m++ )
+        biasVector( long(m), 0 ) = biasBuf[ m ];
+
+    Layer* l = new Layer( nbrOfNeurons, nbrOfInputs );
+    l->setBiases( biasVector );
+    l->setWeights( weightMatrix );
+
+    return l;
 }
 
 

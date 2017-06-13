@@ -394,3 +394,60 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
 
     return true;
 }
+
+string Network::serialize() const
+{
+    string retBuf;
+
+    size_t nbrOfTopoElements = m_NetworkStructure.size() + 1;
+    unsigned int* topoBuf = new unsigned int[ nbrOfTopoElements ];
+    topoBuf[0] = getNumberOfLayer();
+    for( size_t i = 0; i < m_NetworkStructure.size(); i++ )
+        topoBuf[i+1] = m_NetworkStructure.at(i);
+
+    retBuf.append( string( (char*)topoBuf, nbrOfTopoElements*sizeof(unsigned int) ) );
+
+    for( shared_ptr<const Layer> l : m_Layers )
+    {
+        string lBuf = l->serialize();
+        unsigned int lBufSize = lBuf.size();
+        retBuf.append( string( (char*)(&lBufSize), 1*sizeof(unsigned int) ) );
+        retBuf.append(lBuf);
+    }
+
+    delete [] topoBuf;
+
+    return retBuf;
+}
+
+Network* Network::deserialize( const string& buffer )
+{
+    const char* buf = buffer.c_str();
+
+    unsigned int nbrOfLayers = ((unsigned int*)buf)[0];
+    std::vector<unsigned int> networkStructure;
+    for( unsigned int i = 0; i < nbrOfLayers; i++ )
+        networkStructure.push_back( ((unsigned int*)buf)[i+1] );
+
+    size_t offset = (nbrOfLayers+1) * sizeof(unsigned int);
+
+    Network* n = new Network( networkStructure );
+
+    for( unsigned int i = 0; i < nbrOfLayers; i++ )
+    {
+        const char* layerBuf = buf + offset;
+
+        unsigned int sizeOfThisLayer = ((unsigned int*)layerBuf)[0];
+        string layerData( layerBuf + sizeof(unsigned int), sizeOfThisLayer );
+        Layer* l = Layer::deserialize( layerData );
+
+        n->getLayer(i)->setBiases( l->getBiasVector() );
+        n->getLayer(i)->setWeights( l->getWeigtMatrix() );
+
+        delete l;
+
+        offset = offset + sizeOfThisLayer + sizeof(unsigned int);
+    }
+
+    return n;
+}

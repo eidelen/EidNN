@@ -57,8 +57,9 @@ TEST(LayerTest, Serialization)
 {
     Layer* l = new Layer(2,2);
     l->setBias(0.2); l->setWeight(0.8);
-    char* buf = l->serialize();
-    Layer* lcopy = Layer::deserialize( buf );
+
+    std::string serializedBuf = l->serialize( );
+    Layer* lcopy = Layer::deserialize( serializedBuf );
 
     ASSERT_NEAR( lcopy->getBiasVector()(0,0), 0.2, 0.0001 );
     ASSERT_NEAR( lcopy->getBiasVector()(1,0), 0.2, 0.0001 );

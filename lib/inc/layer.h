@@ -32,8 +32,6 @@
 
 #include "network.h"
 
-using namespace std;
-
 class Layer
 {
     friend class Network;
@@ -52,7 +50,7 @@ public:
      * @param weights Vector of neuron weights-vector
      * @param biases Vector of neuron biases.
      */
-    Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights, const vector<double>& biases );
+    Layer( const uint& nbr_of_inputs, const std::vector<Eigen::VectorXd>& weights, const std::vector<double>& biases );
 
     /**
      * Copy-constructor
@@ -77,7 +75,7 @@ public:
      * @param weights Vector of neuron weights-vector.
      * @return true if successful
      */
-    bool setWeights( const vector<Eigen::VectorXd>& weights );
+    bool setWeights( const std::vector<Eigen::VectorXd>& weights );
 
     /**
      * Sets the weights in this layer.
@@ -104,7 +102,7 @@ public:
      * @param biases Vector of neuron biases.
      * @return true if successful
      */
-    bool setBiases( const vector<double>& biases );
+    bool setBiases( const std::vector<double>& biases );
 
     /**
      * Sets the bias of each neuron in this layer.
@@ -203,14 +201,14 @@ public:
      * The vector holds the derivatives for each passed sample.
      * @return
      */
-    const vector<Eigen::MatrixXd>& getPartialDerivativesBiases() const { return m_bias_partialDerivatives; }
+    const std::vector<Eigen::MatrixXd>& getPartialDerivativesBiases() const { return m_bias_partialDerivatives; }
 
     /**
      * Partial derivatives of weights. This is set after calling computePartialDerivatives().
      * The vector holds the derivatives for each passed sample.
      * @return
      */
-    const vector<Eigen::MatrixXd>& getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
+    const std::vector<Eigen::MatrixXd>& getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
 
     /**
      * Computes component wise derrivative of the sigmoid function
@@ -220,10 +218,18 @@ public:
      */
     static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
 
+    /**
+     * Serialize the layer (weights, biases).
+     * @return string holding binary representation of the layer.
+     */
+    std::string serialize() const;
 
-    char* serialize() const;
-
-    static Layer* deserialize( const char* buf );
+    /**
+     * Deserialize a binary representation of a layer.
+     * @param buffer Binaray data.
+     * @return Initialized layer
+     */
+    static Layer* deserialize(const std::string& buffer );
 
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
@@ -255,8 +261,8 @@ private:
     Eigen::MatrixXd m_weightMatrix;
     Eigen::MatrixXd m_biasVector;
 
-    vector<Eigen::MatrixXd> m_bias_partialDerivatives;
-    vector<Eigen::MatrixXd> m_weight_partialDerivatives;
+    std::vector<Eigen::MatrixXd> m_bias_partialDerivatives;
+    std::vector<Eigen::MatrixXd> m_weight_partialDerivatives;
 };
 
 #endif //LAYERHEADER
