@@ -9,12 +9,38 @@
 #include <QImage>
 #include <QMutexLocker>
 #include <QStringListModel>
-
+#include <QChart>
+#include <QChartView>
 
 Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     m_sr_L2(0), m_sr_MAX(0), m_progress(0)
 {
     ui->setupUi(this);
+
+
+    // crate chart
+    QtCharts::QChart *chart = new QtCharts::QChart( );
+    chart->legend()->hide();
+    m_plotData_classification = new QtCharts::QLineSeries( );
+    m_plotData_classification->append(0,0);
+    m_plotData_L2 = new QtCharts::QLineSeries( );
+    m_plotData_L2->append(0,0);
+    chart->addSeries( m_plotData_classification );
+    chart->addSeries( m_plotData_L2 );
+    m_XAxis = new QtCharts::QValueAxis();
+    m_XAxis->setTitleText("Epoch");
+    m_XAxis->setLabelFormat("%d"); 
+    chart->addAxis(m_XAxis, Qt::AlignBottom);
+    QtCharts::QValueAxis* yAxis = new QtCharts::QValueAxis();
+    yAxis->setTitleText("Success");
+    yAxis->setRange(0, 100);
+    chart->addAxis(yAxis, Qt::AlignLeft);
+    m_plotData_classification->attachAxis(m_XAxis);
+    m_plotData_classification->attachAxis(yAxis);
+    m_plotData_L2->attachAxis(m_XAxis);
+    m_plotData_L2->attachAxis(yAxis);
+    ui->progressChart->setChart( chart );
+    ui->progressChart->setRenderHint(QPainter::Antialiasing);
 
     // load mnist data set
     prepareSamples();
@@ -198,7 +224,7 @@ void Widget::updateUi()
 
     ui->operationProgressBar->setValue( int(round(m_progress * 100.0)) );
 
-    QMutexLocker locker( &m_listMutex );
+    QMutexLocker locker( &m_uiLock );
 
     int currentSelectedRow = ui->failedSampleList->currentRow();
     ui->failedSampleList->clear();
@@ -209,6 +235,8 @@ void Widget::updateUi()
     }
     if( currentSelectedRow >= 0 && currentSelectedRow < m_failedSamples.size() )
         ui->failedSampleList->setCurrentRow(currentSelectedRow);
+
+    m_XAxis->setRange(0,m_plotData_classification->count()+1);
 }
 
 void Widget::doNNLearning()
@@ -240,12 +268,15 @@ void Widget::networkOperationProgress( const NetworkOperationId & opId, const Ne
 void Widget::networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
                                  const std::vector<std::size_t>& failedSamplesIdx )
 {
+    QMutexLocker locker( &m_uiLock );
+
     m_sr_L2 = successRateEuclidean;
     m_sr_MAX = successRateMaxIdx;
 
-    QMutexLocker locker( &m_listMutex );
     m_failedSamples = failedSamplesIdx;
-    locker.unlock();
+
+    m_plotData_L2->append( m_plotData_L2->count(), successRateEuclidean * 100);
+    m_plotData_classification->append( m_plotData_classification->count(), successRateMaxIdx * 100 );
 
     std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
 
