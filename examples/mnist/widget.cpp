@@ -12,7 +12,7 @@
 
 
 Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
-    m_sr_L2(0), m_sr_MAX(0), m_progress(0)
+    m_sr_L2(0), m_sr_MAX(0), m_progress_testing(0), m_progress_learning(0)
 {
     ui->setupUi(this);
 
@@ -23,6 +23,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     std::vector<unsigned int> map = {784,30,10};
     m_net.reset( new Network(map) );
     m_net->setObserver( this );
+    m_net_testing.reset( new Network( *(m_net.get())) );
 
 
     m_currentIdx = 0;
@@ -196,7 +197,8 @@ void Widget::updateUi()
     QString testingRes; testingRes.sprintf("Test result L2 = %.2f%%, MaxIdx = %.2f%%", m_sr_L2*100.0, m_sr_MAX * 100.0 );
     ui->resultLable->setText(testingRes);
 
-    ui->operationProgressBar->setValue( int(round(m_progress * 100.0)) );
+    ui->learingProgress->setValue( int(round(m_progress_learning * 100.0)) );
+    ui->testingProgress->setValue( int(round(m_progress_testing * 100.0)) );
 
     QMutexLocker locker( &m_listMutex );
 
@@ -213,28 +215,37 @@ void Widget::updateUi()
 
 void Widget::doNNLearning()
 { 
-    ui->operationLable->setText("SGD learning...");
     m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, 3.0 );
 }
 
 void Widget::doNNTesting()
 {
-    ui->operationLable->setText("Network testing...");
-    m_net->testNetworkAsync( m_testin, m_testout, 0.50 );
+    m_net_testing->testNetworkAsync( m_testin, m_testout, 0.50 );
 }
 
 void Widget::networkOperationProgress( const NetworkOperationId & opId, const NetworkOperationStatus &opStatus,
                                        const double &progress )
 {
-    m_progress = progress;
-
     if( opId == NetworkOperationCallback::OpStochasticGradientDescent )
     {
+        m_progress_learning = progress;
         if( opStatus == NetworkOperationCallback::OpResultOk )
-            emit readyForTesting();
+        {
+            // only overwrite if no operation ongoing on testing net
+            if( ! m_net_testing->isOperationInProgress() )
+            {
+                m_net_testing.reset( new Network( *(m_net.get())) );
+                emit readyForTesting();
+            }
+
+            if( ui->keepLearingCB->isChecked() )
+                emit readyForLearning();
+        }
     }
     else if( opId == NetworkOperationCallback::OpTestNetwork )
-    {}
+    {
+        m_progress_testing = progress;
+    }
 }
 
 void Widget::networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
@@ -248,9 +259,6 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
     locker.unlock();
 
     std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
-
-    if( ui->keepLearingCB->isChecked() )
-        emit readyForLearning();
 }
 
 

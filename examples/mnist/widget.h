@@ -69,10 +69,12 @@ private:
     std::vector<Eigen::MatrixXd> m_testout;
     size_t m_currentIdx;
     std::shared_ptr<Network> m_net;
+    std::shared_ptr<Network> m_net_testing;
 
     // thread safe ui values
     std::atomic<double> m_sr_L2, m_sr_MAX;
-    std::atomic<double> m_progress;
+    std::atomic<double> m_progress_testing;
+    std::atomic<double> m_progress_learning;
     QMutex m_listMutex;
     std::vector<std::size_t> m_failedSamples;
 
