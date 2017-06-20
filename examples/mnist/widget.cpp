@@ -241,8 +241,9 @@ void Widget::updateUi()
 
 void Widget::doNNLearning()
 { 
+    double learningRate = ui->learingRateSB->value();
     ui->operationLable->setText("SGD learning...");
-    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, 3.0 );
+    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, learningRate );
 }
 
 void Widget::doNNTesting()
