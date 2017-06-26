@@ -6,6 +6,8 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QMutex>
+#include <QLineSeries>
+#include <QValueAxis>
 #include <vector>
 #include <memory>
 #include <atomic>
@@ -14,7 +16,6 @@ namespace Ui
 {
     class Widget;
 }
-
 
 struct NNSample
 {
@@ -31,7 +32,6 @@ class Widget : public QMainWindow, public NetworkOperationCallback
 public:
     explicit Widget(QWidget* parent = 0);
     ~Widget();
-
 
     // NetworkOperationCallback interface
 public:
@@ -60,6 +60,9 @@ signals:
 
 private:
     Ui::Widget* ui;
+    QtCharts::QLineSeries* m_plotData_classification;
+    QtCharts::QLineSeries* m_plotData_L2;
+    QtCharts::QValueAxis* m_XAxis;
     QTimer* m_uiUpdaterTimer;
     std::vector<NNSample> m_trainingSet;
     std::vector<NNSample> m_testingSet;
@@ -75,9 +78,8 @@ private:
     std::atomic<double> m_sr_L2, m_sr_MAX;
     std::atomic<double> m_progress_testing;
     std::atomic<double> m_progress_learning;
-    QMutex m_listMutex;
+    QMutex m_uiLock;
     std::vector<std::size_t> m_failedSamples;
-
 };
 
 #endif // WIDGET_H
