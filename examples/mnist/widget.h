@@ -53,6 +53,8 @@ public slots:
     void doNNTesting();
     void doNNLearning();
     void updateUi();
+    void loadNN();
+    void saveNN();
 
 signals:
     void readyForTesting();

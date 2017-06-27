@@ -23,6 +23,8 @@
 
 #include <random>
 #include <thread>
+#include <cstdio>
+
 #include <gtest/gtest.h>
 #include "network.h"
 #include "layer.h"
@@ -635,6 +637,39 @@ TEST(NetworkTest, Serialize)
     ASSERT_NEAR( copyOut(0,0), yout(0,0), 0.0001 );
 
     delete copy;
+}
+
+TEST(NetworkTest, SerializeToFile)
+{
+    std::vector<unsigned int> map = {1,5,2,1};
+    Network* net = new Network(map);
+
+    for( unsigned int k = 0; k < net->getNumberOfLayer(); k++ )
+    {
+        std::shared_ptr<Layer> l = net->getLayer( k );
+        l->setBias( 0.2 * k );
+        l->setWeight( -0.3 );
+    }
+
+    Eigen::MatrixXd xin(1,1);  xin(0,0) = 0.5;
+    net->feedForward(xin);
+    Eigen::MatrixXd yout = net->getOutputActivation();
+
+    // save network to file and open againf.
+    // activation should be same as above
+    net->save("tmp.net");
+    delete net;
+    Network* copy = Network::load( "tmp.net" );
+    std::remove("tmp.net");
+    copy->feedForward( xin );
+    Eigen::MatrixXd copyOut = copy->getOutputActivation();
+
+    ASSERT_NEAR( copyOut(0,0), yout(0,0), 0.0001 );
+    delete copy;
+
+    // read from non existing file
+    Network* nullNet = Network::load( "abcrtz.net" );
+    ASSERT_TRUE( nullNet == NULL );
 }
 
 

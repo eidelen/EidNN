@@ -11,6 +11,7 @@
 #include <QStringListModel>
 #include <QChart>
 #include <QChartView>
+#include <QFileDialog>
 
 Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     m_sr_L2(0), m_sr_MAX(0), m_progress_testing(0), m_progress_learning(0)
@@ -92,6 +93,8 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 
     connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
     connect( this, SIGNAL(readyForLearning()), this, SLOT(doNNLearning()));
+    connect( ui->loadNNBtn, SIGNAL(pressed()), this, SLOT(loadNN()));
+    connect( ui->saveNNBtn, SIGNAL(pressed()), this, SLOT(saveNN()));
 
 
     m_uiUpdaterTimer = new QTimer( this );
@@ -141,7 +144,7 @@ void Widget::prepareSamples()
         m_testingSet.push_back( thisSample );
     }
 
-    // Prepare batchs
+    // Prepare batches
     m_batchin.clear(); m_batchout.clear();
     for( size_t z = 0; z < m_trainingSet.size(); z++ )
     {
@@ -291,6 +294,25 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
     m_plotData_classification->append( m_plotData_classification->count(), successRateMaxIdx * 100 );
 
     std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
+}
+
+void Widget::loadNN()
+{
+    QString path = QFileDialog::getOpenFileName(this, "Open neuronal network");
+    if( path.compare("") != 0 )
+    {
+        m_net.reset( Network::load( path.toStdString() ) );
+        m_net->setObserver( this );
+        m_net_testing.reset( new Network( *(m_net.get())) );
+        emit readyForTesting();
+    }
+}
+
+void Widget::saveNN()
+{
+    QString path = QFileDialog::getSaveFileName(this, "Save neuronal network");
+    if( path.compare("") != 0 )
+        m_net->save( path.toStdString() );
 }
 
 

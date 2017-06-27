@@ -27,6 +27,7 @@
 
 #include <random>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -450,4 +451,34 @@ Network* Network::deserialize( const string& buffer )
     }
 
     return n;
+}
+
+
+bool Network::save( const string& filePath )
+{
+    ofstream netFile;
+    netFile.open( filePath );
+
+    if( ! netFile.is_open() )
+        return false;
+
+    netFile << serialize();
+    netFile.close();
+    return true;
+}
+
+
+Network* Network::load( const string& filePath )
+{
+    ifstream netFile( filePath );
+    if( ! netFile.is_open() )
+        return NULL;
+
+    // read the whole file
+    std::string netAsBuffer((std::istreambuf_iterator<char>(netFile)),
+                             std::istreambuf_iterator<char>());
+
+    netFile.close();
+
+    return Network::deserialize( netAsBuffer );
 }

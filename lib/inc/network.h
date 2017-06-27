@@ -199,6 +199,20 @@ public:
      */
     static Network* deserialize(const std::string& buffer );
 
+    /**
+     * Save the current neuronal network to a file.
+     * @param filePath Path to file.
+     * @return True if successful, otherwise false.
+     */
+    bool save( const std::string& filePath );
+
+    /**
+     * Load a neuronal network from a file
+     * @param filePath Path to file.
+     * @return Initialized network
+     */
+    static Network* load( const std::string& filePath );
+
     void print();
 
 
