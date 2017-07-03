@@ -21,33 +21,34 @@
 **
 *****************************************************************************/
 
-#ifndef NEURONHEADER
-#define NEURONHEADER
+#ifndef COSTFUNCTION_h
+#define COSTFUNCTION_h
+
 
 #include <eigen3/Eigen/Dense>
 
-class Neuron
+class CostFunction
 {
-
 public:
 
     /**
-    * Sigmoid function value of a given input z.
-    */
-    static double sigmoid(const double &z );
-
-    /**
-    * Sigmoid derivation function value of a given input z.
-    */
-    static double d_sigmoid(const double &z );
-
-    /**
-     * Computes component wise derrivative of the sigmoid function
-     * for each component in the vector z.
-     * @param z Vector in
-     * @return Vector holding the result.
+     * Computes the diffrence between the actual network activation and the desired output in the output layer.
+     * @param z_weightdInput Weighted input.
+     * @param a_activation Network output activation.
+     * @param y_expected Desired network output.
+     * @return The delta for each neuron in the output layer. If one sample was feedforward, this is a
+     *         vector. Otherwise it is a matrix.
      */
-    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
+    virtual Eigen::MatrixXd delta( const Eigen::MatrixXd& z_weightdInput, const Eigen::MatrixXd& a_activation,
+                                   const Eigen::MatrixXd& y_expected) const = 0;
+
+    /**
+     * Computes the overall cost of a neuronal network.
+     * @param a_activation Network output activation.
+     * @param y_expected Desired network output.
+     * @return The overall cost.
+     */
+    virtual double cost( const Eigen::MatrixXd& a_activation, const Eigen::MatrixXd& y_expected ) const = 0;
 };
 
-#endif //NEURONHEADER
+#endif // COSTFUNCTION_h

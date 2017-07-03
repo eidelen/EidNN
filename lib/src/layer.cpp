@@ -25,6 +25,8 @@
 #include "layer.h"
 #include "neuron.h"
 #include "helpers.h"
+#include "costFunction.h"
+#include "quadraticCost.h"
 
 using namespace std;
 
@@ -32,6 +34,8 @@ Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs) :
     m_nbr_of_neurons( nbr_of_neurons ),
     m_nbr_of_inputs( nbr_of_inputs )
 {
+    //TODO: also in serialization and copy constructor
+    m_costFunction.reset( new QuadraticCost() );
     initLayer();
 }
 
@@ -204,7 +208,7 @@ bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expect
         return false;
     }
 
-    m_backpropagationError = ((m_activation_out - expectedNetworkOutput).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
+    m_backpropagationError = m_costFunction->delta(m_z_weighted_input, m_activation_out, expectedNetworkOutput );
     return true;
 }
 
@@ -216,19 +220,8 @@ bool Layer::computeBackprogationError(const Eigen::MatrixXd &errorNextLayer, con
         return false;
     }
 
-    m_backpropagationError = ((weightMatrixNextLayer.transpose() * errorNextLayer).array() * d_sigmoid( m_z_weighted_input ).array()).matrix();
+    m_backpropagationError = ((weightMatrixNextLayer.transpose() * errorNextLayer).array() * Neuron::d_sigmoid( m_z_weighted_input ).array()).matrix();
     return true;
-}
-
-
-const Eigen::MatrixXd Layer::d_sigmoid( const Eigen::MatrixXd& z )
-{
-    Eigen::MatrixXd res = Eigen::MatrixXd( z.rows(), z.cols() );
-    for( unsigned int m = 0; m < z.rows(); m++ )
-        for( unsigned int n = 0; n < z.cols(); n++ )
-            res(m,n) = Neuron::d_sigmoid( z(m,n) );
-
-    return res;
 }
 
 void Layer::computePartialDerivatives()

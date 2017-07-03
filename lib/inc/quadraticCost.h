@@ -21,33 +21,24 @@
 **
 *****************************************************************************/
 
-#ifndef NEURONHEADER
-#define NEURONHEADER
+#ifndef QUADRATICCOST_H
+#define QUADRATICCOST_H
 
-#include <eigen3/Eigen/Dense>
+#include "costFunction.h"
 
-class Neuron
+class QuadraticCost : public CostFunction
 {
-
 public:
+    QuadraticCost();
+    ~QuadraticCost();
 
-    /**
-    * Sigmoid function value of a given input z.
-    */
-    static double sigmoid(const double &z );
 
-    /**
-    * Sigmoid derivation function value of a given input z.
-    */
-    static double d_sigmoid(const double &z );
+    // CostFunction interface
+public:
+    Eigen::MatrixXd delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
+                          const Eigen::MatrixXd &y_expected) const override;
 
-    /**
-     * Computes component wise derrivative of the sigmoid function
-     * for each component in the vector z.
-     * @param z Vector in
-     * @return Vector holding the result.
-     */
-    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
+    double cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const override;
 };
 
-#endif //NEURONHEADER
+#endif // QUADRATICCOST_H

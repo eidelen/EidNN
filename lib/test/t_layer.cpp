@@ -211,15 +211,6 @@ TEST(LayerTest, SetWeightsAndBiases)
     delete l;
 }
 
-TEST(LayerTest, D_Sigmoid)
-{
-    Eigen::VectorXd x(3);  x << 0, -100, +100;
-    Eigen::VectorXd f = Layer::d_sigmoid(x);
-
-    ASSERT_NEAR( f(0), 0.25, 0.0001 );
-    ASSERT_NEAR( f(1), 0.0, 0.0001 );
-    ASSERT_NEAR( f(2), 0.0, 0.0001 );
-}
 
 TEST(LayerTest, ComputeOutputError)
 {

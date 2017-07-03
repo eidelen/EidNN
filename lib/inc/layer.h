@@ -32,6 +32,8 @@
 
 #include "network.h"
 
+class CostFunction;
+
 class Layer
 {
     friend class Network;
@@ -211,14 +213,6 @@ public:
     const std::vector<Eigen::MatrixXd>& getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
 
     /**
-     * Computes component wise derrivative of the sigmoid function
-     * for each component in the vector z.
-     * @param z Vector in
-     * @return Vector holding the result.
-     */
-    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
-
-    /**
      * Serialize the layer (weights, biases).
      * @return string holding binary representation of the layer.
      */
@@ -263,6 +257,8 @@ private:
 
     std::vector<Eigen::MatrixXd> m_bias_partialDerivatives;
     std::vector<Eigen::MatrixXd> m_weight_partialDerivatives;
+
+    std::shared_ptr<CostFunction> m_costFunction;
 };
 
 #endif //LAYERHEADER

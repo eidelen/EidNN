@@ -21,33 +21,26 @@
 **
 *****************************************************************************/
 
-#ifndef NEURONHEADER
-#define NEURONHEADER
+#include "quadraticCost.h"
+#include "neuron.h"
 
-#include <eigen3/Eigen/Dense>
-
-class Neuron
+QuadraticCost::QuadraticCost()
 {
 
-public:
+}
 
-    /**
-    * Sigmoid function value of a given input z.
-    */
-    static double sigmoid(const double &z );
+QuadraticCost::~QuadraticCost()
+{
 
-    /**
-    * Sigmoid derivation function value of a given input z.
-    */
-    static double d_sigmoid(const double &z );
+}
 
-    /**
-     * Computes component wise derrivative of the sigmoid function
-     * for each component in the vector z.
-     * @param z Vector in
-     * @return Vector holding the result.
-     */
-    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
-};
+Eigen::MatrixXd QuadraticCost::delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
+                                     const Eigen::MatrixXd &y_expected) const
+{
+    return ((a_activation - y_expected).array() * Neuron::d_sigmoid( z_weightdInput ).array()).matrix();
+}
 
-#endif //NEURONHEADER
+double QuadraticCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const
+{
+    return 0.5 * pow( (a_activation - y_expected).norm(), 2.0 );
+}

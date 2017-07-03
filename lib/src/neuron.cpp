@@ -33,3 +33,13 @@ double Neuron::d_sigmoid( const double& z )
 {
     return sigmoid(z) * ( 1.0 - sigmoid(z) );
 }
+
+const Eigen::MatrixXd Neuron::d_sigmoid( const Eigen::MatrixXd& z )
+{
+    Eigen::MatrixXd res = Eigen::MatrixXd( z.rows(), z.cols() );
+    for( unsigned int m = 0; m < z.rows(); m++ )
+        for( unsigned int n = 0; n < z.cols(); n++ )
+            res(m,n) = Neuron::d_sigmoid( z(m,n) );
+
+    return res;
+}

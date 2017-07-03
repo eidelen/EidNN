@@ -20,34 +20,3 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 *****************************************************************************/
-
-#ifndef NEURONHEADER
-#define NEURONHEADER
-
-#include <eigen3/Eigen/Dense>
-
-class Neuron
-{
-
-public:
-
-    /**
-    * Sigmoid function value of a given input z.
-    */
-    static double sigmoid(const double &z );
-
-    /**
-    * Sigmoid derivation function value of a given input z.
-    */
-    static double d_sigmoid(const double &z );
-
-    /**
-     * Computes component wise derrivative of the sigmoid function
-     * for each component in the vector z.
-     * @param z Vector in
-     * @return Vector holding the result.
-     */
-    static const Eigen::MatrixXd d_sigmoid(const Eigen::MatrixXd &z );
-};
-
-#endif //NEURONHEADER
