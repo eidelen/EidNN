@@ -20,3 +20,27 @@
 ** DEALINGS IN THE SOFTWARE.
 **
 *****************************************************************************/
+
+#ifndef CROSSENTROPY_H
+#define CROSSENTROPY_H
+
+#include "costFunction.h"
+
+class CrossEntropy : public CostFunction
+{
+public:
+    CrossEntropy();
+    ~CrossEntropy();
+
+
+    // CostFunction interface
+public:
+    Eigen::MatrixXd delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
+                          const Eigen::MatrixXd &y_expected) const override;
+
+    double cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const override;
+
+    std::string name() const override { return "crossentropy"; }
+};
+
+#endif // CROSSENTROPY_H

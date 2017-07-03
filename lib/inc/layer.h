@@ -213,6 +213,19 @@ public:
     const std::vector<Eigen::MatrixXd>& getPartialDerivativesWeights() const { return m_weight_partialDerivatives; }
 
     /**
+     * Set the cost function. This is only relevant in the output layer. The default cost function
+     * is the quadratic cost function.
+     * @param costFunction The new cost function.
+     */
+    void setCostFunction( const std::shared_ptr<CostFunction>& costFunction ) { m_costFunction = costFunction; }
+
+    /**
+     * Return the currently used cost function.
+     * @return Cost function.
+     */
+    const std::shared_ptr<CostFunction>& getCostFunction() { return m_costFunction; }
+
+    /**
      * Serialize the layer (weights, biases).
      * @return string holding binary representation of the layer.
      */

@@ -281,3 +281,22 @@ TEST(LayerTest, ComputeOutputErrorMultipleInput)
     delete l;
 }
 
+#include "quadraticCost.h"
+#include "crossEntropyCost.h"
+
+TEST(LayerTest, CostFunction)
+{
+    Layer* l = new Layer( 2, 2 );
+
+    std::shared_ptr<CrossEntropy> ce( new CrossEntropy() );
+    std::shared_ptr<QuadraticCost> qc( new QuadraticCost() );
+
+    // default should be quadratic
+    ASSERT_TRUE( l->getCostFunction()->name().compare( "quadraticcost" ) == 0 );
+
+    l->setCostFunction( ce );
+    ASSERT_TRUE( l->getCostFunction()->name().compare( "crossentropy" ) == 0 );
+
+    delete l;
+}
+

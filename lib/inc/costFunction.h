@@ -49,6 +49,12 @@ public:
      * @return The overall cost.
      */
     virtual double cost( const Eigen::MatrixXd& a_activation, const Eigen::MatrixXd& y_expected ) const = 0;
+
+    /**
+     * Returns the cost function type name.
+     * @return string holding the name.
+     */
+    virtual std::string name() const = 0;
 };
 
 #endif // COSTFUNCTION_h

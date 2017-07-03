@@ -34,8 +34,6 @@ Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs) :
     m_nbr_of_neurons( nbr_of_neurons ),
     m_nbr_of_inputs( nbr_of_inputs )
 {
-    //TODO: also in serialization and copy constructor
-    m_costFunction.reset( new QuadraticCost() );
     initLayer();
 }
 
@@ -72,6 +70,8 @@ void Layer::initLayer()
     m_activation_out = Eigen::MatrixXd( 1, 1 );
     m_z_weighted_input = Eigen::MatrixXd( 1, 1 );
     m_backpropagationError =  Eigen::MatrixXd( 1 , 1 );
+
+    m_costFunction.reset( new QuadraticCost() );
 }
 
 

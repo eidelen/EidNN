@@ -39,6 +39,8 @@ public:
                           const Eigen::MatrixXd &y_expected) const override;
 
     double cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const override;
+
+    std::string name() const override { return "quadraticcost"; }
 };
 
 #endif // QUADRATICCOST_H
