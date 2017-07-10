@@ -50,6 +50,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     std::vector<unsigned int> map = {784,30,10};
     m_net.reset( new Network(map) );
     m_net->setObserver( this );
+    m_net->setCostFunction( Network::CrossEntropy );
     m_net_testing.reset( new Network( *(m_net.get())) );
 
 
@@ -303,6 +304,8 @@ void Widget::loadNN()
     {
         m_net.reset( Network::load( path.toStdString() ) );
         m_net->setObserver( this );
+        m_net->setCostFunction( Network::CrossEntropy );
+
         m_net_testing.reset( new Network( *(m_net.get())) );
         emit readyForTesting();
     }

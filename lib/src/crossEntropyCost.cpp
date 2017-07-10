@@ -24,6 +24,7 @@
 #include "crossEntropyCost.h"
 #include "neuron.h"
 
+
 CrossEntropyCost::CrossEntropyCost()
 {
 
@@ -34,15 +35,25 @@ CrossEntropyCost::~CrossEntropyCost()
 
 }
 
-Eigen::MatrixXd CrossEntropyCost::delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
+Eigen::MatrixXd CrossEntropyCost::delta(const Eigen::MatrixXd &/*z_weightdInput*/, const Eigen::MatrixXd &a_activation,
                                         const Eigen::MatrixXd &y_expected) const
 {
-    //todo: implement
-    return a_activation;
+    return a_activation - y_expected;
 }
 
 double CrossEntropyCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const
 {
-    //todo: implement
-    return 1000;
+    Eigen::MatrixXd ones = Eigen::MatrixXd::Constant( y_expected.rows(), y_expected.cols(), 1.0 );
+
+
+    Eigen::MatrixXd d =  - ((y_expected.array() * a_activation.array().log()) +  // y * ln(a)  +
+                           (ones - y_expected).array() * (ones-a_activation).array().log()).matrix();
+
+    double costAccum = 0.0;
+    for( int i = 0; i < d.cols(); i++ )
+    {
+        costAccum = costAccum + d.col(i).norm();
+    }
+
+    return costAccum / double(d.cols());
 }
