@@ -26,11 +26,11 @@
 
 #include "costFunction.h"
 
-class CrossEntropy : public CostFunction
+class CrossEntropyCost : public CostFunction
 {
 public:
-    CrossEntropy();
-    ~CrossEntropy();
+    CrossEntropyCost();
+    ~CrossEntropyCost();
 
 
     // CostFunction interface

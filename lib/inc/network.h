@@ -37,6 +37,13 @@ class Layer;
 class Network
 {
 public:
+    enum ECostFunctions
+    {
+        Quadratic,
+        CrossEntropy
+    };
+
+public:
 
     /**
      * Constructor of a neural network.
@@ -92,6 +99,7 @@ public:
     /**
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
      * to the computed partial derivatives and the gradient descent method.
+     * @see setCostFunction
      * @param x_in Input signal.
      * @param y_out Desired output signal.
      * @param eta Learning rate.
@@ -105,6 +113,7 @@ public:
      * The stochastic gradient descent methods updates the weights and biases by the averaged
      * partial derivatives of a randomly chosen batch of samples. In total, nbrOfSamples / batchsize
      * batches are executed -> this is called an epoch.
+     * @see setCostFunction
      * @param samples Input signals.
      * @param lables Desired output signals.
      * @param batchsize Number of samples in the batch.
@@ -121,6 +130,7 @@ public:
      * partial derivatives of a randomly chosen batch of samples. In total, nbrOfSamples / batchsize
      * batches are executed -> this is called an epoch. The computation is performed in another
      * thread. The user gets informed over the NetworkOperationCallback interface.
+     * @see setCostFunction
      * @param samples Input signals.
      * @param lables Desired output signals.
      * @param batchsize Number of samples in the batch.
@@ -185,6 +195,12 @@ public:
      * @return
      */
     std::vector<unsigned int> getNetworkStructure() const { return m_NetworkStructure; }
+
+    /**
+     * Sets the applied cost function in the outputlayer.
+     * @param function Cost function id.
+     */
+    void setCostFunction( const ECostFunctions& function );
 
     /**
      * Serialize the network (layers).

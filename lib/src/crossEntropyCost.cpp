@@ -24,24 +24,24 @@
 #include "crossEntropyCost.h"
 #include "neuron.h"
 
-CrossEntropy::CrossEntropy()
+CrossEntropyCost::CrossEntropyCost()
 {
 
 }
 
-CrossEntropy::~CrossEntropy()
+CrossEntropyCost::~CrossEntropyCost()
 {
 
 }
 
-Eigen::MatrixXd CrossEntropy::delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
-                                     const Eigen::MatrixXd &y_expected) const
+Eigen::MatrixXd CrossEntropyCost::delta(const Eigen::MatrixXd &z_weightdInput, const Eigen::MatrixXd &a_activation,
+                                        const Eigen::MatrixXd &y_expected) const
 {
     //todo: implement
     return a_activation;
 }
 
-double CrossEntropy::cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const
+double CrossEntropyCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const
 {
     //todo: implement
     return 1000;

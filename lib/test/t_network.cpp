@@ -30,6 +30,7 @@
 #include "layer.h"
 #include "neuron.h"
 #include "helpers.h"
+#include "costFunction.h"
 
 
 TEST(NetworkTest, ConstructNetwork)
@@ -670,6 +671,20 @@ TEST(NetworkTest, SerializeToFile)
     // read from non existing file
     Network* nullNet = Network::load( "abcrtz.net" );
     ASSERT_TRUE( nullNet == NULL );
+}
+
+TEST(NetworkTest, CostFunction)
+{
+    std::vector<unsigned int> map = {1,2};
+    Network* net = new Network(map);
+
+    net->setCostFunction( Network::CrossEntropy );
+    ASSERT_TRUE( net->getOutputLayer()->getCostFunction()->name().compare( "crossentropy" ) == 0 );
+
+    net->setCostFunction( Network::Quadratic );
+    ASSERT_TRUE( net->getOutputLayer()->getCostFunction()->name().compare( "quadraticcost" ) == 0 );
+
+    delete net;
 }
 
 

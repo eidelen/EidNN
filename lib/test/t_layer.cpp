@@ -288,7 +288,7 @@ TEST(LayerTest, CostFunction)
 {
     Layer* l = new Layer( 2, 2 );
 
-    std::shared_ptr<CrossEntropy> ce( new CrossEntropy() );
+    std::shared_ptr<CrossEntropyCost> ce( new CrossEntropyCost() );
     std::shared_ptr<QuadraticCost> qc( new QuadraticCost() );
 
     // default should be quadratic

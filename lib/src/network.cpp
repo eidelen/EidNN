@@ -24,6 +24,8 @@
 #include "network.h"
 #include "layer.h"
 #include "helpers.h"
+#include "crossEntropyCost.h"
+#include "quadraticCost.h"
 
 #include <random>
 #include <iostream>
@@ -481,4 +483,15 @@ Network* Network::load( const string& filePath )
     netFile.close();
 
     return Network::deserialize( netAsBuffer );
+}
+
+void Network::setCostFunction( const ECostFunctions& function )
+{
+    std::shared_ptr<CostFunction> cf;
+    if( function == CrossEntropy )
+        cf.reset( new CrossEntropyCost() );
+    else
+        cf.reset( new QuadraticCost() );
+
+    getOutputLayer()->setCostFunction( cf );
 }
