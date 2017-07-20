@@ -111,8 +111,8 @@ Widget::~Widget()
 
 void Widget::prepareSamples()
 {
-    auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>();
-    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>();
+    auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>("extern/mnist");
+    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>("extern/mnist");
     mnist::normalize_dataset(mnistinputNormalized);
 
     // Load training data
