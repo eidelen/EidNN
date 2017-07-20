@@ -16,7 +16,7 @@ FILE(GLOB_RECURSE  EIDNN_INCLUDES        inc/*.h)
 FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
 
 ADD_LIBRARY(eidnnlib SHARED ${EIDNN_INCLUDES} ${EIDNN_SOURCES} )
-
+target_include_directories(eidnnlib INTERFACE inc)
 
 option(TESTEIDNN  "TEST" OFF)
 IF(${TESTEIDNN})
