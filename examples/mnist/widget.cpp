@@ -50,7 +50,6 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     std::vector<unsigned int> map = {784,30,10};
     m_net.reset( new Network(map) );
     m_net->setObserver( this );
-    m_net->setCostFunction( Network::CrossEntropy );
     m_net_testing.reset( new Network( *(m_net.get())) );
 
 
@@ -199,16 +198,16 @@ void Widget::displayTestMNISTImage( const size_t& idx )
         }
     }
 
-    ui->imgLable->setPixmap( QPixmap::fromImage(img.scaled(140,140)) );
+    ui->imgLable->setPixmap( QPixmap::fromImage(img.scaled(100,100)) );
     ui->imgLable->show();
 
     ui->trainingLable->setText( QString::number(sample.lable, 10) );
 
-    if( !m_net->isOperationInProgress() )
+    if( !m_net_testing->isOperationInProgress() )
     {
         // feedforward
-        m_net->feedForward(sample.normalizedinput);
-        Eigen::MatrixXd activationSignal = m_net->getOutputActivation();
+        m_net_testing->feedForward(sample.normalizedinput);
+        Eigen::MatrixXd activationSignal = m_net_testing->getOutputActivation();
         QString actStr;
         actStr.sprintf("Activation: [ %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]", activationSignal(0,0), activationSignal(1,0),
                        activationSignal(2,0), activationSignal(3,0), activationSignal(4,0), activationSignal(5,0), activationSignal(6,0),
@@ -248,6 +247,7 @@ void Widget::updateUi()
 void Widget::doNNLearning()
 { 
     double learningRate = ui->learingRateSB->value();
+    m_net->setCostFunction( getCurrentSelectedCostFunction() );
     m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, learningRate );
 }
 
@@ -316,6 +316,19 @@ void Widget::saveNN()
     QString path = QFileDialog::getSaveFileName(this, "Save neuronal network");
     if( path.compare("") != 0 )
         m_net->save( path.toStdString() );
+}
+
+Network::ECostFunction Widget::getCurrentSelectedCostFunction()
+{
+    int selectedIdx = ui->costFunctionCombo->currentIndex();
+    if( selectedIdx == 0 )
+    {
+        return Network::Quadratic;
+    }
+    else
+    {
+        return Network::CrossEntropy;
+    }
 }
 
 

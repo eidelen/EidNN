@@ -485,7 +485,7 @@ Network* Network::load( const string& filePath )
     return Network::deserialize( netAsBuffer );
 }
 
-void Network::setCostFunction( const ECostFunctions& function )
+void Network::setCostFunction( const ECostFunction& function )
 {
     std::shared_ptr<CostFunction> cf;
     if( function == CrossEntropy )

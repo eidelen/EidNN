@@ -48,6 +48,7 @@ private:
     void sameImage();
     void prepareSamples();
     Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
+    Network::ECostFunction getCurrentSelectedCostFunction();
 
 public slots:
     void doNNTesting();

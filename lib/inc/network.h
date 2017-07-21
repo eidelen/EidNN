@@ -37,7 +37,7 @@ class Layer;
 class Network
 {
 public:
-    enum ECostFunctions
+    enum ECostFunction
     {
         Quadratic,
         CrossEntropy
@@ -200,7 +200,7 @@ public:
      * Sets the applied cost function in the outputlayer.
      * @param function Cost function id.
      */
-    void setCostFunction( const ECostFunctions& function );
+    void setCostFunction( const ECostFunction& function );
 
     /**
      * Serialize the network (layers).
