@@ -30,15 +30,16 @@
 
 using namespace std;
 
-Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs) :
+Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs, const LayerOutputType& type) :
     m_nbr_of_neurons( nbr_of_neurons ),
-    m_nbr_of_inputs( nbr_of_inputs )
+    m_nbr_of_inputs( nbr_of_inputs ),
+    m_layer_type(type)
 {
     initLayer();
 }
 
-Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights, const vector<double>& biases ) :
-    Layer::Layer( uint(weights.size()), nbr_of_inputs )
+Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights, const vector<double>& biases, const LayerOutputType& type ) :
+    Layer::Layer( uint(weights.size()), nbr_of_inputs, type )
 {
     assert( weights.size() ==  biases.size() );
 
@@ -50,7 +51,7 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
     }
 }
 
-Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInputs() )
+Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInputs(), l.getLayerType() )
 {
     // Note: Temporary results like activations and derivatives are not copied.
     m_weightMatrix = l.getWeigtMatrix();
@@ -90,12 +91,25 @@ bool Layer::feedForward(const Eigen::MatrixXd &x_in )
 
     m_activation_in = x_in;
     m_z_weighted_input = m_weightMatrix * x_in + m_biasVector.replicate(1, x_in.cols());
-
-    // compute sigmoid for weighted input vector
     m_activation_out = Eigen::MatrixXd(m_z_weighted_input.rows(), m_z_weighted_input.cols());
-    for( unsigned int m = 0; m < m_z_weighted_input.rows(); m++ )
-        for( unsigned int n = 0; n < m_z_weighted_input.cols(); n++ )
-            m_activation_out(m,n) = Neuron::sigmoid( m_z_weighted_input(m,n) );
+
+    if( m_layer_type == Sigmoid )
+    {
+        // compute sigmoid of weighted input matrix
+        for( unsigned int m = 0; m < m_z_weighted_input.rows(); m++ )
+            for( unsigned int n = 0; n < m_z_weighted_input.cols(); n++ )
+                m_activation_out(m,n) = Neuron::sigmoid( m_z_weighted_input(m,n) );
+    }
+    else if( m_layer_type == Softmax )
+    {
+        // compute softmax of weighted input matrix
+        Eigen::MatrixXd expZ = (m_z_weighted_input.array().exp()).matrix();
+        Eigen::MatrixXd expSums = expZ.colwise().sum();
+
+        for( unsigned int n = 0; n < m_z_weighted_input.cols(); n++ ) // each sample
+            for( unsigned int m = 0; m < m_z_weighted_input.rows(); m++ ) // each neuron
+                m_activation_out(m,n) = expZ(m,n) / expSums(0,n);
+    }
 
     return true;
 }
@@ -208,7 +222,11 @@ bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expect
         return false;
     }
 
-    m_backpropagationError = m_costFunction->delta(m_z_weighted_input, m_activation_out, expectedNetworkOutput );
+    if( m_layer_type == Sigmoid )
+        m_backpropagationError = m_costFunction->delta(m_z_weighted_input, m_activation_out, expectedNetworkOutput );
+    else if( m_layer_type == Softmax )
+        m_backpropagationError = m_activation_out - expectedNetworkOutput;
+
     return true;
 }
 
@@ -268,9 +286,10 @@ void Layer::print() const
 
 std::string Layer::serialize( ) const
 {
-    unsigned int* topoBuf = new unsigned int[2];
+    unsigned int* topoBuf = new unsigned int[3];
     topoBuf[0] = m_nbr_of_neurons;
     topoBuf[1] = m_nbr_of_inputs;
+    topoBuf[2] = static_cast<unsigned int>(m_layer_type);
 
     size_t nbrOfDoublesWeightMatrix = m_nbr_of_neurons * m_nbr_of_inputs; // + m_nbr_of_neurons;
     double* weightBuf = new double[ nbrOfDoublesWeightMatrix ];
@@ -284,7 +303,7 @@ std::string Layer::serialize( ) const
         biasBuf[ m ] = m_biasVector( long(m), 0 );
 
     string retBuffer;
-    retBuffer.append( string( (char*)topoBuf, 2*sizeof(unsigned int) ) );
+    retBuffer.append( string( (char*)topoBuf, 3*sizeof(unsigned int) ) );
     retBuffer.append( string( (char*)weightBuf, nbrOfDoublesWeightMatrix*sizeof(double) ) );
     retBuffer.append( string( (char*)biasBuf, nbrOfDoublesBias*sizeof(double) ) );
 
@@ -301,7 +320,9 @@ Layer* Layer::deserialize( const string& buffer )
 
     unsigned int nbrOfNeurons = ((unsigned int*)(buf))[0];
     unsigned int nbrOfInputs = ((unsigned int*)(buf))[1];
-    size_t offset = 2 * sizeof(unsigned int);
+    Layer::LayerOutputType lType = static_cast<Layer::LayerOutputType>(((unsigned int*)(buf))[2]);
+
+    size_t offset = 3 * sizeof(unsigned int);
 
     Eigen::MatrixXd weightMatrix = Eigen::MatrixXd( nbrOfNeurons , nbrOfInputs );
     const double* weightBuf = (const double*)((buf + offset));
@@ -316,14 +337,22 @@ Layer* Layer::deserialize( const string& buffer )
     for( size_t m = 0; m < nbrOfNeurons; m++ )
         biasVector( long(m), 0 ) = biasBuf[ m ];
 
-    Layer* l = new Layer( nbrOfNeurons, nbrOfInputs );
+    Layer* l = new Layer( nbrOfNeurons, nbrOfInputs, lType );
     l->setBiases( biasVector );
     l->setWeights( weightMatrix );
 
     return l;
 }
 
+Layer::LayerOutputType Layer::getLayerType() const
+{
+    return m_layer_type;
+}
 
+void Layer::setLayerType( const LayerOutputType& type)
+{
+    m_layer_type = type;
+}
 
 
 

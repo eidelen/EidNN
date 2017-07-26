@@ -95,6 +95,7 @@ public:
      * @return Last layer of the network.
      */
     std::shared_ptr<Layer> getOutputLayer();
+    std::shared_ptr<const Layer> getOutputLayer() const;
 
     /**
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
@@ -228,6 +229,18 @@ public:
      * @return Initialized network
      */
     static Network* load( const std::string& filePath );
+
+    /**
+     * Enable or disable softmax output layer.
+     * @param enable True or false.
+     */
+    void setSoftmaxOutput( const bool& enable );
+
+    /**
+     * Is softmax output enabled or disabled.
+     * @return True if enabled. False if disabled.
+     */
+    bool isSoftmaxOutputEnabled() const;
 
     void print();
 

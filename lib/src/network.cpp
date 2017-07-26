@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 ** Copyright (c) 2017 Adrian Schneider
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a
@@ -239,6 +239,11 @@ shared_ptr<Layer> Network::getOutputLayer()
     return getLayer( getNumberOfLayer() - 1 );
 }
 
+std::shared_ptr<const Layer> Network::getOutputLayer() const
+{
+    return getLayer( getNumberOfLayer() - 1 );
+}
+
 double Network::getNetworkErrorMagnitude()
 {
     Eigen::VectorXd oErr =  getOutputLayer()->getBackpropagationError();
@@ -446,6 +451,7 @@ Network* Network::deserialize( const string& buffer )
 
         n->getLayer(i)->setBiases( l->getBiasVector() );
         n->getLayer(i)->setWeights( l->getWeigtMatrix() );
+        n->getLayer(i)->setLayerType( l->getLayerType() );
 
         delete l;
 
@@ -494,4 +500,17 @@ void Network::setCostFunction( const ECostFunction& function )
         cf.reset( new QuadraticCost() );
 
     getOutputLayer()->setCostFunction( cf );
+}
+
+void Network::setSoftmaxOutput( const bool& enable )
+{
+    if( enable )
+        getOutputLayer()->setLayerType(Layer::Softmax);
+    else
+        getOutputLayer()->setLayerType(Layer::Sigmoid);
+}
+
+bool Network::isSoftmaxOutputEnabled() const
+{
+    return getOutputLayer()->getLayerType() == Layer::Softmax;
 }

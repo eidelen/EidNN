@@ -688,3 +688,20 @@ TEST(NetworkTest, CostFunction)
 }
 
 
+TEST(NetworkTest, OutputLayerType)
+{
+    std::vector<unsigned int> map = {1,2};
+    Network* net = new Network(map);
+
+    net->setSoftmaxOutput( true );
+    ASSERT_TRUE( net->getOutputLayer()->getLayerType() == Layer::Softmax );
+    ASSERT_TRUE( net->isSoftmaxOutputEnabled() );
+
+    net->setSoftmaxOutput( false );
+    ASSERT_TRUE( net->getOutputLayer()->getLayerType() == Layer::Sigmoid );
+    ASSERT_FALSE( net->isSoftmaxOutputEnabled() );
+
+    delete net;
+}
+
+

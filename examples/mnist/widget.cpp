@@ -91,6 +91,11 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
         }
     });
 
+    connect( ui->softmax, &QCheckBox::toggled, [=]()
+    {
+        m_net->setSoftmaxOutput( ui->softmax->isChecked() );
+    });
+
     connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
     connect( this, SIGNAL(readyForLearning()), this, SLOT(doNNLearning()));
     connect( ui->loadNNBtn, SIGNAL(pressed()), this, SLOT(loadNN()));
@@ -305,6 +310,8 @@ void Widget::loadNN()
         m_net.reset( Network::load( path.toStdString() ) );
         m_net->setObserver( this );
         m_net->setCostFunction( Network::CrossEntropy );
+
+        ui->softmax->setChecked(m_net->isSoftmaxOutputEnabled());
 
         m_net_testing.reset( new Network( *(m_net.get())) );
         emit readyForTesting();

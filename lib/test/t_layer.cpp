@@ -28,17 +28,18 @@
 
 TEST(LayerTest, ConstructAndSize)
 {
-    Layer* l = new Layer(10,100);
+    Layer* l = new Layer(10,100,Layer::Softmax);
 
     ASSERT_EQ( 10, l->getNbrOfNeurons() );
     ASSERT_EQ( 100, l->getNbrOfNeuronInputs() );
+    ASSERT_EQ( Layer::Softmax, l->getLayerType() );
 
     delete l;
 }
 
 TEST(LayerTest, CopyConstructor)
 {
-    Layer* l = new Layer(2,2);
+    Layer* l = new Layer(2,2,Layer::Softmax);
     l->setBias(0.2); l->setWeight(0.8);
 
     Layer* lcopy = new Layer( *l );
@@ -48,6 +49,7 @@ TEST(LayerTest, CopyConstructor)
     ASSERT_NEAR( lcopy->getWeigtMatrix()(0,1), 0.8, 0.0001 );
     ASSERT_NEAR( lcopy->getWeigtMatrix()(1,0), 0.8, 0.0001 );
     ASSERT_NEAR( lcopy->getWeigtMatrix()(1,1), 0.8, 0.0001 );
+    ASSERT_EQ( lcopy->getLayerType(), Layer::Softmax );
 
     delete l;
     delete lcopy;
@@ -55,7 +57,7 @@ TEST(LayerTest, CopyConstructor)
 
 TEST(LayerTest, Serialization)
 {
-    Layer* l = new Layer(2,2);
+    Layer* l = new Layer(2,2,Layer::Softmax);
     l->setBias(0.2); l->setWeight(0.8);
 
     std::string serializedBuf = l->serialize( );
@@ -67,6 +69,7 @@ TEST(LayerTest, Serialization)
     ASSERT_NEAR( lcopy->getWeigtMatrix()(0,1), 0.8, 0.0001 );
     ASSERT_NEAR( lcopy->getWeigtMatrix()(1,0), 0.8, 0.0001 );
     ASSERT_NEAR( lcopy->getWeigtMatrix()(1,1), 0.8, 0.0001 );
+    ASSERT_EQ( lcopy->getLayerType(), Layer::Softmax );
 
     delete l;
     delete lcopy;
@@ -74,7 +77,7 @@ TEST(LayerTest, Serialization)
 
 
 
-TEST(LayerTest, ActivationVector)
+TEST(LayerTest, ActivationVectorSigmoid)
 {
     // make a layer with two neurons and two inputs
     // neuron 0: w0 = 1, w1 = 2, b = 0
@@ -91,7 +94,7 @@ TEST(LayerTest, ActivationVector)
     weights.push_back( w_n1 );
     biases.push_back( 2 );
 
-    Layer* l = new Layer( 2, weights, biases );
+    Layer* l = new Layer( 2, weights, biases, Layer::Sigmoid );
 
     ASSERT_EQ( 2, l->getNbrOfNeurons() );
     ASSERT_EQ( 2, l->getNbrOfNeuronInputs() );
@@ -155,6 +158,64 @@ TEST(LayerTest, ActivationVector)
     }
 
     delete l;
+}
+
+TEST(LayerTest, ActivationVectorSoftmax)
+{
+    // make a layer with two neurons and two inputs
+    // neuron 0: w0 = 1, w1 = 2, b = 0
+    // neuron 1: w0 = 3, w1 = 4, b = 2
+
+    std::vector<Eigen::VectorXd> weights;
+    std::vector<double> biases;
+
+    Eigen::VectorXd w_n0(2);  w_n0 << 1, 2;
+    weights.push_back( w_n0 );
+    biases.push_back( 0 );
+
+    Eigen::VectorXd w_n1(2);  w_n1 << 3, 4;
+    weights.push_back( w_n1 );
+    biases.push_back( 2 );
+
+    Layer* l = new Layer( 2, weights, biases, Layer::Softmax );
+
+    ASSERT_EQ( 2, l->getNbrOfNeurons() );
+    ASSERT_EQ( 2, l->getNbrOfNeuronInputs() );
+
+
+    Eigen::MatrixXd x1(2,3);  x1 << 0, 0, 0, 0, 0, 0;
+    // for this input, the weighted output should be:  ->  [ 0, 2 ; 0, 2; 0, 2]
+    // softmax activation should be
+    // sum = e^(0) + e^(2) = 1 + 7.3891 = 8.3891
+    // a0 = e^(0) / (e^(0) + e^(2)) = 0.11920
+    // a1 = e^(2) / (e^(0) + e^(2)) = 0.88080
+
+
+    l->feedForward(x1);
+    const Eigen::MatrixXd z1 = l->getWeightedInputZ();
+    const Eigen::MatrixXd a1 = l->getOutputActivation();
+    ASSERT_EQ( z1.rows(), 2 );
+    ASSERT_EQ( z1.cols(), 3 );
+    ASSERT_NEAR( z1(0,0), 0, 0.0001 );
+    ASSERT_NEAR( z1(0,1), 0, 0.0001 );
+    ASSERT_NEAR( z1(0,2), 0, 0.0001 );
+
+    ASSERT_NEAR( a1(0,0), 0.11920, 0.001 );
+    ASSERT_NEAR( a1(0,1), 0.11920, 0.001 );
+    ASSERT_NEAR( a1(0,2), 0.11920, 0.001 );
+
+    ASSERT_NEAR( z1(1,0), 2, 0.0001 );
+    ASSERT_NEAR( z1(1,1), 2, 0.0001 );
+    ASSERT_NEAR( z1(1,2), 2, 0.0001 );
+
+    ASSERT_NEAR( a1(1,0), 0.88080, 0.001 );
+    ASSERT_NEAR( a1(1,1), 0.88080, 0.001 );
+    ASSERT_NEAR( a1(1,2), 0.88080, 0.001 );
+
+    ASSERT_NEAR( a1(0,0) + a1(1,0), 1.0000, 0.001 );
+
+    delete l;
+
 }
 
 TEST(LayerTest, SetWeightsAndBiases)
@@ -277,6 +338,19 @@ TEST(LayerTest, ComputeOutputErrorMultipleInput)
         ASSERT_NEAR( l->getBackpropagationError()(0,k), 0.0, 0.0001 );
         ASSERT_NEAR( l->getBackpropagationError()(1,k), -0.25, 0.0001 );
     }
+
+    delete l;
+}
+
+
+TEST(LayerTest, SetAndGetLayerType)
+{
+    Layer* l = new Layer(10,10);
+    ASSERT_EQ( Layer::Sigmoid, l->getLayerType() ); // default
+    l->setLayerType( Layer::Softmax );
+    ASSERT_EQ( Layer::Softmax, l->getLayerType() );
+    l->setLayerType( Layer::Sigmoid );
+    ASSERT_EQ( Layer::Sigmoid, l->getLayerType() );
 
     delete l;
 }

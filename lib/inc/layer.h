@@ -39,20 +39,30 @@ class Layer
     friend class Network;
 
 public:
+
+    enum LayerOutputType
+    {
+        Sigmoid = 0x00, // Sigmoid activaton
+        Softmax         // Softmax activation
+    };
+
+public:
     /**
      * Constructor of a layer, which consists of many neurons.
      * @param nbr_of_neurons Number of neurons in this layer.
      * @param nbr_of_inputs Number of inputs to each neuron (usually this number is equal to the amount of neurons in the previous layer)
+     * @param type The layer type
      */
-    Layer( const uint& nbr_of_neurons, const uint& nbr_of_inputs );
+    Layer( const uint& nbr_of_neurons, const uint& nbr_of_inputs, const LayerOutputType& type = Sigmoid );
 
     /**
      * Constructor of a layer.
      * @param nbr_of_inputs Number of inputs to each neuron.
      * @param weights Vector of neuron weights-vector
      * @param biases Vector of neuron biases.
+     * @param type The layer type
      */
-    Layer( const uint& nbr_of_inputs, const std::vector<Eigen::VectorXd>& weights, const std::vector<double>& biases );
+    Layer( const uint& nbr_of_inputs, const std::vector<Eigen::VectorXd>& weights, const std::vector<double>& biases, const LayerOutputType& type = Sigmoid );
 
     /**
      * Copy-constructor
@@ -226,6 +236,18 @@ public:
     const std::shared_ptr<CostFunction>& getCostFunction() { return m_costFunction; }
 
     /**
+     * Returns the layer type
+     * @return Layer type;
+     */
+    LayerOutputType getLayerType() const;
+
+    /**
+     * Sets the layer type.
+     * @param type Layer type.
+     */
+    void setLayerType( const LayerOutputType& type);
+
+    /**
      * Serialize the layer (weights, biases).
      * @return string holding binary representation of the layer.
      */
@@ -259,6 +281,7 @@ private:
 private:
     unsigned int m_nbr_of_neurons;
     unsigned int m_nbr_of_inputs;
+    LayerOutputType    m_layer_type;
 
     Eigen::MatrixXd m_activation_in;
     Eigen::MatrixXd m_activation_out;

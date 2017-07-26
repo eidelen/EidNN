@@ -102,34 +102,13 @@
      <x>250</x>
      <y>180</y>
      <width>401</width>
-     <height>251</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="title">
     <string>Learn</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="4" column="2">
-     <widget class="QPushButton" name="learnPB">
-      <property name="text">
-       <string>Next Epoch</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="2">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Learning</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="4">
-     <widget class="QProgressBar" name="learingProgress">
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="2">
      <widget class="QLabel" name="label">
       <property name="text">
@@ -147,41 +126,34 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="2" colspan="4">
-     <widget class="QLabel" name="resultLable">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="4">
+    <item row="8" column="4">
      <widget class="QProgressBar" name="testingProgress">
       <property name="value">
        <number>0</number>
       </property>
      </widget>
     </item>
-    <item row="7" column="2">
-     <widget class="QLabel" name="label_3">
+    <item row="10" column="2" colspan="4">
+     <widget class="QLabel" name="resultLable">
       <property name="text">
-       <string>Testing</string>
+       <string/>
       </property>
      </widget>
     </item>
-    <item row="3" column="2">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Cost function</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="4">
+    <item row="5" column="4">
      <widget class="QCheckBox" name="keepLearingCB">
       <property name="text">
        <string>Keep Learning</string>
       </property>
       <property name="checked">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Testing</string>
       </property>
      </widget>
     </item>
@@ -197,6 +169,41 @@
         <string>Cross Entropy</string>
        </property>
       </item>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Cost function</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QPushButton" name="learnPB">
+      <property name="text">
+       <string>Next Epoch</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Learning</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="4">
+     <widget class="QProgressBar" name="learingProgress">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="4">
+     <widget class="QCheckBox" name="softmax">
+      <property name="text">
+       <string>Softmax</string>
+      </property>
      </widget>
     </item>
    </layout>
@@ -233,7 +240,7 @@
      <x>10</x>
      <y>180</y>
      <width>221</width>
-     <height>251</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="title">
@@ -249,9 +256,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>440</y>
+     <y>490</y>
      <width>641</width>
-     <height>341</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="title">
