@@ -45,15 +45,10 @@ double CrossEntropyCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::
 {
     Eigen::MatrixXd ones = Eigen::MatrixXd::Constant( y_expected.rows(), y_expected.cols(), 1.0 );
 
-
     Eigen::MatrixXd d =  - ((y_expected.array() * a_activation.array().log()) +  // y * ln(a)  +
                            (ones - y_expected).array() * (ones-a_activation).array().log()).matrix();
 
-    double costAccum = 0.0;
-    for( int i = 0; i < d.cols(); i++ )
-    {
-        costAccum = costAccum + d.col(i).norm();
-    }
+    Eigen::MatrixXd sums = d.colwise().sum();
 
-    return costAccum / double(d.cols());
+    return sums.sum() / double(sums.cols());;
 }

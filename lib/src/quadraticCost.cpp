@@ -42,5 +42,6 @@ Eigen::MatrixXd QuadraticCost::delta(const Eigen::MatrixXd &z_weightdInput, cons
 
 double QuadraticCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::MatrixXd &y_expected) const
 {
-    return 0.5 * pow( (a_activation - y_expected).norm(), 2.0 );
+    Eigen::MatrixXd sqn = (a_activation - y_expected).colwise().squaredNorm();
+    return 0.5 * sqn.sum() / double(sqn.cols());;
 }
