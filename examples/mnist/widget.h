@@ -49,6 +49,7 @@ private:
     void prepareSamples();
     Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
     Network::ECostFunction getCurrentSelectedCostFunction();
+    void getMinMaxYValue(const QtCharts::QLineSeries* series, const uint &nbrEntries, double& min, double& max);
 
 public slots:
     void doNNTesting();
@@ -66,6 +67,7 @@ private:
     QtCharts::QLineSeries* m_plotData_classification;
     QtCharts::QLineSeries* m_plotData_L2;
     QtCharts::QValueAxis* m_XAxis;
+    QtCharts::QValueAxis* m_YAxis;
     QTimer* m_uiUpdaterTimer;
     std::vector<NNSample> m_trainingSet;
     std::vector<NNSample> m_testingSet;

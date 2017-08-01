@@ -2,6 +2,7 @@
 #include "ui_widget.h"
 #include "layer.h"
 #include "helpers.h"
+#include <limits>
 #include "mnist/mnist_reader.hpp"
 #include "mnist/mnist_utils.hpp"
 
@@ -31,15 +32,16 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     m_XAxis = new QtCharts::QValueAxis();
     m_XAxis->setTitleText("Epoch");
     m_XAxis->setLabelFormat("%d"); 
+    m_XAxis->setRange(0,10);
     chart->addAxis(m_XAxis, Qt::AlignBottom);
-    QtCharts::QValueAxis* yAxis = new QtCharts::QValueAxis();
-    yAxis->setTitleText("Success");
-    yAxis->setRange(0, 100);
-    chart->addAxis(yAxis, Qt::AlignLeft);
+    m_YAxis = new QtCharts::QValueAxis();
+    m_YAxis->setTitleText("Success rate");
+    m_YAxis->setRange(0, 100);
+    chart->addAxis(m_YAxis, Qt::AlignLeft);
     m_plotData_classification->attachAxis(m_XAxis);
-    m_plotData_classification->attachAxis(yAxis);
+    m_plotData_classification->attachAxis(m_YAxis);
     m_plotData_L2->attachAxis(m_XAxis);
-    m_plotData_L2->attachAxis(yAxis);
+    m_plotData_L2->attachAxis(m_YAxis);
     ui->progressChart->setChart( chart );
     ui->progressChart->setRenderHint(QPainter::Antialiasing);
 
@@ -115,8 +117,9 @@ Widget::~Widget()
 
 void Widget::prepareSamples()
 {
-    auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>("extern/mnist");
-    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>("extern/mnist");
+    // MNIST_DATA_LOCATION passed by cmake
+    auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>(MNIST_DATA_LOCATION);
+    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>(MNIST_DATA_LOCATION);
     mnist::normalize_dataset(mnistinputNormalized);
 
     // Load training data
@@ -246,7 +249,22 @@ void Widget::updateUi()
     if( currentSelectedRow >= 0 && currentSelectedRow < m_failedSamples.size() )
         ui->failedSampleList->setCurrentRow(currentSelectedRow);
 
-    m_XAxis->setRange(0,m_plotData_classification->count()+1);
+    double current_X_AxisMax = m_XAxis->max();
+    if( m_plotData_classification->count() >= current_X_AxisMax )
+    {
+        m_XAxis->setRange(current_X_AxisMax-10,current_X_AxisMax+10);
+
+        // value axis scaling min max
+        // axis scaling : 10 values
+        double min_Class; double max_Class;
+        getMinMaxYValue(m_plotData_classification,4,min_Class,max_Class);
+        double min_L2; double max_L2;
+        getMinMaxYValue(m_plotData_L2,4,min_L2,max_L2);
+
+        double lower = std::max(std::min(min_Class,min_L2)*0.95, 0.0);
+        double upper = std::min(std::max(max_Class,max_L2)*1.2, 100.0);
+        m_YAxis->setRange(lower,upper);
+    }
 }
 
 void Widget::doNNLearning()
@@ -335,6 +353,27 @@ Network::ECostFunction Widget::getCurrentSelectedCostFunction()
     else
     {
         return Network::CrossEntropy;
+    }
+}
+
+void Widget::getMinMaxYValue(const QtCharts::QLineSeries* series, const uint& nbrEntries, double& min, double& max)
+{
+    min = std::numeric_limits<double>::max();
+    max = std::numeric_limits<double>::min();
+    for( int i = series->count()-nbrEntries; i < series->count(); i++ )
+    {
+        if( i >= 0 )
+        {
+            if( series->at(i).y() < min )
+            {
+                min = series->at(i).y();
+            }
+
+            if( series->at(i).y() > max )
+            {
+                max = series->at(i).y();
+            }
+        }
     }
 }
 
