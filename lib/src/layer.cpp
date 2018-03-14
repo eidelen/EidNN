@@ -22,6 +22,7 @@
 *****************************************************************************/
 
 #include <iostream>
+#include <random>
 #include "layer.h"
 #include "neuron.h"
 #include "helpers.h"

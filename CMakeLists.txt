@@ -6,6 +6,7 @@ PROJECT(eidnn)
 #---------------------------------------------------------------------
 add_subdirectory(lib)
 add_subdirectory(examples/mnist)
+add_subdirectory(examples/face)
 
 
 
