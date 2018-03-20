@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include "network_cb.h"
+#include "faceDataInput.h"
 #include <QMainWindow>
 #include <QTimer>
 #include <QMutex>
@@ -75,6 +76,8 @@ private:
     std::atomic<double> m_progress_learning;
     QMutex m_uiLock;
     std::vector<std::size_t> m_failedSamples;
+
+    FaceDataInput* m_data;
 };
 
 #endif // WIDGET_H

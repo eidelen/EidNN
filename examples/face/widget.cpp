@@ -117,175 +117,30 @@ Widget::~Widget()
 
 void Widget::prepareSamples()
 {
-    m_batchin.clear(); m_batchout.clear();
-    m_testin.clear(); m_testout.clear();
+    m_data = new FaceDataInput();
 
+    m_data->addToTraining("data/adrian.csv", 0);
+    m_data->addToTraining("data/adrian_glasses.csv", 1);
+
+    m_data->addToTest("data/adrian_test.csv",0);
+    m_data->addToTest("data/adrian_glasses_test.csv",1);
+
+    m_data->generateFromLables();
+
+    m_batchin = DataInput::getInputData(m_data->m_training);
+    m_batchout = DataInput::getOutputData(m_data->m_training);
+    m_testin = DataInput::getInputData(m_data->m_test);
+    m_testout = DataInput::getOutputData(m_data->m_test);
+
+    // print lables
+    std::cout << "Lables: " << std::endl;
+    for( auto dl : m_data->m_lables )
     {
-        QFile inputFileAdrian("data/adrian.csv");
-        if (inputFileAdrian.open(QIODevice::ReadOnly))
-        {
-            int k = 0;
-            QTextStream in(&inputFileAdrian);
-            while (!in.atEnd())
-            {
-                Eigen::MatrixXd xInNormalized = Eigen::MatrixXd(4096, 1);
-
-                QString line = in.readLine();
-                QStringList values = line.split(",");
-                for (int i = 0; i < 4096; i++)
-                {
-                    QString vStr = values[i];
-
-                    bool okTrans = true;
-                    float val = vStr.toFloat(&okTrans);
-                    if (!okTrans)
-                    {
-                        std::cout << "Error to float" << std::endl;
-                        return;
-                    }
-
-                    xInNormalized(i, 0) = val;
-                }
-
-                Eigen::MatrixXd yOut = lableToOutputVector(0);
-
-                if( false ) //k % 5 == 0 ) // every 5th to testing
-                {
-                    m_testin.push_back(xInNormalized);
-                    m_testout.push_back(yOut);
-                }
-                else
-                {
-                    m_batchin.push_back(xInNormalized);
-                    m_batchout.push_back(yOut);
-                }
-
-                k++;
-
-            }
-            inputFileAdrian.close();
-        }
+        std::cout << dl.second.lable << " ->  [" << dl.second.output.transpose() << "]" << std::endl;
     }
 
-
-    {
-        QFile inputFileAdrianGlasses("data/adrian_glasses.csv");
-        if (inputFileAdrianGlasses.open(QIODevice::ReadOnly))
-        {
-            int k = 0;
-            QTextStream in(&inputFileAdrianGlasses);
-            while (!in.atEnd())
-            {
-                Eigen::MatrixXd xInNormalized = Eigen::MatrixXd(4096, 1);
-
-                QString line = in.readLine();
-                QStringList values = line.split(",");
-                for (int i = 0; i < 4096; i++)
-                {
-                    QString vStr = values[i];
-
-                    bool okTrans = true;
-                    float val = vStr.toFloat(&okTrans);
-                    if (!okTrans)
-                    {
-                        std::cout << "Error to float" << std::endl;
-                        return;
-                    }
-
-                    xInNormalized(i, 0) = val;
-                }
-
-                Eigen::MatrixXd yOut = lableToOutputVector(1);
-
-                if( false ) //k % 5 == 0 ) // every 5th to testing
-                {
-                    m_testin.push_back(xInNormalized);
-                    m_testout.push_back(yOut);
-                }
-                else
-                {
-                    m_batchin.push_back(xInNormalized);
-                    m_batchout.push_back(yOut);
-                }
-
-                k++;
-
-            }
-            inputFileAdrianGlasses.close();
-        }
-    }
-
-
-    {
-        QFile inputFileAdrianTest("data/adrian_test.csv");
-        if (inputFileAdrianTest.open(QIODevice::ReadOnly))
-        {
-            QTextStream in(&inputFileAdrianTest);
-            while (!in.atEnd())
-            {
-                Eigen::MatrixXd xInNormalized = Eigen::MatrixXd(4096, 1);
-
-                QString line = in.readLine();
-                QStringList values = line.split(",");
-                for (int i = 0; i < 4096; i++)
-                {
-                    QString vStr = values[i];
-
-                    bool okTrans = true;
-                    float val = vStr.toFloat(&okTrans);
-                    if (!okTrans)
-                    {
-                        std::cout << "Error to float" << std::endl;
-                        return;
-                    }
-
-                    xInNormalized(i, 0) = val;
-                }
-
-                Eigen::MatrixXd yOut = lableToOutputVector(0);
-
-                m_testin.push_back(xInNormalized);
-                m_testout.push_back(yOut);
-            }
-            inputFileAdrianTest.close();
-
-        }
-    }
-
-    {
-        QFile inputFileAdrianGlassesTest("data/adrian_glasses_test.csv");
-        if (inputFileAdrianGlassesTest.open(QIODevice::ReadOnly))
-        {
-            QTextStream in(&inputFileAdrianGlassesTest);
-            while (!in.atEnd())
-            {
-                Eigen::MatrixXd xInNormalized = Eigen::MatrixXd(4096, 1);
-
-                QString line = in.readLine();
-                QStringList values = line.split(",");
-                for (int i = 0; i < 4096; i++)
-                {
-                    QString vStr = values[i];
-
-                    bool okTrans = true;
-                    float val = vStr.toFloat(&okTrans);
-                    if (!okTrans)
-                    {
-                        std::cout << "Error to float" << std::endl;
-                        return;
-                    }
-
-                    xInNormalized(i, 0) = val;
-                }
-
-                Eigen::MatrixXd yOut = lableToOutputVector(1);
-
-                m_testin.push_back(xInNormalized);
-                m_testout.push_back(yOut);
-            }
-            inputFileAdrianGlassesTest.close();
-        }
-    }
+    std::cout << "Number of training samples = " << m_data->getNumberOfTrainingSamples() << std::endl;
+    std::cout << "Number of test samples = " << m_data->getNumberOfTestSamples() << std::endl;
 }
 
 bool Widget::loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,

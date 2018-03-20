@@ -6,9 +6,12 @@ capture = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('/Users/eidelen/dev/libs/opencv-3.2.0/data/haarcascades/haarcascade_frontalface_default.xml')
 eyes_cascade = cv2.CascadeClassifier('/Users/eidelen/dev/libs/opencv-3.2.0/data/haarcascades/haarcascade_eye.xml')
 
-f = open('adrian.csv', 'w')
+f = open('adrian_glasses.csv', 'w')
 
 addFaceToFile = False
+
+count = 0
+eyeDistList = []
 
 while(True):
 
@@ -16,7 +19,7 @@ while(True):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # find face
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5)
     if len(faces) > 0:
 
         [x,y,w,h] = faces[0]
@@ -30,6 +33,7 @@ while(True):
             [e2x, e2y, e2w, e2h] = eyes[1]
 
             eye_dist = abs((e1x+(e1w/2.0) - (e2x+(e2w/2.0))))
+
             cut_cent_x = (e1x+(e1w/2.0) + e2x+(e2w/2.0)) / 2.0
             cut_cent_y = (e1y+(e1h/2.0) + e2y+(e2h/2.0)) / 2.0
 
@@ -59,28 +63,48 @@ while(True):
 
             # safe reg_interest to file
             if addFaceToFile:
-                scaledFace = cv2.resize(reg_interest, (64, 64), interpolation=cv2.INTER_CUBIC)
-                cv2.imshow('face_scaled', scaledFace)
 
-                normVals = (scaledFace / 128.0) - 1.0
+                distOk = True
 
-                x_str = ''
-                for pVal in np.nditer(normVals):
-                    x_str = x_str + str(pVal) + ', '
+                # First 5 picture have to be added by pressing 'a'... afterwards, eye dist initialized an added automatically.
+                if len(eyeDistList) < 5:
+                    eyeDistList.append(eye_dist)
+                    distOk = True
+                    addFaceToFile = False
+                else:
+                    avgEyeDist = sum(eyeDistList)/float(len(eyeDistList))
+                    eyeDistDiffToAvg = abs(eye_dist-avgEyeDist)
+                    if eyeDistDiffToAvg < 0.2 * avgEyeDist: # if difference is less than 20 % of average
+                        distOk = True
 
-                f.write(x_str);
-                f.write('\n')
-                addFaceToFile = False
+                        # update eye_dist list
+                        eyeDistList.pop(0)
+                        eyeDistList.append(eye_dist)
+                    else:
+                        distOk = False
 
 
+                if distOk:
+                    scaledFace = cv2.resize(reg_interest, (64, 64), interpolation=cv2.INTER_CUBIC)
+                    cv2.imshow('face_scaled', scaledFace)
 
+                    x_str = ''
+                    for pVal in np.nditer(scaledFace):
+                        x_str = x_str + str(pVal) + ', '
+
+                    f.write(x_str);
+                    f.write('\n')
+                    count = count + 1
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame, 'Number of samples ' + str(count), (40, 40), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
     cv2.imshow('frame', frame)
 
     keyCode = cv2.waitKey(1)
     if keyCode == ord('q'):
         break;
     if keyCode == ord('a'):
-        addFaceToFile = True
+        addFaceToFile = not addFaceToFile
 
 
 capture.release()
