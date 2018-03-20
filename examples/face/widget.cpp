@@ -313,17 +313,16 @@ Eigen::MatrixXd Widget::lableToOutputVector( const uint8_t& lable )
 
 void Widget::displayTestMNISTImage( const size_t& idx )
 {
-    return;
-/*
-    NNSample sample = m_testingSet.at(idx);
+    Eigen::MatrixXd normImg = m_testin.at(idx);
+    Eigen::MatrixXd lable = m_testout.at(idx);
 
-    int img_size = 28;
+    int img_size = 64;
     QImage img(img_size, img_size, QImage::Format_RGB32);
     for( int h = 0; h < img_size; h++ )
     {
         for( int w = 0; w < img_size; w++ )
         {
-            uint8_t pixValue = uint8_t( round( sample.input(28*h+w,0) ) );
+            uint8_t pixValue = uint8_t( round( (normImg(64*h+w,0) + 1.0)*128 ) );
             img.setPixel(w, h, qRgb(pixValue, pixValue, pixValue));
         }
     }
@@ -331,24 +330,20 @@ void Widget::displayTestMNISTImage( const size_t& idx )
     ui->imgLable->setPixmap( QPixmap::fromImage(img.scaled(100,100)) );
     ui->imgLable->show();
 
-    ui->trainingLable->setText( QString::number(sample.lable, 10) );
+    if( lable(0,0) > lable(1,0) )
+        ui->trainingLable->setText( "No Glasses");
+    else
+        ui->trainingLable->setText( "Glasses");
 
     if( !m_net_testing->isOperationInProgress() )
     {
         // feedforward
-        m_net_testing->feedForward(sample.normalizedinput);
+        m_net_testing->feedForward(normImg);
         Eigen::MatrixXd activationSignal = m_net_testing->getOutputActivation();
         QString actStr;
-        actStr.sprintf("Activation: [ %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]", activationSignal(0,0), activationSignal(1,0),
-                       activationSignal(2,0), activationSignal(3,0), activationSignal(4,0), activationSignal(5,0), activationSignal(6,0),
-                       activationSignal(7,0), activationSignal(8,0), activationSignal(9,0));
+        actStr.sprintf("Activation: [ %.2f, %.2f ]", activationSignal(0,0), activationSignal(1,0));
         ui->activationLable->setText(actStr);
-
-        unsigned long maxM, maxN; double maxVal;
-        Helpers::maxElement(activationSignal, maxM, maxN, maxVal);
-        QString classificationStr; classificationStr.sprintf("Classification: %lu", maxM);
-        ui->classificationLable->setText( classificationStr );
-    }*/
+    }
 }
 
 void Widget::updateUi()

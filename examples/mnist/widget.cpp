@@ -45,7 +45,6 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     ui->progressChart->setChart( chart );
     ui->progressChart->setRenderHint(QPainter::Antialiasing);
 
-    // load mnist data set
     prepareSamples();
 
     // prepare network
@@ -61,7 +60,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     connect( ui->formerSample, &QPushButton::pressed, [=]( )
     {
         if( m_currentIdx == 0 )
-            m_currentIdx = m_testingSet.size() - 1;
+            m_currentIdx = m_data->getNumberOfTestSamples() - 1;
         else
             m_currentIdx--;
 
@@ -70,13 +69,14 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 
     connect( ui->nextSample, &QPushButton::pressed, [=]( )
     {
-        if( m_currentIdx == m_testingSet.size() - 1 )
+        if( m_currentIdx == m_data->getNumberOfTestSamples() - 1 )
             m_currentIdx = 0;
         else
             m_currentIdx++;
 
         displayTestMNISTImage( m_currentIdx );
     });
+
 
     connect( ui->learnPB, &QPushButton::pressed, [=]( )
     {
@@ -113,87 +113,31 @@ Widget::~Widget()
 {
     // Note: Since smartpointers are used, objects get deleted automatically.
     delete ui;
+
+    delete m_data;
 }
 
 void Widget::prepareSamples()
 {
-    // MNIST_DATA_LOCATION passed by cmake
-    auto mnistinput = mnist::read_dataset<std::vector, std::vector, double, uint8_t>(MNIST_DATA_LOCATION);
-    auto mnistinputNormalized = mnist::read_dataset<std::vector, std::vector, double, uint8_t>(MNIST_DATA_LOCATION);
-    mnist::normalize_dataset(mnistinputNormalized);
+    m_data = new MnistDataInput();
 
-    // Load training data
-    m_trainingSet.clear();
-    for( size_t k = 0; k < mnistinput.training_images.size(); k++ )
+    m_batchin = DataInput::getInputData(m_data->m_training);
+    m_batchout = DataInput::getOutputData(m_data->m_training);
+
+    m_testin = DataInput::getInputData(m_data->m_test);
+    m_testout = DataInput::getOutputData(m_data->m_test);
+
+    // print lables
+    std::cout << "Lables: " << std::endl;
+    for( auto dl : m_data->m_lables )
     {
-        Eigen::MatrixXd xIn; Eigen::MatrixXd xInNormalized; uint8_t lable;
-        loadMNISTSample( mnistinput.training_images, mnistinput.training_labels, k, xIn, lable );
-        loadMNISTSample( mnistinputNormalized.training_images, mnistinputNormalized.training_labels, k, xInNormalized, lable );
-        Eigen::MatrixXd yOut = lableToOutputVector( lable );
-
-        NNSample thisSample;
-        thisSample.input = xIn; thisSample.normalizedinput = xInNormalized;
-        thisSample.output = yOut; thisSample.lable = lable;
-        m_trainingSet.push_back( thisSample );
+        std::cout << dl.second.lable << " ->  [" << dl.second.output.transpose() << "]" << std::endl;
     }
-
-    // Load testing data
-    m_testingSet.clear();
-    for( size_t k = 0; k < mnistinput.test_images.size(); k++ )
-    {
-        Eigen::MatrixXd xIn; Eigen::MatrixXd xInNormalized; uint8_t lable;
-        loadMNISTSample( mnistinput.test_images, mnistinput.test_labels, k, xIn, lable );
-        loadMNISTSample( mnistinputNormalized.test_images, mnistinputNormalized.test_labels, k, xInNormalized, lable );
-        Eigen::MatrixXd yOut = lableToOutputVector( lable );
-
-        NNSample thisSample;
-        thisSample.input = xIn; thisSample.normalizedinput = xInNormalized;
-        thisSample.output = yOut; thisSample.lable = lable;
-        m_testingSet.push_back( thisSample );
-    }
-
-    // Prepare batches
-    m_batchin.clear(); m_batchout.clear();
-    for( size_t z = 0; z < m_trainingSet.size(); z++ )
-    {
-        m_batchout.push_back( m_trainingSet.at(z).output );
-        m_batchin.push_back( m_trainingSet.at(z).normalizedinput );
-    }
-
-    m_testin.clear(); m_testout.clear();
-    for( size_t z = 0; z < m_testingSet.size(); z++ )
-    {
-        m_testout.push_back( m_testingSet.at(z).output );
-        m_testin.push_back( m_testingSet.at(z).normalizedinput );
-    }
-}
-
-bool Widget::loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
-                              const size_t& idx, Eigen::MatrixXd& img, uint8_t& lable)
-{
-    if( max(imgSet.size(), lableSet.size()) <= idx )
-        return false;
-
-    lable = lableSet.at( idx );
-    const std::vector<double>& imgV = imgSet.at( idx );
-
-    img = Eigen::MatrixXd( imgV.size(), 1 );
-    for( size_t i = 0; i < imgV.size(); i++ )
-        img( int(i), 0 ) = imgV.at(i);
-
-    return true;
-}
-
-Eigen::MatrixXd Widget::lableToOutputVector( const uint8_t& lable )
-{
-    Eigen::MatrixXd ret = Eigen::MatrixXd::Constant(10,1, 0.0);
-    ret( lable, 0 ) = 1.0;
-    return ret;
 }
 
 void Widget::displayTestMNISTImage( const size_t& idx )
 {
-    NNSample sample = m_testingSet.at(idx);
+    DataElement sample = m_data->getTestImageAsPixelValues(idx);
 
     int img_size = 28;
     QImage img(img_size, img_size, QImage::Format_RGB32);
@@ -201,7 +145,7 @@ void Widget::displayTestMNISTImage( const size_t& idx )
     {
         for( int w = 0; w < img_size; w++ )
         {
-            uint8_t pixValue = uint8_t( round( sample.input(28*h+w,0) ) );
+            uint8_t pixValue = sample.input(28*h+w,0);
             img.setPixel(w, h, qRgb(pixValue, pixValue, pixValue));
         }
     }
@@ -214,7 +158,7 @@ void Widget::displayTestMNISTImage( const size_t& idx )
     if( !m_net_testing->isOperationInProgress() )
     {
         // feedforward
-        m_net_testing->feedForward(sample.normalizedinput);
+        m_net_testing->feedForward(m_data->m_test.at(idx).input);
         Eigen::MatrixXd activationSignal = m_net_testing->getOutputActivation();
         QString actStr;
         actStr.sprintf("Activation: [ %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]", activationSignal(0,0), activationSignal(1,0),

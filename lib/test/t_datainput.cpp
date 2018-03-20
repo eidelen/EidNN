@@ -61,13 +61,68 @@ TEST(DataInput, addClear)
 
         ASSERT_FLOAT_EQ(dtest.input(0,0), i);
         ASSERT_FLOAT_EQ(dtest.output(1,0), i);
+        ASSERT_TRUE(dtest.outputSet);
+        ASSERT_FALSE(dtest.lableSet);
         ASSERT_FLOAT_EQ(dtraining.input(0,0), i*2);
         ASSERT_FLOAT_EQ(dtraining.output(1,0), i*2);
+        ASSERT_TRUE(dtraining.outputSet);
+        ASSERT_FALSE(dtraining.lableSet);
     }
 
     di->clear();
     ASSERT_EQ(di->getNumberOfTestSamples(), 0);
     ASSERT_EQ(di->getNumberOfTrainingSamples(), 0);
+}
+
+TEST(DataInput, addLableGenerateOutput)
+{
+    DataInput* di = new DataInput();
+    Eigen::MatrixXd in( 5, 1 ); // does not matter for this test
+
+    // 4 different lables 1,2,3,4
+    di->addTestSample(in, 4);
+    di->addTestSample(in, 1);
+    di->addTestSample(in, 2);
+    di->addTestSample(in, 2);
+    di->addTestSample(in, 3);
+    di->addTestSample(in, 3);
+
+    di->addTrainingSample(in, 4);
+    di->addTrainingSample(in, 1);
+    di->addTrainingSample(in, 2);
+    di->addTrainingSample(in, 2);
+    di->addTrainingSample(in, 3);
+    di->addTrainingSample(in, 2);
+    di->addTrainingSample(in, 3);
+    di->addTrainingSample(in, 2);
+    di->addTrainingSample(in, 3);
+
+    ASSERT_TRUE(di->generateFromLables());
+    ASSERT_EQ(4, di->m_lables.size());
+
+    // having only the raw input and output in a vector is often used.
+    ASSERT_EQ( DataInput::getInputData(di->m_training).size(), di->m_training.size());
+    ASSERT_EQ( DataInput::getOutputData(di->m_training).size(), di->m_training.size());
+    ASSERT_EQ( DataInput::getInputData(di->m_test).size(), di->m_test.size());
+    ASSERT_EQ( DataInput::getOutputData(di->m_test).size(), di->m_test.size());
+
+
+    for( DataElement& de : di->m_test )
+    {
+        Eigen::MatrixXd outShould = Eigen::MatrixXd::Constant(4,1, 0.0);
+        outShould(de.lable-1,0) = 1.0;
+        ASSERT_TRUE( (outShould-de.output).isMuchSmallerThan(0.001) );
+    }
+
+    for( DataElement& de : di->m_training )
+    {
+        Eigen::MatrixXd outShould = Eigen::MatrixXd::Constant(4,1, 0.0);
+        outShould(de.lable-1,0) = 1.0;
+        ASSERT_TRUE( (outShould-de.output).isMuchSmallerThan(0.001) );
+    }
+
+    di->addTestSample(in, 10); // unknown lable among test samples
+    ASSERT_FALSE(di->generateFromLables());
 }
 
 

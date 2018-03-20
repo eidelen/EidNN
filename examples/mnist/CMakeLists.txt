@@ -21,7 +21,7 @@ IF(${MNISTEXAMPLE})
 
     SET(CMAKE_AUTOMOC ON)
     QT5_WRAP_UI(MNIST_EX_FORMS_HEADERS ${MNIST_EX_UIS} )
-    include_directories( .  ${MNIST_INCLUDE_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
+    include_directories( .  ${MNIST_INCLUDE_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR} dataInput )
     add_executable(mnistex ${MNIST_EX_SRC} ${MNIST_EX_FORMS_HEADERS} )
     target_link_libraries(mnistex Qt5::Widgets Qt5::Charts pthread eidnnlib )
 

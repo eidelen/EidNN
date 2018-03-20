@@ -25,11 +25,32 @@
 #define DATAINPUT_H
 
 #include <vector>
+#include <map>
 #include <eigen3/Eigen/Dense>
 
 struct DataElement
 {
     Eigen::MatrixXd input;
+
+    Eigen::MatrixXd output;
+    bool outputSet = false;
+
+    int lable = 0;
+    bool lableSet = false;
+};
+
+class DataLable
+{
+public:
+    DataLable(int lab){lable = lab; }
+    DataLable(int lab, const Eigen::MatrixXd& out ){lable = lab; output = out; }
+
+    bool operator< (const DataLable &right) const
+    {
+        return lable < right.lable;
+    }
+
+    int lable = 0;
     Eigen::MatrixXd output;
 };
 
@@ -48,11 +69,27 @@ public:
     void addTrainingSample( const Eigen::MatrixXd& input, const Eigen::MatrixXd& expectedOutput);
 
     /**
+     * Add a training sample. When added last,
+     * generateFromLables() needs to be called.
+     * @param input Sample input.
+     * @param expectedOutput Numeric sample lable.
+     */
+    void addTrainingSample( const Eigen::MatrixXd& input, int lable);
+
+    /**
      * Add a test sample.
      * @param input Sample input.
      * @param expectedOutput Expected sample output.
      */
     void addTestSample( const Eigen::MatrixXd& input, const Eigen::MatrixXd& expectedOutput);
+
+    /**
+    * Add a test sample. When added last,
+     *generateFromLables() needs to be called.
+    * @param input Sample input.
+    * @param expectedOutput Numeric sample lable.
+    */
+    void addTestSample( const Eigen::MatrixXd& input, int lable);
 
     /**
      * Clear all test and training data.
@@ -71,11 +108,41 @@ public:
      */
     size_t getNumberOfTestSamples() const;
 
+    /**
+     * Generates sample output automatically based on
+     * the number of different numeric lables which
+     * were set. This function has to be called after
+     * all smaples were added with
+     * addTrainingSample( const Eigen::MatrixXd& input, int lable) or
+     * addTestSample( const Eigen::MatrixXd& input, int lable);
+     *
+     * @return True if successfull. Otherwise false.
+     */
+    bool generateFromLables();
+
+    /**
+     * Returns a vector consisting only of the input vectors for the passed data set.
+     * @param vector Data set.
+     * @return
+     */
+    static std::vector<Eigen::MatrixXd> getInputData( const std::vector<DataElement>& vector );
+
+    /**
+     * Returns a vector consisting only of the output vectors for the passed data set.
+     * @param vector Data set.
+     * @return
+     */
+    static std::vector<Eigen::MatrixXd> getOutputData( const std::vector<DataElement>& vector );
+
+private:
+    bool assignOutput( std::vector<DataElement>& vector );
+
 
 public:
 
     std::vector<DataElement> m_training;
     std::vector<DataElement> m_test;
+    std::map<int,DataLable> m_lables;
 
 };
 

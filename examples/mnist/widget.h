@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include "network_cb.h"
+#include "mnistDataInput.h"
 #include <QMainWindow>
 #include <QTimer>
 #include <QMutex>
@@ -17,13 +18,6 @@ namespace Ui
     class Widget;
 }
 
-struct NNSample
-{
-    Eigen::MatrixXd input;
-    Eigen::MatrixXd normalizedinput;
-    Eigen::MatrixXd output;
-    uint8_t lable;
-};
 
 class Widget : public QMainWindow, public NetworkOperationCallback
 {
@@ -69,8 +63,6 @@ private:
     QtCharts::QValueAxis* m_XAxis;
     QtCharts::QValueAxis* m_YAxis;
     QTimer* m_uiUpdaterTimer;
-    std::vector<NNSample> m_trainingSet;
-    std::vector<NNSample> m_testingSet;
     std::vector<Eigen::MatrixXd> m_batchin;
     std::vector<Eigen::MatrixXd> m_batchout;
     std::vector<Eigen::MatrixXd> m_testin;
@@ -85,6 +77,8 @@ private:
     std::atomic<double> m_progress_learning;
     QMutex m_uiLock;
     std::vector<std::size_t> m_failedSamples;
+
+    MnistDataInput* m_data;
 };
 
 #endif // WIDGET_H
