@@ -199,3 +199,41 @@ std::vector<Eigen::MatrixXd> DataInput::getOutputData( const std::vector<DataEle
 
     return ret;
 }
+
+// source http://www.faqs.org/faqs/ai-faq/neural-nets/part2/
+void DataInput::normalizeData()
+{
+    for( size_t k = 0; k < m_training.size(); k++ )
+    {
+        m_training.at(k).input = normalize0Mean1Std(m_training.at(k).input);
+    }
+
+    for( size_t k = 0; k < m_test.size(); k++ )
+    {
+        m_test.at(k).input = normalize0Mean1Std(m_test.at(k).input);
+    }
+}
+
+Eigen::MatrixXd DataInput::normalize0Mean1Std(const Eigen::MatrixXd in)
+{
+    // compute mean and std of input
+    double mean = in.mean();
+    size_t m = in.rows();
+
+    double accum = 0;
+    for( size_t k = 0; k < m; k++ )
+    {
+        accum += std::pow(in(k,0) - mean, 2.0);
+    }
+
+    double stdev = std::sqrt( accum / (m-1) );
+
+    // apply mean and std to create new sample
+    Eigen::MatrixXd normSamp(m,1);
+    for( size_t k = 0; k < m; k++ )
+    {
+        normSamp(k,0) = (in(k,0) - mean) / stdev;
+    }
+
+    return normSamp;
+}

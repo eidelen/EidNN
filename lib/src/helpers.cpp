@@ -56,3 +56,21 @@ void Helpers::maxElement( const Eigen::MatrixXd& mat, unsigned long& m_idx, unsi
         }
     }
 }
+
+Eigen::MatrixXd Helpers::mean( const std::vector<Eigen::MatrixXd>& input )
+{
+    size_t n = input.size();
+    if( n == 0 )
+    {
+        std::cerr << "Helpers::mean: empty.";
+        return Eigen::MatrixXd(0,0);
+    }
+
+    Eigen::MatrixXd accum = Eigen::MatrixXd::Constant(input.at(0).rows(),1, 0.0);
+    for(size_t i = 0; i < n; i++)
+        accum = accum + input.at(i);
+
+    accum = accum / static_cast<double>(n);
+
+    return accum;
+}

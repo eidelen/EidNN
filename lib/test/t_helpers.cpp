@@ -38,4 +38,24 @@ TEST(HelperTest, maxElement)
     ASSERT_NEAR( maxVal, 101.0, 0.0001);
 }
 
+TEST(HelperTest, mean)
+{
+    Eigen::MatrixXd in0( 3, 1 );
+    in0 << 0, 2, 4;
+    Eigen::MatrixXd in1( 3, 1 );
+    in1 << 0.1, 2.1, 3.9;
+
+    std::vector<Eigen::MatrixXd> input;
+    input.push_back(in0);
+    input.push_back(in1);
+
+    Eigen::MatrixXd mean = Helpers::mean(input);
+
+    Eigen::MatrixXd meanShould(3,1);
+    meanShould << 0.05,2.05,3.95;
+
+    ASSERT_TRUE((meanShould - mean).isMuchSmallerThan(0.001));
+
+}
+
 

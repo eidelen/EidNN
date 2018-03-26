@@ -26,6 +26,7 @@
 
 #include <string>
 #include <eigen3/Eigen/Dense>
+#include <vector>
 
 using namespace std;
 
@@ -36,6 +37,8 @@ public:
     static void printMatrix( const Eigen::MatrixXd& mat, const string& name );
 
     static void maxElement( const Eigen::MatrixXd& mat, unsigned long& m_idx, unsigned long& n_idx, double& maxVal);
+
+    static Eigen::MatrixXd mean( const std::vector<Eigen::MatrixXd>& input );
 };
 
 #endif //HELPERSHEADER

@@ -85,11 +85,17 @@ public:
 
     /**
     * Add a test sample. When added last,
-     *generateFromLables() needs to be called.
+    * generateFromLables() needs to be called.
     * @param input Sample input.
     * @param expectedOutput Numeric sample lable.
     */
     void addTestSample( const Eigen::MatrixXd& input, int lable);
+
+    /**
+     * Normalize the input vectors. The applied normalization
+     * method is "Mean 0 and standard deviation 1".
+     */
+    void normalizeData();
 
     /**
      * Clear all test and training data.
@@ -136,6 +142,7 @@ public:
 
 private:
     bool assignOutput( std::vector<DataElement>& vector );
+    Eigen::MatrixXd normalize0Mean1Std(const Eigen::MatrixXd in);
 
 
 public:
