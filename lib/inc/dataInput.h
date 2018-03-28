@@ -140,9 +140,23 @@ public:
      */
     static std::vector<Eigen::MatrixXd> getOutputData( const std::vector<DataElement>& vector );
 
+    /**
+     * Normalize an input vector.
+     * @param in
+     * @return
+     */
+    static Eigen::MatrixXd normalize0Mean1Std(const Eigen::MatrixXd& in);
+
+    /**
+     * Return the row index of the maximum element in out.
+     * @param out
+     * @return
+     */
+    static size_t getStrongestIdx(const Eigen::MatrixXd& out);
+
 private:
     bool assignOutput( std::vector<DataElement>& vector );
-    Eigen::MatrixXd normalize0Mean1Std(const Eigen::MatrixXd in);
+
 
 
 public:

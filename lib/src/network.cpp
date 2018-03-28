@@ -246,8 +246,20 @@ std::shared_ptr<const Layer> Network::getOutputLayer() const
 
 double Network::getNetworkErrorMagnitude()
 {
-    Eigen::VectorXd oErr =  getOutputLayer()->getBackpropagationError();
-    return oErr.norm();
+    Eigen::MatrixXd oErr =  getOutputLayer()->getBackpropagationError();
+
+    size_t n = oErr.cols();
+
+    if( n == 0 )
+        return 0;
+
+    double accumError = 0.0;
+    for( size_t i = 0; i < n; i++ )
+    {
+        accumError += oErr.col(i).norm();
+    }
+
+    return accumError / n;
 }
 
 void Network::print()

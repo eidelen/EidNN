@@ -34,68 +34,14 @@ FaceDataInput::~FaceDataInput()
 {
 }
 
-bool FaceDataInput::addToTraining( const QString& path, int lable )
+bool FaceDataInput::addToTraining( const QString& path, int lable, size_t maxNbrOfSamples )
 {
-    QFile inputFile(path);
-    if(! inputFile.open(QIODevice::ReadOnly) )
-    {
-        std::cerr << "Cannot open file: " << path.toStdString() << std::endl;
-        return false;
-    }
-
-    QTextStream in(&inputFile);
-    while(!in.atEnd())
-    {
-        QString line = in.readLine(); // each line is one sample
-        std::vector<float> values;
-        if( !parseImgSampleLine(line, values) )
-        {
-            std::cerr << "Parse error" << std::endl;
-            return false;
-        }
-
-        Eigen::MatrixXd xIn = Eigen::MatrixXd(values.size(), 1);
-        for(size_t u = 0; u < values.size(); u++)
-            xIn(u, 0) = values.at(u);
-
-        // add to training
-        addTrainingSample(xIn,lable);
-    }
-    inputFile.close();
-
-    return true;
+    return addToSet(ETraining, path, lable, maxNbrOfSamples);
 }
 
-bool FaceDataInput::addToTest( const QString& path, int lable )
+bool FaceDataInput::addToTest( const QString& path, int lable, size_t maxNbrOfSamples )
 {
-    QFile inputFile(path);
-    if(! inputFile.open(QIODevice::ReadOnly) )
-    {
-        std::cerr << "Cannot open file: " << path.toStdString() << std::endl;
-        return false;
-    }
-
-    QTextStream in(&inputFile);
-    while(!in.atEnd())
-    {
-        QString line = in.readLine(); // each line is one sample
-        std::vector<float> values;
-        if( !parseImgSampleLine(line, values) )
-        {
-            std::cerr << "Parse error" << std::endl;
-            return false;
-        }
-
-        Eigen::MatrixXd xIn = Eigen::MatrixXd(values.size(), 1);
-        for(size_t u = 0; u < values.size(); u++)
-            xIn(u, 0) = values.at(u);
-
-        // add to training
-        addTestSample(xIn,lable);
-    }
-    inputFile.close();
-
-    return true;
+    return addToSet(ETest, path, lable, maxNbrOfSamples);
 }
 
 bool FaceDataInput::parseImgSampleLine(const QString& line, std::vector<float>& values)
@@ -123,12 +69,51 @@ bool FaceDataInput::parseImgSampleLine(const QString& line, std::vector<float>& 
         else
         {
             // normalize data
-            values.push_back(static_cast<float>(val) / 128.0 - 1.0);
+            values.push_back(static_cast<float>(val));
         }
     }
     return true;
 }
 
+bool FaceDataInput::addToSet(FaceDataInput::ESet set, const QString& path, int lable, size_t maxNbrOfSamples )
+{
+    QFile inputFile(path);
+    if(! inputFile.open(QIODevice::ReadOnly) )
+    {
+        std::cerr << "Cannot open file: " << path.toStdString() << std::endl;
+        return false;
+    }
+
+    QTextStream in(&inputFile);
+    size_t  sample_count = 0;
+    while(!in.atEnd())
+    {
+        QString line = in.readLine(); // each line is one sample
+        std::vector<float> values;
+        if( !parseImgSampleLine(line, values) )
+        {
+            std::cerr << "Parse error" << std::endl;
+            return false;
+        }
+
+        Eigen::MatrixXd xIn = Eigen::MatrixXd(values.size(), 1);
+        for(size_t u = 0; u < values.size(); u++)
+            xIn(u, 0) = values.at(u);
+
+
+        if( set == ETraining )
+            addTrainingSample(xIn,lable);
+        else if( set == ETest )
+            addTestSample(xIn,lable);
+
+        sample_count++;
+        if( sample_count >= maxNbrOfSamples )
+            break;
+    }
+    inputFile.close();
+
+    return true;
+}
 
 
 

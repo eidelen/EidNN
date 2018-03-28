@@ -143,7 +143,19 @@ TEST(DataInput, normalize)
 
     ASSERT_TRUE((shouldNorm - di->m_training.at(0).input).isMuchSmallerThan(0.001));
     ASSERT_TRUE((shouldNorm - di->m_test.at(0).input).isMuchSmallerThan(0.001));
-
 }
 
+TEST(DataInput, strongestLable)
+{
+    DataInput* di = new DataInput();
+
+    Eigen::MatrixXd in0( 3, 1 );
+    in0 << 0, 3, 1; // idx 1 is strongest
+
+    Eigen::MatrixXd in1( 3, 1 );
+    in1 << 0.5, 0.1, 0.2; // idx 0 is strongest
+
+    ASSERT_EQ( DataInput::getStrongestIdx(in0),1 );
+    ASSERT_EQ( DataInput::getStrongestIdx(in1),0 );
+}
 

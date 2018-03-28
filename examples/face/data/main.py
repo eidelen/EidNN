@@ -6,7 +6,7 @@ capture = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('/Users/eidelen/dev/libs/opencv-3.2.0/data/haarcascades/haarcascade_frontalface_default.xml')
 eyes_cascade = cv2.CascadeClassifier('/Users/eidelen/dev/libs/opencv-3.2.0/data/haarcascades/haarcascade_eye.xml')
 
-f = open('adrian_glasses.csv', 'w')
+f = open('mede.csv', 'w')
 
 addFaceToFile = False
 

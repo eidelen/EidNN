@@ -22,6 +22,7 @@
 *****************************************************************************/
 
 #include "dataInput.h"
+#include "helpers.h"
 
 #include <set>
 #include <iostream>
@@ -214,7 +215,7 @@ void DataInput::normalizeData()
     }
 }
 
-Eigen::MatrixXd DataInput::normalize0Mean1Std(const Eigen::MatrixXd in)
+Eigen::MatrixXd DataInput::normalize0Mean1Std(const Eigen::MatrixXd& in)
 {
     // compute mean and std of input
     double mean = in.mean();
@@ -236,4 +237,15 @@ Eigen::MatrixXd DataInput::normalize0Mean1Std(const Eigen::MatrixXd in)
     }
 
     return normSamp;
+}
+
+size_t DataInput::getStrongestIdx(const Eigen::MatrixXd& out)
+{
+    unsigned long maxRowIdx = 0;
+    unsigned long maxColIdx = 0;
+    double maxValue = 0.0;
+
+    Helpers::maxElement(out,maxRowIdx,maxColIdx,maxValue);
+
+    return maxRowIdx;
 }

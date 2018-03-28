@@ -26,6 +26,7 @@
 
 #include "dataInput.h"
 #include <QString>
+#include <limits>
 
 class FaceDataInput: public DataInput
 {
@@ -34,14 +35,21 @@ public:
     FaceDataInput( );
     ~FaceDataInput();
 
-    bool addToTraining( const QString& path, int lable );
-    bool addToTest( const QString& path, int lable );
+    bool addToTraining( const QString& path, int lable, size_t maxNbrOfSamples = std::numeric_limits<size_t>::max());
+    bool addToTest( const QString& path, int lable, size_t maxNbrOfSamples = std::numeric_limits<size_t>::max() );
 
     DataElement getTestImageAsPixelValues( size_t idx ) const;
 
 
 private:
     bool parseImgSampleLine(const QString& line, std::vector<float>& values);
+
+    enum ESet
+    {
+        ETraining,
+        ETest
+    };
+    bool addToSet(ESet set, const QString& path, int lable, size_t maxNbrOfSamples );
 
     std::vector<DataElement> m_testImages;
 

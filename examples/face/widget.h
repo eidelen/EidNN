@@ -12,6 +12,8 @@
 #include <vector>
 #include <memory>
 #include <atomic>
+#include "opencv2/opencv.hpp"
+
 
 namespace Ui
 {
@@ -34,8 +36,6 @@ public:
                             const std::vector<size_t>& failedSamplesIdx);
 
 private:
-    bool loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
-                          const size_t& idx, Eigen::MatrixXd& img, uint8_t& lable);
     void displayTestMNISTImage(const size_t &idx);
     void learn();
     void sameImage();
@@ -43,6 +43,7 @@ private:
     Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
     Network::ECostFunction getCurrentSelectedCostFunction();
     void getMinMaxYValue(const QtCharts::QLineSeries* series, const uint &nbrEntries, double& min, double& max);
+    void drawImg(const Eigen::MatrixXd& img);
 
 public slots:
     void doNNTesting();
@@ -50,6 +51,7 @@ public slots:
     void updateUi();
     void loadNN();
     void saveNN();
+    void doLive();
 
 signals:
     void readyForTesting();
@@ -62,10 +64,14 @@ private:
     QtCharts::QValueAxis* m_XAxis;
     QtCharts::QValueAxis* m_YAxis;
     QTimer* m_uiUpdaterTimer;
+    QTimer* m_processLiveTimer;
     std::vector<Eigen::MatrixXd> m_batchin;
     std::vector<Eigen::MatrixXd> m_batchout;
     std::vector<Eigen::MatrixXd> m_testin;
     std::vector<Eigen::MatrixXd> m_testout;
+
+    std::vector<Eigen::MatrixXd> m_testDataVisible;
+
     size_t m_currentIdx;
     std::shared_ptr<Network> m_net;
     std::shared_ptr<Network> m_net_testing;
@@ -78,6 +84,12 @@ private:
     std::vector<std::size_t> m_failedSamples;
 
     FaceDataInput* m_data;
+
+    double m_networkError;
+
+    cv::VideoCapture* m_cam;
+    cv::CascadeClassifier m_face_cascade;
+    cv::CascadeClassifier m_eyes_cascade;
 };
 
 #endif // WIDGET_H
