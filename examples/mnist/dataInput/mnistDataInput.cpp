@@ -51,8 +51,6 @@ bool MnistDataInput::loadMNISTSample( const std::vector<std::vector<double>>& im
     return true;
 }
 
-
-
 void MnistDataInput::load()
 {
     // MNIST_DATA_LOCATION passed by cmake

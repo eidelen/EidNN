@@ -72,6 +72,8 @@ TEST(DataInput, addClear)
     di->clear();
     ASSERT_EQ(di->getNumberOfTestSamples(), 0);
     ASSERT_EQ(di->getNumberOfTrainingSamples(), 0);
+
+    delete di;
 }
 
 TEST(DataInput, addLableGenerateOutput)
@@ -122,6 +124,8 @@ TEST(DataInput, addLableGenerateOutput)
 
     di->addTestSample(in, 10); // unknown lable among test samples
     ASSERT_FALSE(di->generateFromLables());
+
+    delete di;
 }
 
 TEST(DataInput, normalize)
@@ -143,6 +147,8 @@ TEST(DataInput, normalize)
 
     ASSERT_TRUE((shouldNorm - di->m_training.at(0).input).isMuchSmallerThan(0.001));
     ASSERT_TRUE((shouldNorm - di->m_test.at(0).input).isMuchSmallerThan(0.001));
+
+    delete di;
 }
 
 TEST(DataInput, strongestLable)
@@ -157,5 +163,38 @@ TEST(DataInput, strongestLable)
 
     ASSERT_EQ( DataInput::getStrongestIdx(in0),1 );
     ASSERT_EQ( DataInput::getStrongestIdx(in1),0 );
+
+    delete di;
+}
+
+
+TEST(DataInput, validation)
+{
+    DataInput* di = new DataInput();
+
+    Eigen::MatrixXd in0 = Eigen::MatrixXd::Constant(4, 1, 0.0);
+    Eigen::MatrixXd in1 = Eigen::MatrixXd::Constant(4, 1, 0.0);
+
+    Eigen::MatrixXd out0 = Eigen::MatrixXd::Constant(2, 1, 0.0);
+    Eigen::MatrixXd out1 = Eigen::MatrixXd::Constant(2, 1, 0.0);
+
+    di->addTestSample(in0, out0);
+    di->addTestSample(in1, out1);
+    di->addTrainingSample(in0, out0);
+    di->addTrainingSample(in1, out1);
+
+    DataInput::DataInputValidation div = di->validateData();
+    ASSERT_TRUE(div.valid);
+    ASSERT_EQ(div.inputDataLength,4);
+    ASSERT_EQ(div.outputDataLength,2);
+
+    Eigen::MatrixXd in_fail = Eigen::MatrixXd::Constant(5, 1, 0.0);
+    Eigen::MatrixXd out_fail = Eigen::MatrixXd::Constant(1, 1, 0.0);
+    di->addTrainingSample(in_fail, out_fail);
+
+    div = di->validateData();
+    ASSERT_FALSE(div.valid);
+
+    delete di;
 }
 

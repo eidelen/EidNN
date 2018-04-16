@@ -249,3 +249,42 @@ size_t DataInput::getStrongestIdx(const Eigen::MatrixXd& out)
 
     return maxRowIdx;
 }
+
+
+DataInput::DataInputValidation DataInput::validateData() const
+{
+    DataInputValidation ret;
+
+    std::vector<const std::vector<DataElement>> allDataSets = {m_test, m_training};
+
+    size_t inputSize(0);
+    size_t outputSize(0);
+    bool sizeSet = false;
+    for( const std::vector<DataElement> set : allDataSets )
+    {
+        for( const DataElement& d : set )
+        {
+            // set initial sizes
+            if(!sizeSet)
+            {
+                inputSize = d.input.rows();
+                outputSize = d.output.rows();
+                sizeSet = true;
+            }
+
+            if( d.input.rows() != inputSize || d.output.rows() != outputSize )
+            {
+                ret.valid = false;
+                std::cout << "Validation: Mismatching dimension (" << inputSize << "," << d.input.rows()
+                          << "), (" << outputSize << "," << d.output.rows() << ")" << std::endl;
+                return ret;
+            }
+        }
+    }
+
+    ret.valid = true;
+    ret.inputDataLength = inputSize;
+    ret.outputDataLength = outputSize;
+
+    return ret;
+}

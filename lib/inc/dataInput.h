@@ -154,6 +154,23 @@ public:
      */
     static size_t getStrongestIdx(const Eigen::MatrixXd& out);
 
+
+    struct DataInputValidation
+    {
+        bool valid = false;
+        size_t inputDataLength = 0;
+        size_t outputDataLength = 0;
+    };
+
+    /**
+     * Checks that there is a common data input vector
+     * size and a common data output vector size among
+     * all training and testing samples.
+     * @return Validation ok if consistent sizes. Otherwise false.
+     */
+    DataInputValidation validateData() const;
+
+
 private:
     bool assignOutput( std::vector<DataElement>& vector );
 
