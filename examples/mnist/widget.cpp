@@ -47,13 +47,6 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 
     prepareSamples();
 
-    // prepare network
-    std::vector<unsigned int> map = {784,30,10};
-    m_net.reset( new Network(map) );
-    m_net->setObserver( this );
-    m_net_testing.reset( new Network( *(m_net.get())) );
-
-
     m_currentIdx = 0;
     displayTestMNISTImage( m_currentIdx );
 
@@ -132,6 +125,27 @@ void Widget::prepareSamples()
     for( auto dl : m_data->m_lables )
     {
         std::cout << dl.second.lable << " ->  [" << dl.second.output.transpose() << "]" << std::endl;
+    }
+
+    // validate sample data
+    DataInput::DataInputValidation div = m_data->validateData();
+
+    if( div.valid )
+    {
+        // prepare network
+        std::vector<unsigned int> map;
+        map.push_back(div.inputDataLength);
+        map.push_back(30);
+        map.push_back(div.outputDataLength);
+
+        m_net.reset(new Network(map));
+        m_net->setObserver(this);
+        m_net_testing.reset(new Network(*(m_net.get())));
+    }
+    else
+    {
+            std::cerr << "Invalid sample data" << std::endl;
+            std::exit(-1);
     }
 }
 
