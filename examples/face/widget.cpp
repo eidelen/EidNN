@@ -46,13 +46,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     ui->progressChart->setRenderHint(QPainter::Antialiasing);
 
     // load mnist data set
-    prepareSamples();
-
-    // prepare network
-    std::vector<unsigned int> map = {4096,1024,128,2};
-    m_net.reset( new Network(map) );
-    m_net->setObserver( this );
-    m_net_testing.reset( new Network( *(m_net.get())) );
+    prepareSamplesAndNetwork();
 
 
     m_currentIdx = 0;
@@ -156,7 +150,7 @@ Widget::~Widget()
     }
 }
 
-void Widget::prepareSamples()
+void Widget::prepareSamplesAndNetwork()
 {
     m_data = new FaceDataInput();
 
@@ -185,6 +179,28 @@ void Widget::prepareSamples()
 
     std::cout << "Number of training samples = " << m_data->getNumberOfTrainingSamples() << std::endl;
     std::cout << "Number of test samples = " << m_data->getNumberOfTestSamples() << std::endl;
+
+    // validate sample data
+    DataInput::DataInputValidation div = m_data->validateData();
+
+    if( div.valid )
+    {
+        // prepare network
+        std::vector<unsigned int> map;
+        map.push_back(div.inputDataLength);
+        map.push_back(1024);
+        map.push_back(128);
+        map.push_back(div.outputDataLength);
+
+        m_net.reset(new Network(map));
+        m_net->setObserver(this);
+        m_net_testing.reset(new Network(*(m_net.get())));
+    }
+    else
+    {
+        std::cerr << "Invalid sample data" << std::endl;
+        std::exit(-1);
+    }
 }
 
 Eigen::MatrixXd Widget::lableToOutputVector( const uint8_t& lable )

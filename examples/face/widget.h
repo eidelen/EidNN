@@ -39,7 +39,7 @@ private:
     void displayTestMNISTImage(const size_t &idx);
     void learn();
     void sameImage();
-    void prepareSamples();
+    void prepareSamplesAndNetwork();
     Eigen::MatrixXd lableToOutputVector( const uint8_t& lable );
     Network::ECostFunction getCurrentSelectedCostFunction();
     void getMinMaxYValue(const QtCharts::QLineSeries* series, const uint &nbrEntries, double& min, double& max);
