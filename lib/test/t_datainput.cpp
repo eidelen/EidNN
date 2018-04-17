@@ -198,3 +198,17 @@ TEST(DataInput, validation)
     delete di;
 }
 
+TEST(DataInput, representation)
+{
+    DataInput* di = new DataInput();
+    Eigen::MatrixXd vec = Eigen::MatrixXd::Constant(4, 1, 0.0);
+
+    bool repAvailable;
+    Eigen::MatrixXd vecOut = di->representation(vec, &repAvailable);
+
+    // by default, there is no representation and available. The
+    // input signal is the output signal.
+
+    ASSERT_FALSE(repAvailable);
+    ASSERT_TRUE((vecOut - vec).isMuchSmallerThan(0.001));
+}

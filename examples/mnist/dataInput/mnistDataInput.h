@@ -35,6 +35,8 @@ public:
 
     DataElement getTestImageAsPixelValues( size_t idx ) const;
 
+    Eigen::MatrixXd representation( const Eigen::MatrixXd& input, bool* representationAvailable  ) const override;
+
 
 private:
     void load();

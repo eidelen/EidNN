@@ -171,6 +171,18 @@ public:
     DataInputValidation validateData() const;
 
 
+    /**
+     * The input signal is a normalized vector, even though it might be an actual
+     * image. This function returns a specific representation for this type of data.
+     * This function is meant to be overwritten.
+     * @param input The input vector.
+     * @param representationAvailable Returns true if a dedicated representation is implemented.
+     * @return Representation of data.
+     */
+    virtual Eigen::MatrixXd representation( const Eigen::MatrixXd& input, bool* representationAvailable  ) const;
+
+
+
 private:
     bool assignOutput( std::vector<DataElement>& vector );
 

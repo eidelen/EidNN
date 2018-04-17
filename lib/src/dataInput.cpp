@@ -288,3 +288,9 @@ DataInput::DataInputValidation DataInput::validateData() const
 
     return ret;
 }
+
+Eigen::MatrixXd DataInput::representation(const Eigen::MatrixXd &input, bool *representationAvailable) const
+{
+    *representationAvailable = false;
+    return input;
+}

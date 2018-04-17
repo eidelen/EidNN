@@ -94,3 +94,27 @@ DataElement MnistDataInput::getTestImageAsPixelValues( size_t idx ) const
     return m_testImages.at(idx);
 }
 
+Eigen::MatrixXd MnistDataInput::representation( const Eigen::MatrixXd& input, bool* representationAvailable  ) const
+{
+    size_t imgW = 28;
+    size_t imgH = 28;
+
+    // check that vector length equal to number of required pixels
+    if( imgH * imgW != input.rows() )
+    {
+        *representationAvailable = false;
+        return input;
+    }
+
+    Eigen::MatrixXd rep = Eigen::MatrixXd(imgH,imgW);
+    for( size_t h = 0; h < imgH; h++ )
+    {
+        for( size_t w = 0; w < imgW; w++ )
+        {
+            rep(h,w) = input(imgW*h+w,0);
+        }
+    }
+    
+    *representationAvailable = true;
+    return rep;
+}

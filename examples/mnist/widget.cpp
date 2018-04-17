@@ -152,20 +152,24 @@ void Widget::prepareSamples()
 void Widget::displayTestMNISTImage( const size_t& idx )
 {
     DataElement sample = m_data->getTestImageAsPixelValues(idx);
+    bool repAvailable = false;
+    Eigen::MatrixXd imgMatrix = m_data->representation(sample.input, &repAvailable);
 
-    int img_size = 28;
-    QImage img(img_size, img_size, QImage::Format_RGB32);
-    for( int h = 0; h < img_size; h++ )
+    if( repAvailable )
     {
-        for( int w = 0; w < img_size; w++ )
+        QImage img(imgMatrix.cols(), imgMatrix.rows(), QImage::Format_RGB32);
+        for (int h = 0; h < imgMatrix.rows(); h++)
         {
-            uint8_t pixValue = sample.input(28*h+w,0);
-            img.setPixel(w, h, qRgb(pixValue, pixValue, pixValue));
+            for (int w = 0; w < imgMatrix.cols(); w++)
+            {
+                uint8_t pixValue = imgMatrix(h,w);
+                img.setPixel(w, h, qRgb(pixValue, pixValue, pixValue));
+            }
         }
-    }
 
-    ui->imgLable->setPixmap( QPixmap::fromImage(img.scaled(100,100)) );
-    ui->imgLable->show();
+        ui->imgLable->setPixmap(QPixmap::fromImage(img.scaled(100, 100)));
+        ui->imgLable->show();
+    }
 
     ui->trainingLable->setText( QString::number(sample.lable, 10) );
 
