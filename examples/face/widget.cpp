@@ -156,9 +156,13 @@ void Widget::prepareSamplesAndNetwork()
 
     m_data->addToTraining("data/adrian.csv", 0);
     m_data->addToTraining("data/adrian_glasses.csv", 1);
+    m_data->addToTraining("data/adrian_2.csv", 0);
+    m_data->addToTraining("data/adrian_glasses_2.csv", 1);
 
     m_data->addToTest("data/adrian_test.csv",0);
     m_data->addToTest("data/adrian_glasses_test.csv",1);
+    m_data->addToTest("data/adrian_2_test.csv",0);
+    m_data->addToTest("data/adrian_glasses_2_test.csv",1);
 
     m_testDataVisible = DataInput::getInputData(m_data->m_test); // unnormalized data -> call before normalizeData()
 
@@ -305,7 +309,7 @@ void Widget::doNNLearning()
 
 void Widget::doNNTesting()
 {
-    m_net_testing->testNetworkAsync( m_testin, m_testout, 0.3 );
+    m_net_testing->testNetworkAsync( m_testin, m_testout, 0.1 );
 }
 
 void Widget::networkOperationProgress( const NetworkOperationId & opId, const NetworkOperationStatus &opStatus,

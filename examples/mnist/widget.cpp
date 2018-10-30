@@ -19,7 +19,6 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 {
     ui->setupUi(this);
 
-
     // crate chart
     QtCharts::QChart *chart = new QtCharts::QChart( );
     chart->legend()->hide();
@@ -171,7 +170,7 @@ void Widget::displayTestMNISTImage( const size_t& idx )
         ui->imgLable->show();
     }
 
-    ui->trainingLable->setText( QString::number(sample.lable, 10) );
+    ui->testlable->setText( "Lable: " + QString::number(sample.lable, 10) );
 
     if( !m_net_testing->isOperationInProgress() )
     {
