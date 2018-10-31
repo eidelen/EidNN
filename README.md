@@ -8,7 +8,7 @@ EidNN is written in C++11 and uses Eigen3 for vector / matrix arithmetic. Tests 
 # Example
 Classification of handwritten digits - MNIST database.
 
-<p align="center"><img alt="mnistExample" src="http://eidelen.diffuse.ch/mnistEx.png" width="75%"></p>
+<p align="center"><img alt="mnistExample" src="http://eidelen.diffuse.ch/mnistEx.png" width="90%"></p>
 
 # Resources
 - Neural Networks tutorial: http://neuralnetworksanddeeplearning.com/
