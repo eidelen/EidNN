@@ -28,7 +28,7 @@
 #include <memory>
 #include <thread>
 #include <atomic>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 #include "network_cb.h"
 

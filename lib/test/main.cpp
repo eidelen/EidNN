@@ -22,7 +22,7 @@
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <iostream>
 
 int main(int argc, char ** argv)

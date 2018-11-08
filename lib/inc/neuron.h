@@ -24,7 +24,7 @@
 #ifndef NEURONHEADER
 #define NEURONHEADER
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 class Neuron
 {

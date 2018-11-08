@@ -21,7 +21,7 @@
 **
 *****************************************************************************/
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <iostream>
 #include <limits>
 #include "helpers.h"

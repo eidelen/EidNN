@@ -9,7 +9,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
 find_package(Eigen3 REQUIRED)
-include_directories(EIGEN3_INCLUDE_DIR)
 
 INCLUDE_DIRECTORIES(inc)
 FILE(GLOB_RECURSE  EIDNN_INCLUDES        inc/*.h)
@@ -17,6 +16,7 @@ FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
 
 ADD_LIBRARY(eidnnlib SHARED ${EIDNN_INCLUDES} ${EIDNN_SOURCES} )
 target_include_directories(eidnnlib INTERFACE inc)
+target_link_libraries(eidnnlib Eigen3::Eigen )
 
 option(TESTEIDNN  "TEST" OFF)
 IF(${TESTEIDNN})

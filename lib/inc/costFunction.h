@@ -25,7 +25,7 @@
 #define COSTFUNCTION_h
 
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 class CostFunction
 {
