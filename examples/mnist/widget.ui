@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>668</width>
+    <width>1319</width>
     <height>892</height>
    </rect>
   </property>
@@ -269,6 +269,64 @@
    <property name="text">
     <string/>
    </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_4">
+   <property name="geometry">
+    <rect>
+     <x>670</x>
+     <y>20</y>
+     <width>641</width>
+     <height>361</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Training set error</string>
+   </property>
+   <widget class="QtCharts::QChartView" name="trainingerror_chart" native="true">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>32</y>
+      <width>611</width>
+      <height>311</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_5">
+   <property name="geometry">
+    <rect>
+     <x>670</x>
+     <y>390</y>
+     <width>641</width>
+     <height>361</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Test set error</string>
+   </property>
+   <widget class="QtCharts::QChartView" name="testerror_chart" native="true">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>32</y>
+      <width>611</width>
+      <height>311</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+   </widget>
   </widget>
  </widget>
  <customwidgets>

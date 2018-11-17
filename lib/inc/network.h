@@ -148,12 +148,13 @@ public:
      * @param euclideanDistanceThreshold The threshold when compareing the Euclidean distance between expected output and actual output signal.
      * @param successRateEuclideanDistance Success rate of testing the Euclidean distance.
      * @param successRateIdenticalMax Success rate when testing that the maximum elements are identical.
+     * @param averageCost Average cost
      * @param failedSamplesIdx Vector of sample indices which were NOT successful.
      * @return True if successful. Otherwise false.
      */
     bool testNetwork( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
                       const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
-                      double& successRateIdenticalMax, std::vector<size_t>& failedSamplesIdx );
+                      double& successRateIdenticalMax, double& averageCost, std::vector<size_t>& failedSamplesIdx );
 
     /**
      * Tests the network with given samples and lables. The computation is performed in another

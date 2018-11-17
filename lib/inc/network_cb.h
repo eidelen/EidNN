@@ -59,8 +59,11 @@ public:
      * Callback function which informs about the network test results.
      * @param successRateEuclidean Success rate in terms of the Euclidean distance between expected and actual output.
      * @param successRateMaxIdx Success rate in terms of identical maximum element.
+     * @param averageCost Average test cost
+     * @param failedSamplesIdx List of failed samples
      */
     virtual void networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
+                                     const double& averageCost,
                                      const std::vector<std::size_t>& failedSamplesIdx) = 0;
 
 };

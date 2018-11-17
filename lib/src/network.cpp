@@ -342,8 +342,8 @@ bool Network::testNetworkAsync( const std::vector<Eigen::MatrixXd>& samples, con
 void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
                            const double& euclideanDistanceThreshold )
 {
-    double successRateEuclidean; double successRateMaxIdx; std::vector<size_t> failedSamples;
-    bool res = testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, failedSamples );
+    double successRateEuclidean; double successRateMaxIdx; double avgCost; std::vector<size_t> failedSamples;
+    bool res = testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
 
     m_operationInProgress = false;
 
@@ -352,7 +352,7 @@ void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const st
         if( res )
         {
             m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
-            m_oberserver->networkTestResults( successRateEuclidean, successRateMaxIdx, failedSamples );
+            m_oberserver->networkTestResults( successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
         }
         else
         {
@@ -363,7 +363,7 @@ void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const st
 
 bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
                             const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
-                            double& successRateIdenticalMax, std::vector<size_t>& failedSamplesIdx )
+                            double& successRateIdenticalMax, double& avgCost, std::vector<size_t>& failedSamplesIdx )
 {
     if( samples.size() != lables.size() )
     {
@@ -374,7 +374,7 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
     failedSamplesIdx.clear();
 
     size_t nbrOfTestSamples = samples.size();
-    successRateEuclideanDistance = 0.0; successRateIdenticalMax = 0.0;
+    successRateEuclideanDistance = 0.0; successRateIdenticalMax = 0.0; avgCost = 0.0;
 
     for( size_t t = 0; t < nbrOfTestSamples; t++ )
     {
@@ -383,6 +383,9 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
 
         Eigen::MatrixXd outputSignal = getOutputActivation();
         Eigen::MatrixXd expectedSignal = lables.at(t);
+
+        getOutputLayer()->computeBackpropagationOutputLayerError( expectedSignal );
+        avgCost += getNetworkErrorMagnitude();
 
         // Test Euclidean distance
         double euclideanDistance = (outputSignal-expectedSignal).norm();
@@ -405,6 +408,8 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
         if( t % 10 == 0 ) // send progress only for every 10th sample
             sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpInProgress, double(t)/double(nbrOfTestSamples) );
     }
+
+    avgCost = avgCost / double(nbrOfTestSamples);
 
     // normalise success rates
     successRateEuclideanDistance = successRateEuclideanDistance / double(nbrOfTestSamples);

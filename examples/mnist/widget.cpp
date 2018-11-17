@@ -19,7 +19,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 {
     ui->setupUi(this);
 
-    // crate chart
+    // create chart
     QtCharts::QChart *chart = new QtCharts::QChart( );
     chart->legend()->hide();
     m_plotData_classification = new QtCharts::QLineSeries( );
@@ -43,6 +43,24 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     m_plotData_L2->attachAxis(m_YAxis);
     ui->progressChart->setChart( chart );
     ui->progressChart->setRenderHint(QPainter::Antialiasing);
+
+    QtCharts::QChart* testCostChart = new QtCharts::QChart( );
+    testCostChart->legend()->hide();
+    m_testSetCost = new QtCharts::QLineSeries( );
+    testCostChart->addSeries( m_testSetCost );
+    m_TCXAxis = new QtCharts::QValueAxis();
+    m_TCXAxis->setTitleText("Epoch");
+    m_TCXAxis->setLabelFormat("%d");
+    m_TCXAxis->setRange(0,1);
+    testCostChart->addAxis(m_TCXAxis, Qt::AlignBottom);
+    m_TCYAxis = new QtCharts::QValueAxis();
+    m_TCYAxis->setTitleText("Cost");
+    m_TCYAxis->setRange(0, 0.1);
+    testCostChart->addAxis(m_TCYAxis, Qt::AlignLeft);
+    m_testSetCost->attachAxis(m_TCXAxis);
+    m_testSetCost->attachAxis(m_TCYAxis);
+    ui->testerror_chart->setChart(testCostChart);
+    ui->testerror_chart->setRenderHint(QPainter::Antialiasing);
 
     prepareSamples();
 
@@ -226,6 +244,15 @@ void Widget::updateUi()
         double upper = std::min(std::max(max_Class,max_L2)*1.2, 100.0);
         m_YAxis->setRange(lower,upper);
     }
+
+    if( m_testSetCost->count() > 0 )
+    {
+        m_TCXAxis->setRange(0, m_testSetCost->count());
+        double min_TYVal;
+        double max_TYVal;
+        getMinMaxYValue(m_testSetCost, m_testSetCost->count(), min_TYVal, max_TYVal);
+        m_TCYAxis->setRange(0, max_TYVal);
+    }
 }
 
 void Widget::doNNLearning()
@@ -266,6 +293,7 @@ void Widget::networkOperationProgress( const NetworkOperationId & opId, const Ne
 }
 
 void Widget::networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
+                                 const double& averageCost,
                                  const std::vector<std::size_t>& failedSamplesIdx )
 {
     QMutexLocker locker( &m_uiLock );
@@ -278,7 +306,10 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
     m_plotData_L2->append( m_plotData_L2->count(), successRateEuclidean * 100);
     m_plotData_classification->append( m_plotData_classification->count(), successRateMaxIdx * 100 );
 
+    m_testSetCost->append( m_testSetCost->count(), averageCost);
+
     std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
+    std::cout << "AVG TEST COST = " << averageCost << std::endl;
 }
 
 void Widget::loadNN()

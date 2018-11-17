@@ -32,6 +32,7 @@ public:
     void networkOperationProgress( const NetworkOperationId &opId, const NetworkOperationStatus &opStatus,
                                    const double &progress );
     void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx ,
+                            const double& averageCost,
                             const std::vector<size_t>& failedSamplesIdx);
 
 private:
@@ -62,6 +63,11 @@ private:
     QtCharts::QLineSeries* m_plotData_L2;
     QtCharts::QValueAxis* m_XAxis;
     QtCharts::QValueAxis* m_YAxis;
+
+    QtCharts::QLineSeries* m_testSetCost;
+    QtCharts::QValueAxis* m_TCXAxis;
+    QtCharts::QValueAxis* m_TCYAxis;
+
     QTimer* m_uiUpdaterTimer;
     std::vector<Eigen::MatrixXd> m_batchin;
     std::vector<Eigen::MatrixXd> m_batchout;
