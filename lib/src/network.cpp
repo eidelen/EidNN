@@ -30,6 +30,7 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -166,10 +167,7 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
         // one epoch
         unsigned long nbrOfBatches = nbrOfSamples / batchsize;
 
-        // random generator
-        std::random_device rd;
-        std::mt19937 e2(rd());
-        std::uniform_int_distribution<> iDist(0, int(nbrOfSamples)-1);
+        std::vector<size_t> randIndices = randomIndices(nbrOfSamples);
 
         Eigen::MatrixXd batch_in( samples.at(0).rows(), batchsize );
         Eigen::MatrixXd batch_out( lables.at(0).rows(), batchsize );
@@ -179,7 +177,7 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
             // generate a random sample set
             for( unsigned int b = 0; b < batchsize; b++ )
             {
-                size_t rIdx = size_t( iDist(e2) );
+                size_t rIdx =  randIndices[batch*batchsize+b];
                 batch_in.col(b) = samples.at(rIdx);
                 batch_out.col(b) = lables.at(rIdx);
             }
@@ -204,7 +202,7 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
         {
             // test network with training data
             double successRateEuclidean; double successRateMaxIdx; double euclideanDistanceThreshold; double avgCost; std::vector<size_t> failedSamples;
-            testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
+            testNetwork( samples, lables, euclideanDistanceThreshold, false, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
             m_oberserver->networkTrainingResults( successRateEuclidean, successRateMaxIdx, avgCost);
         }
 
@@ -368,7 +366,7 @@ void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const st
                            const double& euclideanDistanceThreshold )
 {
     double successRateEuclidean; double successRateMaxIdx; double avgCost; std::vector<size_t> failedSamples;
-    bool res = testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
+    bool res = testNetwork( samples, lables, euclideanDistanceThreshold, true, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
 
     m_operationInProgress = false;
 
@@ -387,7 +385,7 @@ void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const st
 }
 
 bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
-                            const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
+                            const double& euclideanDistanceThreshold, bool doCallback, double& successRateEuclideanDistance,
                             double& successRateIdenticalMax, double& avgCost, std::vector<size_t>& failedSamplesIdx )
 {
     if( samples.size() != lables.size() )
@@ -430,8 +428,9 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
         if( !maxIdenticalRequirement )
             failedSamplesIdx.push_back( t );
 
-        if( t % 10 == 0 ) // send progress only for every 10th sample
-            sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpInProgress, double(t)/double(nbrOfTestSamples) );
+        if(doCallback)
+            if( t % 10 == 0 ) // send progress only for every 10th sample
+                sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpInProgress, double(t)/double(nbrOfTestSamples) );
     }
 
     avgCost = avgCost / double(nbrOfTestSamples);
@@ -440,7 +439,8 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
     successRateEuclideanDistance = successRateEuclideanDistance / double(nbrOfTestSamples);
     successRateIdenticalMax = successRateIdenticalMax / double(nbrOfTestSamples);
 
-    sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
+    if( doCallback )
+        sendProg2Obs( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
 
     return true;
 }
@@ -555,4 +555,14 @@ void Network::setSoftmaxOutput( const bool& enable )
 bool Network::isSoftmaxOutputEnabled() const
 {
     return getOutputLayer()->getLayerType() == Layer::Softmax;
+}
+
+std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
+{
+    std::vector<size_t> rInd(numberOfElements);
+    size_t n = 0;
+    std::generate(rInd.begin(), rInd.end(), [n] () mutable { return n++; });
+    std::random_shuffle(rInd.begin(), rInd.end());
+
+    return rInd;
 }

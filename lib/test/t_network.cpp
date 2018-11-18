@@ -24,6 +24,7 @@
 #include <random>
 #include <thread>
 #include <cstdio>
+#include <unordered_set>
 
 #include <gtest/gtest.h>
 #include "network.h"
@@ -724,6 +725,33 @@ TEST(NetworkTest, OutputLayerType)
     net->setSoftmaxOutput( false );
     ASSERT_TRUE( net->getOutputLayer()->getLayerType() == Layer::Sigmoid );
     ASSERT_FALSE( net->isSoftmaxOutputEnabled() );
+
+    delete net;
+}
+
+
+TEST(NetworkTest, RandomIndices)
+{
+    std::vector<unsigned int> map = {1,2};
+    Network* net = new Network(map);
+
+    std::vector<size_t> randInd = net->randomIndices(10);
+
+    std::unordered_set<size_t> seenI;
+    bool isOrdered = true;
+    for( size_t i = 0; i < 10; i++ )
+    {
+        size_t cI = randInd[i];
+        isOrdered = isOrdered && cI == i;
+        ASSERT_LT(cI, 10);
+        ASSERT_TRUE(cI >= 0 );
+
+        // check occures only once
+        ASSERT_TRUE( seenI.find(cI) == seenI.end() );
+        seenI.insert( cI );
+    }
+
+    ASSERT_FALSE(isOrdered);
 
     delete net;
 }

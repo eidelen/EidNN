@@ -153,7 +153,7 @@ public:
      * @return True if successful. Otherwise false.
      */
     bool testNetwork( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
-                      const double& euclideanDistanceThreshold, double& successRateEuclideanDistance,
+                      const double& euclideanDistanceThreshold, bool doCallback, double& successRateEuclideanDistance,
                       double& successRateIdenticalMax, double& averageCost, std::vector<size_t>& failedSamplesIdx );
 
     /**
@@ -251,6 +251,14 @@ public:
     bool isSoftmaxOutputEnabled() const;
 
     void print();
+
+    /**
+     * Creates a vector of random indices. Every index occures once.
+     * @param numberOfElements Number of elements.
+     * @return Vector of indices.
+     */
+    std::vector<size_t> randomIndices(size_t numberOfElements) const;
+
 
 
 private:
