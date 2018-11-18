@@ -150,6 +150,7 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
                                         const unsigned int& batchsize, const double& eta)
 {    
     bool retValue = false;
+    double cost = 0.0;
     size_t nbrOfSamples = samples.size();
 
     if( samples.size() != lables.size() )
@@ -183,9 +184,14 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
                 batch_out.col(b) = lables.at(rIdx);
             }
 
-            doStochasticGradientDescentBatch(batch_in, batch_out, eta);
+            double batchCost = 0.0;
+            doStochasticGradientDescentBatch(batch_in, batch_out, eta, batchCost);
+            cost += batchCost;
+
             sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpInProgress, double(batch)/double(nbrOfBatches) );
         }
+
+        cost = cost / static_cast<double>(nbrOfBatches);
 
         retValue = true;
     }
@@ -193,18 +199,32 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     m_operationInProgress = false;
 
     if( retValue )
-        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0 );
+    {
+        if( m_oberserver != NULL )
+        {
+            // test network with training data
+            double successRateEuclidean; double successRateMaxIdx; double euclideanDistanceThreshold; double avgCost; std::vector<size_t> failedSamples;
+            testNetwork( samples, lables, euclideanDistanceThreshold, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
+            m_oberserver->networkTrainingResults( successRateEuclidean, successRateMaxIdx, avgCost);
+        }
+
+        sendProg2Obs(NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0);
+    }
     else
-        sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0 );
+    {
+        sendProg2Obs(NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultErr, 1.0);
+    }
 
     return retValue;
 }
 
-bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta )
+bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta, double& cost )
 {
     // this feedforwards the whole batch at once
     if( !doFeedforwardAndBackpropagation( batch_in, batch_out ) )
         return false;
+
+    cost = getOutputLayer()->getCost();
 
     long batchsize = batch_in.cols();
 
@@ -244,7 +264,7 @@ std::shared_ptr<const Layer> Network::getOutputLayer() const
     return getLayer( getNumberOfLayer() - 1 );
 }
 
-double Network::getNetworkErrorMagnitude()
+double Network::getNetworkErrorMagnitude() const
 {
     Eigen::MatrixXd oErr =  getOutputLayer()->getBackpropagationError();
 
@@ -260,6 +280,11 @@ double Network::getNetworkErrorMagnitude()
     }
 
     return accumError / n;
+}
+
+double Network::getNetworkCost() const
+{
+    return getOutputLayer()->getCost();
 }
 
 void Network::print()
@@ -385,7 +410,7 @@ bool Network::testNetwork(  const std::vector<Eigen::MatrixXd>& samples, const s
         Eigen::MatrixXd expectedSignal = lables.at(t);
 
         getOutputLayer()->computeBackpropagationOutputLayerError( expectedSignal );
-        avgCost += getNetworkErrorMagnitude();
+        avgCost += getOutputLayer()->getCost();
 
         // Test Euclidean distance
         double euclideanDistance = (outputSignal-expectedSignal).norm();

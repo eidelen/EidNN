@@ -35,6 +35,8 @@ public:
                             const double& averageCost,
                             const std::vector<size_t>& failedSamplesIdx);
 
+    void networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx, const double& averageCost );
+
 private:
     bool loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
                           const size_t& idx, Eigen::MatrixXd& img, uint8_t& lable);
@@ -67,6 +69,10 @@ private:
     QtCharts::QLineSeries* m_testSetCost;
     QtCharts::QValueAxis* m_TCXAxis;
     QtCharts::QValueAxis* m_TCYAxis;
+
+    QtCharts::QLineSeries* m_trainingSetCost;
+    QtCharts::QValueAxis* m_RCXAxis;
+    QtCharts::QValueAxis* m_RCYAxis;
 
     QTimer* m_uiUpdaterTimer;
     std::vector<Eigen::MatrixXd> m_batchin;

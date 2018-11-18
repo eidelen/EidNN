@@ -66,6 +66,16 @@ public:
                                      const double& averageCost,
                                      const std::vector<std::size_t>& failedSamplesIdx) = 0;
 
+
+    /**
+     * Callback function which informs about the network training.
+     * @param successRateEuclidean Success rate in terms of the Euclidean distance between expected and actual output.
+     * @param successRateMaxIdx Success rate in terms of identical maximum element.
+     * @param averageCost Average cost
+     */
+    virtual void networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx,
+                                         const double& averageCost ) = 0;
+
 };
 
 #endif // NETWORKCALLBACKHEADER

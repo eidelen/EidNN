@@ -165,7 +165,7 @@ public:
 
     /**
      * This function computes the backpropagation error in case this is the output layer.
-     * The actual error can then be accessed by getBackpropagationError().
+     * The actual error can then be accessed by getBackpropagationError() or getCost().
      * @param expectedNetworkOutput The desired network output.
      * @return Return true if operation was successful. Otherwise false
      */
@@ -207,6 +207,8 @@ public:
      * @return
      */
     const Eigen::MatrixXd getBackpropagationError() const { return m_backpropagationError; }
+
+    double getCost() const { return m_outputLayerCost; }
 
     /**
      * Partial derivatives of the biases. This is set after calling computePartialDerivatives().
@@ -288,6 +290,7 @@ private:
     Eigen::MatrixXd m_z_weighted_input;
 
     Eigen::MatrixXd m_backpropagationError;
+    double m_outputLayerCost;
     Eigen::MatrixXd m_weightMatrix;
     Eigen::MatrixXd m_biasVector;
 

@@ -50,5 +50,5 @@ double CrossEntropyCost::cost(const Eigen::MatrixXd &a_activation, const Eigen::
 
     Eigen::MatrixXd sums = d.colwise().sum();
 
-    return sums.sum() / double(sums.cols());;
+    return sums.sum() / double(sums.cols());
 }

@@ -34,7 +34,8 @@ using namespace std;
 Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs, const LayerOutputType& type) :
     m_nbr_of_neurons( nbr_of_neurons ),
     m_nbr_of_inputs( nbr_of_inputs ),
-    m_layer_type(type)
+    m_layer_type(type),
+    m_outputLayerCost(0.0)
 {
     initLayer();
 }
@@ -224,9 +225,15 @@ bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expect
     }
 
     if( m_layer_type == Sigmoid )
-        m_backpropagationError = m_costFunction->delta(m_z_weighted_input, m_activation_out, expectedNetworkOutput );
+    {
+        m_backpropagationError = m_costFunction->delta(m_z_weighted_input, m_activation_out, expectedNetworkOutput);
+    }
     else if( m_layer_type == Softmax )
+    {
         m_backpropagationError = m_activation_out - expectedNetworkOutput;
+    }
+
+    m_outputLayerCost = m_costFunction->cost( m_activation_out, expectedNetworkOutput );
 
     return true;
 }

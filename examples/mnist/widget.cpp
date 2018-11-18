@@ -19,6 +19,24 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 {
     ui->setupUi(this);
 
+    QtCharts::QChart* trainingCostChart = new QtCharts::QChart( );
+    trainingCostChart->legend()->hide();
+    m_trainingSetCost = new QtCharts::QLineSeries( );
+    trainingCostChart->addSeries( m_trainingSetCost );
+    m_RCXAxis = new QtCharts::QValueAxis();
+    m_RCXAxis->setTitleText("Epoch");
+    m_RCXAxis->setLabelFormat("%d");
+    m_RCXAxis->setRange(0,1);
+    trainingCostChart->addAxis(m_RCXAxis, Qt::AlignBottom);
+    m_RCYAxis = new QtCharts::QValueAxis();
+    m_RCYAxis->setTitleText("Cost");
+    m_RCYAxis->setRange(0, 0.1);
+    trainingCostChart->addAxis(m_RCYAxis, Qt::AlignLeft);
+    m_trainingSetCost->attachAxis(m_RCXAxis);
+    m_trainingSetCost->attachAxis(m_RCYAxis);
+    ui->trainingerror_chart->setChart(trainingCostChart);
+    ui->trainingerror_chart->setRenderHint(QPainter::Antialiasing);
+
     // create chart
     QtCharts::QChart *chart = new QtCharts::QChart( );
     chart->legend()->hide();
@@ -152,7 +170,7 @@ void Widget::prepareSamples()
         // prepare network
         std::vector<unsigned int> map;
         map.push_back(div.inputDataLength);
-        map.push_back(30);
+        map.push_back(100);
         map.push_back(div.outputDataLength);
 
         m_net.reset(new Network(map));
@@ -253,6 +271,15 @@ void Widget::updateUi()
         getMinMaxYValue(m_testSetCost, m_testSetCost->count(), min_TYVal, max_TYVal);
         m_TCYAxis->setRange(0, max_TYVal);
     }
+
+    if( m_trainingSetCost->count() > 0 )
+    {
+        m_RCXAxis->setRange(0, m_trainingSetCost->count());
+        double min_RYVal;
+        double max_RYVal;
+        getMinMaxYValue(m_trainingSetCost, m_trainingSetCost->count(), min_RYVal, max_RYVal);
+        m_RCYAxis->setRange(0, max_RYVal);
+    }
 }
 
 void Widget::doNNLearning()
@@ -308,8 +335,15 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
 
     m_testSetCost->append( m_testSetCost->count(), averageCost);
 
-    std::cout << "L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
+    std::cout << "Test success: L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
     std::cout << "AVG TEST COST = " << averageCost << std::endl;
+}
+
+void Widget::networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx, const double& averageCost )
+{
+    m_trainingSetCost->append( m_trainingSetCost->count(), averageCost );
+    std::cout << "Training success: L2 = " << successRateEuclidean*100.0 << "%,  MAX = " << successRateMaxIdx * 100.0 << "%" << std::endl;
+    std::cout << "AVG TRAINING COST = " << averageCost << std::endl;
 }
 
 void Widget::loadNN()

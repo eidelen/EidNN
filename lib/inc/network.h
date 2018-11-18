@@ -122,7 +122,7 @@ public:
      * @return true if successful.
      */
     bool stochasticGradientDescent(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
-                                   const unsigned int& batchsize, const double& eta );
+                                   const unsigned int& batchsize, const double& eta);
 
     /**
      * Feedforward, backpropagate and update weigths and biases in each layer corresponding
@@ -135,7 +135,7 @@ public:
      * @param samples Input signals.
      * @param lables Desired output signals.
      * @param batchsize Number of samples in the batch.
-     * @param eta
+     * @param eta Learning rate.
      * @return true if successful.
      */
     bool stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
@@ -172,7 +172,14 @@ public:
      * initialized during the backpropagation.
      * @return error magnitude
      */
-    double getNetworkErrorMagnitude();
+    double getNetworkErrorMagnitude() const;
+
+    /**
+     * Returns the cost in the output layer. This error is
+     * initialized during the backpropagation.
+     * @return Cost.
+     */
+    double getNetworkCost() const;
 
     /**
      * Set an observer, which gets informed about operation progress.
@@ -253,7 +260,7 @@ private:
     // Do feedforward and backprop. but weights and biases are not updated!
     bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
 
-    bool doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta);
+    bool doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta, double& cost);
 
     void sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& opId,
                        const NetworkOperationCallback::NetworkOperationStatus& opStatus, const double& progress  );
