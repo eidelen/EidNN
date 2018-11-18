@@ -422,8 +422,19 @@ public:
         m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress;
     }
 
-    void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx,
-                            const std::vector<std::size_t>& failedSamplesIdx){}
+    void
+    networkTestResults(const double &successRateEuclidean,
+                       const double &successRateMaxIdx,
+                       const double &averageCost,
+                       const std::vector<std::size_t> &failedSamplesIdx) override
+    {
+    }
+    void
+    networkTrainingResults(const double &successRateEuclidean,
+                           const double &successRateMaxIdx,
+                           const double &averageCost) override
+    {
+    }
 
     NetworkOperationId m_lastOpId;
     NetworkOperationStatus m_lastOpStatus;
@@ -494,8 +505,8 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
         net->stochasticGradientDescent( xin, yout, miniBatch, 0.1 );
 
         // testing
-        double successRateEuc; double successRateMaxIdx; std::vector<size_t> failedSamples;
-        net->testNetwork(t_xin, t_yout, 0.1, successRateEuc, successRateMaxIdx, failedSamples);
+        double successRateEuc; double successRateMaxIdx; double avgCost; std::vector<size_t> failedSamples;
+        net->testNetwork(t_xin, t_yout, 0.1, successRateEuc, successRateMaxIdx, avgCost, failedSamples);
 
         if( bestResult < successRateEuc )
             bestResult = successRateEuc;
@@ -527,8 +538,21 @@ public:
         m_lastStatus = status;
     }
 
-    void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx,
-                            const std::vector<std::size_t>& failedSamplesIdx){}
+    void
+    networkTestResults(const double &successRateEuclidean,
+                       const double &successRateMaxIdx,
+                       const double &averageCost,
+                       const std::vector<std::size_t> &failedSamplesIdx) override
+    {
+
+    }
+    void
+    networkTrainingResults(const double &successRateEuclidean,
+                           const double &successRateMaxIdx,
+                           const double &averageCost) override
+    {
+
+    }
 
     NetworkOperationStatus m_lastStatus;
 };
