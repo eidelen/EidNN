@@ -126,11 +126,15 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
         m_net->setSoftmaxOutput( ui->softmax->isChecked() );
     });
 
+    connect( ui->regCB, &QCheckBox::toggled, [=]()
+    {
+        ui->regLambdaSB->setEnabled( ui->regCB->isChecked() );
+    });
+
     connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
     connect( this, SIGNAL(readyForLearning()), this, SLOT(doNNLearning()));
     connect( ui->loadNNBtn, SIGNAL(pressed()), this, SLOT(loadNN()));
     connect( ui->saveNNBtn, SIGNAL(pressed()), this, SLOT(saveNN()));
-
 
     m_uiUpdaterTimer = new QTimer( this );
     connect(m_uiUpdaterTimer, SIGNAL(timeout()), this, SLOT(updateUi()));
