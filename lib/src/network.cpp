@@ -53,6 +53,9 @@ Network::Network( const Network& n ) :
     }
 
     m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
+
+    getOutputLayer()->setCostFunction(n.getOutputLayer()->getCostFunction());
+    setSoftmaxOutput(n.isSoftmaxOutputEnabled());
 }
 
 

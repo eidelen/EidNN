@@ -235,7 +235,7 @@ public:
      * Return the currently used cost function.
      * @return Cost function.
      */
-    const std::shared_ptr<CostFunction>& getCostFunction() { return m_costFunction; }
+    const std::shared_ptr<CostFunction>& getCostFunction() const { return m_costFunction; }
 
     /**
      * Returns the layer type
