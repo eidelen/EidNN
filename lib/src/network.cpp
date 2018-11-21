@@ -36,13 +36,15 @@
 using namespace std;
 
 Network::Network( const vector<unsigned int> networkStructure ) :
-    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_asyncOperation{}, m_operationInProgress( false )
+    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_asyncOperation{}, m_operationInProgress( false ),
+    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1)
 {
     initNetwork();
 }
 
 Network::Network( const Network& n ) :
-    m_NetworkStructure( n.getNetworkStructure() ), m_oberserver( n.m_oberserver ), m_asyncOperation{}, m_operationInProgress( false )
+    m_NetworkStructure( n.getNetworkStructure() ), m_oberserver( n.m_oberserver ), m_asyncOperation{}, m_operationInProgress( false ),
+    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1)
 {
     // copy layers
     m_Layers.clear();
@@ -58,7 +60,7 @@ Network::Network( const Network& n ) :
     getOutputLayer()->setCostFunction(n.getOutputLayer()->getCostFunction());
     setSoftmaxOutput(n.isSoftmaxOutputEnabled());
 
-    m_regularization = n.getRegularizationMethod();
+    m_regularization = Regularization(n.getRegularizationMethod().m_method, n.getRegularizationMethod().m_lamda);
 }
 
 
@@ -80,8 +82,8 @@ void Network::initNetwork()
 
     m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
 
-    m_regularization.lamda = 0.0;
-    m_regularization.method = RegularizationMethod::NoneRegularization;
+    m_regularization.m_lamda = 0.0;
+    m_regularization.m_method = Regularization::RegularizationMethod::NoneRegularization;
 }
 
 bool Network::feedForward( const Eigen::MatrixXd& x_in )
@@ -575,12 +577,24 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
 
     return rInd;
 }
-void Network::setRegularizationMethod(Network::Regulaization reg)
+void Network::setRegularizationMethod(Regularization reg)
 {
+    std::cout << "Set regularization method: " << reg.toString() << std::endl;
     m_regularization = reg;
 }
 
-Network::Regulaization Network::getRegularizationMethod() const
+Regularization Network::getRegularizationMethod() const
 {
     return m_regularization;
+}
+
+double Network::getSumOfWeighSquares() const
+{
+    double sum = 0.0;
+
+    // input layer weights are not used
+    for( unsigned int k = 1; k < m_Layers.size(); k++ )
+        sum += getLayer(k)->getSumOfWeightSquares();
+
+    return sum;
 }

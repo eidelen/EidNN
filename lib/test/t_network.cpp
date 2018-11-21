@@ -761,25 +761,37 @@ TEST(NetworkTest, Regularization)
     std::vector<unsigned int> map = {1,2};
     Network* net = new Network(map);
 
-    Network::Regulaization reg{
-        .method = Network::RegularizationMethod::WeightDecay,
-        .lamda = 11 };
+    Regularization reg( Regularization::RegularizationMethod::WeightDecay, 11 );
 
     net->setRegularizationMethod( reg );
 
-    ASSERT_FLOAT_EQ(net->getRegularizationMethod().lamda, 11);
-    ASSERT_EQ(net->getRegularizationMethod().method, Network::RegularizationMethod::WeightDecay);
+    ASSERT_FLOAT_EQ(net->getRegularizationMethod().m_lamda, 11);
+    ASSERT_EQ(net->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
 
 
     // compy constructor
 
     Network* net2 = new Network(*net);
 
-    ASSERT_FLOAT_EQ(net2->getRegularizationMethod().lamda, 11);
-    ASSERT_EQ(net2->getRegularizationMethod().method, Network::RegularizationMethod::WeightDecay);
+    ASSERT_FLOAT_EQ(net2->getRegularizationMethod().m_lamda, 11);
+    ASSERT_EQ(net2->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
 
     delete net;
     delete net2;
 }
 
+TEST(NetworkTest, SquareSum)
+{
+    std::vector<unsigned int> map = {1,2,3};
+    Network* net = new Network(map);
 
+    // input layer weights are not usesd
+    net->getLayer(1)->setWeight(4.0);
+    net->getLayer(2)->setWeight(5.0);
+
+    double should_weight_sum = 1 * 2 * std::pow(4,2)   +   2 * 3 * std::pow(5,2);
+
+    ASSERT_FLOAT_EQ( net->getSumOfWeighSquares(), should_weight_sum );
+
+    delete net;
+}

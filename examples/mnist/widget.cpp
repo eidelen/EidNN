@@ -129,6 +129,13 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     connect( ui->regCB, &QCheckBox::toggled, [=]()
     {
         ui->regLambdaSB->setEnabled( ui->regCB->isChecked() );
+
+        Regularization reg( Regularization::RegularizationMethod::NoneRegularization, 1 );
+
+        if( ui->regCB->isChecked() )
+            reg = Regularization( Regularization::RegularizationMethod::WeightDecay, ui->regLambdaSB->value() );
+
+        m_net->setRegularizationMethod(reg);
     });
 
     connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
