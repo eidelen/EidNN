@@ -259,6 +259,30 @@ public:
      */
     std::vector<size_t> randomIndices(size_t numberOfElements) const;
 
+    enum RegularizationMethod
+    {
+        NoneRegularization,
+        WeightDecay
+    };
+
+    struct Regulaization
+    {
+        RegularizationMethod method;
+        double lamda;
+    };
+
+    /**
+     * Sets the applied regularization.
+     * @param method
+     * @param lamda
+     */
+    void setRegularizationMethod( Regulaization reg );
+
+    /**
+     * Gets the applied regularization.
+     * @return Regularization method.
+     */
+    Regulaization getRegularizationMethod() const;
 
 
 private:
@@ -287,6 +311,8 @@ private:
     NetworkOperationCallback* m_oberserver;
     std::thread m_asyncOperation;
     std::atomic<bool> m_operationInProgress;
+
+    Regulaization m_regularization;
 };
 
 #endif //NETWORKHEADER

@@ -418,7 +418,7 @@ public:
     TestCallback(){}
     ~TestCallback(){}
     void networkOperationProgress(const NetworkOperationId& opId, const NetworkOperationStatus& opStatus,
-                                  const double &progress)
+                                  const double &progress) override
     {
         m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress;
     }
@@ -507,7 +507,7 @@ TEST(NetworkTest, Backpropagate_StochasticGD)
 
         // testing
         double successRateEuc; double successRateMaxIdx; double avgCost; std::vector<size_t> failedSamples;
-        net->testNetwork(t_xin, t_yout, 0.1, successRateEuc, successRateMaxIdx, avgCost, failedSamples);
+        net->testNetwork(t_xin, t_yout, 0.1, true, successRateEuc, successRateMaxIdx, avgCost, failedSamples);
 
         if( bestResult < successRateEuc )
             bestResult = successRateEuc;
@@ -533,7 +533,7 @@ public:
     TestCallback2(){}
     ~TestCallback2(){}
     void networkOperationProgress(const NetworkOperationId& , const NetworkOperationStatus& status,
-                                  const double &progress)
+                                  const double &progress) override
     {
         std::cout << "Async CB: " << progress*100 << "%" << std::endl;
         m_lastStatus = status;
@@ -754,6 +754,32 @@ TEST(NetworkTest, RandomIndices)
     ASSERT_FALSE(isOrdered);
 
     delete net;
+}
+
+TEST(NetworkTest, Regularization)
+{
+    std::vector<unsigned int> map = {1,2};
+    Network* net = new Network(map);
+
+    Network::Regulaization reg{
+        .method = Network::RegularizationMethod::WeightDecay,
+        .lamda = 11 };
+
+    net->setRegularizationMethod( reg );
+
+    ASSERT_FLOAT_EQ(net->getRegularizationMethod().lamda, 11);
+    ASSERT_EQ(net->getRegularizationMethod().method, Network::RegularizationMethod::WeightDecay);
+
+
+    // compy constructor
+
+    Network* net2 = new Network(*net);
+
+    ASSERT_FLOAT_EQ(net2->getRegularizationMethod().lamda, 11);
+    ASSERT_EQ(net2->getRegularizationMethod().method, Network::RegularizationMethod::WeightDecay);
+
+    delete net;
+    delete net2;
 }
 
 

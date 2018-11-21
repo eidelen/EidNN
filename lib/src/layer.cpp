@@ -23,6 +23,8 @@
 
 #include <iostream>
 #include <random>
+#include <inc/layer.h>
+
 #include "layer.h"
 #include "neuron.h"
 #include "helpers.h"
@@ -360,6 +362,11 @@ Layer::LayerOutputType Layer::getLayerType() const
 void Layer::setLayerType( const LayerOutputType& type)
 {
     m_layer_type = type;
+}
+
+double Layer::getSumOfWeightSquares() const
+{
+    return (m_weightMatrix.cwiseProduct(m_weightMatrix)).sum();
 }
 
 

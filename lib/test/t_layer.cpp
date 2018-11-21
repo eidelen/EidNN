@@ -374,3 +374,20 @@ TEST(LayerTest, CostFunction)
     delete l;
 }
 
+TEST(LayerTest, SumOfSquareWeights)
+{
+    Layer* l = new Layer(2,2);
+
+    std::vector<Eigen::VectorXd> wV;
+    Eigen::VectorXd w_n0(2);  w_n0 << 1, 2;
+    Eigen::VectorXd w_n1(2);  w_n1 << 3, 4;
+    wV.push_back( w_n0 ); wV.push_back( w_n1 );
+
+    ASSERT_TRUE( l->setWeights( wV ) );
+
+    double w_should = 1*1 + 2*2 + 3*3 + 4*4;
+
+    ASSERT_FLOAT_EQ(l->getSumOfWeightSquares(), w_should);
+
+    delete l;
+}

@@ -250,6 +250,12 @@ public:
     void setLayerType( const LayerOutputType& type);
 
     /**
+     * Computes the sum of all weight squares in this layer.
+     * @return Sum of weight squares.
+     */
+    double getSumOfWeightSquares() const;
+
+    /**
      * Serialize the layer (weights, biases).
      * @return string holding binary representation of the layer.
      */

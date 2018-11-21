@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <inc/network.h>
 
 using namespace std;
 
@@ -56,6 +57,8 @@ Network::Network( const Network& n ) :
 
     getOutputLayer()->setCostFunction(n.getOutputLayer()->getCostFunction());
     setSoftmaxOutput(n.isSoftmaxOutputEnabled());
+
+    m_regularization = n.getRegularizationMethod();
 }
 
 
@@ -76,6 +79,9 @@ void Network::initNetwork()
     }
 
     m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
+
+    m_regularization.lamda = 0.0;
+    m_regularization.method = RegularizationMethod::NoneRegularization;
 }
 
 bool Network::feedForward( const Eigen::MatrixXd& x_in )
@@ -568,4 +574,13 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
     std::random_shuffle(rInd.begin(), rInd.end());
 
     return rInd;
+}
+void Network::setRegularizationMethod(Network::Regulaization reg)
+{
+    m_regularization = reg;
+}
+
+Network::Regulaization Network::getRegularizationMethod() const
+{
+    return m_regularization;
 }
