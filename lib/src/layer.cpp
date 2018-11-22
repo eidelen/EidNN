@@ -37,7 +37,8 @@ Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs, const Layer
     m_nbr_of_neurons( nbr_of_neurons ),
     m_nbr_of_inputs( nbr_of_inputs ),
     m_layer_type(type),
-    m_outputLayerCost(0.0)
+    m_outputLayerCost(0.0),
+    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1.0)
 {
     initLayer();
 }
@@ -60,6 +61,7 @@ Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInp
     // Note: Temporary results like activations and derivatives are not copied.
     m_weightMatrix = l.getWeigtMatrix();
     m_biasVector = l.getBiasVector();
+    m_regularization = l.getRegularizationMethod();
 }
 
 
@@ -367,6 +369,16 @@ void Layer::setLayerType( const LayerOutputType& type)
 double Layer::getSumOfWeightSquares() const
 {
     return (m_weightMatrix.cwiseProduct(m_weightMatrix)).sum();
+}
+
+void Layer::setRegularizationMethod(Regularization reg)
+{
+    m_regularization = reg;
+}
+
+Regularization Layer::getRegularizationMethod() const
+{
+    return m_regularization;
 }
 
 

@@ -30,7 +30,7 @@
 #include <string>
 #include <Eigen/Dense>
 
-#include "network.h"
+#include "regularization.h"
 
 class CostFunction;
 
@@ -268,6 +268,19 @@ public:
      */
     static Layer* deserialize(const std::string& buffer );
 
+    /**
+     * Sets the applied regularization.
+     * @param method
+     * @param lamda
+     */
+    void setRegularizationMethod( Regularization reg );
+
+    /**
+     * Gets the applied regularization.
+     * @return Regularization method.
+     */
+    Regularization getRegularizationMethod() const;
+
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
 
@@ -304,6 +317,8 @@ private:
     std::vector<Eigen::MatrixXd> m_weight_partialDerivatives;
 
     std::shared_ptr<CostFunction> m_costFunction;
+
+    Regularization m_regularization;
 };
 
 #endif //LAYERHEADER

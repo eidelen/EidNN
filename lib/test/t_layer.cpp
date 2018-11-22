@@ -391,3 +391,27 @@ TEST(LayerTest, SumOfSquareWeights)
 
     delete l;
 }
+
+TEST(LayerTest, Regularization)
+{
+    Layer* l = new Layer(2,2);
+
+    Regularization reg( Regularization::RegularizationMethod::WeightDecay, 11 );
+
+    l->setRegularizationMethod( reg );
+
+    ASSERT_FLOAT_EQ(l->getRegularizationMethod().m_lamda, 11);
+    ASSERT_EQ(l->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+
+
+    // copy constructor
+
+    Layer* l2 = new Layer(*l);
+
+    ASSERT_FLOAT_EQ(l2->getRegularizationMethod().m_lamda, 11);
+    ASSERT_EQ(l2->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+
+    delete l;
+    delete l2;
+}
+

@@ -577,10 +577,14 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
 
     return rInd;
 }
+
 void Network::setRegularizationMethod(Regularization reg)
 {
     std::cout << "Set regularization method: " << reg.toString() << std::endl;
     m_regularization = reg;
+
+    for( unsigned int k = 0; k < m_Layers.size(); k++ )
+        getLayer(k)->setRegularizationMethod(m_regularization);
 }
 
 Regularization Network::getRegularizationMethod() const

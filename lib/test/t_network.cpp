@@ -768,8 +768,15 @@ TEST(NetworkTest, Regularization)
     ASSERT_FLOAT_EQ(net->getRegularizationMethod().m_lamda, 11);
     ASSERT_EQ(net->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
 
+    // check layers
+    for(int i = 0; i < net->getNumberOfLayer(); i++)
+    {
+        ASSERT_FLOAT_EQ(net->getLayer(i)->getRegularizationMethod().m_lamda, 11);
+        ASSERT_EQ(net->getLayer(i)->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+    }
 
-    // compy constructor
+
+    // copy constructor
 
     Network* net2 = new Network(*net);
 
