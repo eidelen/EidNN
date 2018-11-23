@@ -761,18 +761,18 @@ TEST(NetworkTest, Regularization)
     std::vector<unsigned int> map = {1,2};
     Network* net = new Network(map);
 
-    Regularization reg( Regularization::RegularizationMethod::WeightDecay, 11 );
+    std::shared_ptr<Regularization> reg( new Regularization(Regularization::RegularizationMethod::WeightDecay, 11 ));
 
     net->setRegularizationMethod( reg );
 
-    ASSERT_FLOAT_EQ(net->getRegularizationMethod().m_lamda, 11);
-    ASSERT_EQ(net->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+    ASSERT_FLOAT_EQ(net->getRegularizationMethod()->m_lamda, 11);
+    ASSERT_EQ(net->getRegularizationMethod()->m_method, Regularization::RegularizationMethod::WeightDecay);
 
     // check layers
     for(int i = 0; i < net->getNumberOfLayer(); i++)
     {
-        ASSERT_FLOAT_EQ(net->getLayer(i)->getRegularizationMethod().m_lamda, 11);
-        ASSERT_EQ(net->getLayer(i)->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+        ASSERT_FLOAT_EQ(net->getLayer(i)->getRegularizationMethod()->m_lamda, 11);
+        ASSERT_EQ(net->getLayer(i)->getRegularizationMethod()->m_method, Regularization::RegularizationMethod::WeightDecay);
     }
 
 
@@ -780,8 +780,8 @@ TEST(NetworkTest, Regularization)
 
     Network* net2 = new Network(*net);
 
-    ASSERT_FLOAT_EQ(net2->getRegularizationMethod().m_lamda, 11);
-    ASSERT_EQ(net2->getRegularizationMethod().m_method, Regularization::RegularizationMethod::WeightDecay);
+    ASSERT_FLOAT_EQ(net2->getRegularizationMethod()->m_lamda, 11);
+    ASSERT_EQ(net2->getRegularizationMethod()->m_method, Regularization::RegularizationMethod::WeightDecay);
 
     delete net;
     delete net2;

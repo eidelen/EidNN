@@ -130,10 +130,10 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     {
         ui->regLambdaSB->setEnabled( ui->regCB->isChecked() );
 
-        Regularization reg( Regularization::RegularizationMethod::NoneRegularization, 1 );
+        std::shared_ptr<Regularization> reg(new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1));
 
         if( ui->regCB->isChecked() )
-            reg = Regularization( Regularization::RegularizationMethod::WeightDecay, ui->regLambdaSB->value() );
+            reg.reset( new Regularization(Regularization::RegularizationMethod::WeightDecay, ui->regLambdaSB->value()) );
 
         m_net->setRegularizationMethod(reg);
     });

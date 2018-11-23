@@ -26,11 +26,11 @@
 #include "regularization.h"
 
 Regularization::Regularization(Regularization::RegularizationMethod method, double lamda) :
-m_method(method), m_lamda(lamda)
+m_method(method), m_lamda(lamda), m_weightSum(1.0), m_nbrSamples(1)
 {
 }
 
-Regularization::Regularization() : m_method(Regularization::RegularizationMethod::NoneRegularization), m_lamda(1.0)
+Regularization::Regularization() : m_method(Regularization::RegularizationMethod::NoneRegularization), m_lamda(1.0), m_weightSum(1.0), m_nbrSamples(1)
 {
 }
 
@@ -54,4 +54,20 @@ std::string Regularization::toString() const
     }
 
     return ret;
+}
+double Regularization::regularizationCost() const
+{
+    double regCost = 0.0;
+
+    switch( m_method )
+    {
+        case RegularizationMethod::NoneRegularization:
+            break;
+
+        case RegularizationMethod::WeightDecay:
+            regCost = m_lamda / (2.0 * m_nbrSamples) * m_weightSum;
+            break;
+    }
+
+    return regCost;
 }

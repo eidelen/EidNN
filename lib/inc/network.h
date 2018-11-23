@@ -262,16 +262,15 @@ public:
 
     /**
      * Sets the applied regularization.
-     * @param method
-     * @param lamda
+     * @param regMethod
      */
-    void setRegularizationMethod( Regularization reg );
+    void setRegularizationMethod( std::shared_ptr<Regularization> regMethod );
 
     /**
      * Gets the applied regularization.
      * @return Regularization method.
      */
-    Regularization getRegularizationMethod() const;
+    std::shared_ptr<Regularization> getRegularizationMethod() const;
 
     /**
      * Gets the sum of all square weights in the
@@ -308,7 +307,7 @@ private:
     std::thread m_asyncOperation;
     std::atomic<bool> m_operationInProgress;
 
-    Regularization m_regularization;
+    std::shared_ptr<Regularization> m_regularization;
 };
 
 #endif //NETWORKHEADER

@@ -37,8 +37,7 @@ Layer::Layer(const uint& nbr_of_neurons , const uint &nbr_of_inputs, const Layer
     m_nbr_of_neurons( nbr_of_neurons ),
     m_nbr_of_inputs( nbr_of_inputs ),
     m_layer_type(type),
-    m_outputLayerCost(0.0),
-    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1.0)
+    m_outputLayerCost(0.0)
 {
     initLayer();
 }
@@ -54,6 +53,8 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
         m_weightMatrix.row(n) = weights.at(n).transpose();
         m_biasVector(n,0) = biases.at(n);
     }
+
+    m_regularization.reset( new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1.0 ));
 }
 
 Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInputs(), l.getLayerType() )
@@ -79,6 +80,8 @@ void Layer::initLayer()
     m_backpropagationError =  Eigen::MatrixXd( 1 , 1 );
 
     m_costFunction.reset( new QuadraticCost() );
+
+    m_regularization.reset( new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1.0 ));
 }
 
 
@@ -237,7 +240,8 @@ bool Layer::computeBackpropagationOutputLayerError(const Eigen::MatrixXd &expect
         m_backpropagationError = m_activation_out - expectedNetworkOutput;
     }
 
-    m_outputLayerCost = m_costFunction->cost( m_activation_out, expectedNetworkOutput );
+    double regularizationCost = m_regularization->regularizationCost();
+    m_outputLayerCost = m_costFunction->cost( m_activation_out, expectedNetworkOutput ) + regularizationCost;
 
     return true;
 }
@@ -371,12 +375,12 @@ double Layer::getSumOfWeightSquares() const
     return (m_weightMatrix.cwiseProduct(m_weightMatrix)).sum();
 }
 
-void Layer::setRegularizationMethod(Regularization reg)
+void Layer::setRegularizationMethod(std::shared_ptr<Regularization> reg)
 {
     m_regularization = reg;
 }
 
-Regularization Layer::getRegularizationMethod() const
+std::shared_ptr<Regularization> Layer::getRegularizationMethod() const
 {
     return m_regularization;
 }

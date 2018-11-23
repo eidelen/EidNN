@@ -270,16 +270,15 @@ public:
 
     /**
      * Sets the applied regularization.
-     * @param method
-     * @param lamda
+     * @param regMethod
      */
-    void setRegularizationMethod( Regularization reg );
+    void setRegularizationMethod( std::shared_ptr<Regularization> regMethod);
 
     /**
      * Gets the applied regularization.
      * @return Regularization method.
      */
-    Regularization getRegularizationMethod() const;
+    std::shared_ptr<Regularization> getRegularizationMethod() const;
 
     unsigned int getNbrOfNeurons() const { return m_nbr_of_neurons; }
     unsigned int getNbrOfNeuronInputs() const { return m_nbr_of_inputs; }
@@ -318,7 +317,7 @@ private:
 
     std::shared_ptr<CostFunction> m_costFunction;
 
-    Regularization m_regularization;
+    std::shared_ptr<Regularization> m_regularization;
 };
 
 #endif //LAYERHEADER

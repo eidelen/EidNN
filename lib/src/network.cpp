@@ -36,15 +36,13 @@
 using namespace std;
 
 Network::Network( const vector<unsigned int> networkStructure ) :
-    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_asyncOperation{}, m_operationInProgress( false ),
-    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1)
+    m_NetworkStructure( networkStructure ), m_oberserver( NULL ), m_asyncOperation{}, m_operationInProgress( false )
 {
     initNetwork();
 }
 
 Network::Network( const Network& n ) :
-    m_NetworkStructure( n.getNetworkStructure() ), m_oberserver( n.m_oberserver ), m_asyncOperation{}, m_operationInProgress( false ),
-    m_regularization(Regularization::RegularizationMethod::NoneRegularization, 1)
+    m_NetworkStructure( n.getNetworkStructure() ), m_oberserver( n.m_oberserver ), m_asyncOperation{}, m_operationInProgress( false )
 {
     // copy layers
     m_Layers.clear();
@@ -60,7 +58,7 @@ Network::Network( const Network& n ) :
     getOutputLayer()->setCostFunction(n.getOutputLayer()->getCostFunction());
     setSoftmaxOutput(n.isSoftmaxOutputEnabled());
 
-    m_regularization = Regularization(n.getRegularizationMethod().m_method, n.getRegularizationMethod().m_lamda);
+    setRegularizationMethod(n.getRegularizationMethod());
 }
 
 
@@ -82,8 +80,7 @@ void Network::initNetwork()
 
     m_activation_out = Eigen::MatrixXd( 1, 1 ); // dimension will be updated based on nbr of input samples
 
-    m_regularization.m_lamda = 0.0;
-    m_regularization.m_method = Regularization::RegularizationMethod::NoneRegularization;
+    m_regularization.reset( new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1.0 ));
 }
 
 bool Network::feedForward( const Eigen::MatrixXd& x_in )
@@ -314,6 +311,12 @@ bool Network::doFeedforwardAndBackpropagation( const Eigen::MatrixXd& x_in, cons
     // updates output in all layers
     if( ! feedForward(x_in) )
         return false;
+
+    if( m_regularization->m_method == Regularization::RegularizationMethod::WeightDecay )
+    {
+        getOutputLayer()->getRegularizationMethod()->m_weightSum = getSumOfWeighSquares();
+        getOutputLayer()->getRegularizationMethod()->m_nbrSamples = x_in.cols();
+    }
 
     if( getOutputActivation().rows() != y_out.rows() )
     {
@@ -578,16 +581,16 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
     return rInd;
 }
 
-void Network::setRegularizationMethod(Regularization reg)
+void Network::setRegularizationMethod(std::shared_ptr<Regularization> regMethod)
 {
-    std::cout << "Set regularization method: " << reg.toString() << std::endl;
-    m_regularization = reg;
+    std::cout << "Set regularization method: " << regMethod->toString() << std::endl;
+    m_regularization = regMethod;
 
     for( unsigned int k = 0; k < m_Layers.size(); k++ )
-        getLayer(k)->setRegularizationMethod(m_regularization);
+        getLayer(k)->setRegularizationMethod(regMethod);
 }
 
-Regularization Network::getRegularizationMethod() const
+std::shared_ptr<Regularization> Network::getRegularizationMethod() const
 {
     return m_regularization;
 }

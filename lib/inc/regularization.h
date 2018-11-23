@@ -42,9 +42,12 @@ public:
     ~Regularization();
 
     std::string toString() const;
+    double regularizationCost() const;
 
     RegularizationMethod m_method;
     double m_lamda;
+    double m_weightSum;
+    size_t m_nbrSamples;
 
 };
 
