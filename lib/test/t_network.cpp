@@ -418,28 +418,24 @@ public:
     TestCallback(){}
     ~TestCallback(){}
     void networkOperationProgress(const NetworkOperationId& opId, const NetworkOperationStatus& opStatus,
-                                  const double &progress) override
+                                  const double &progress, const int& userID) override
     {
-        m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress;
+        m_lastOpId = opId; m_lastOpStatus = opStatus; m_lastProgress = progress; m_lastUserId = userID;
     }
 
-    void
-    networkTestResults(const double &successRateEuclidean,
+    void networkTestResults(const double &successRateEuclidean,
                        const double &successRateMaxIdx,
                        const double &averageCost,
-                       const std::vector<std::size_t> &failedSamplesIdx) override
+                       const std::vector<std::size_t> &failedSamplesIdx,
+                       const int& userID) override
     {
-    }
-    void
-    networkTrainingResults(const double &successRateEuclidean,
-                           const double &successRateMaxIdx,
-                           const double &averageCost) override
-    {
+        m_lastUserId = userID;
     }
 
     NetworkOperationId m_lastOpId;
     NetworkOperationStatus m_lastOpStatus;
     double m_lastProgress;
+    int m_lastUserId;
 
 };
 
@@ -533,29 +529,25 @@ public:
     TestCallback2(){}
     ~TestCallback2(){}
     void networkOperationProgress(const NetworkOperationId& , const NetworkOperationStatus& status,
-                                  const double &progress) override
+                                  const double &progress, const int& userID) override
     {
         std::cout << "Async CB: " << progress*100 << "%" << std::endl;
         m_lastStatus = status;
+        m_lastUserId = userID;
     }
 
     void
     networkTestResults(const double &successRateEuclidean,
                        const double &successRateMaxIdx,
                        const double &averageCost,
-                       const std::vector<std::size_t> &failedSamplesIdx) override
+                       const std::vector<std::size_t> &failedSamplesIdx,
+                       const int& userID) override
     {
-
-    }
-    void
-    networkTrainingResults(const double &successRateEuclidean,
-                           const double &successRateMaxIdx,
-                           const double &averageCost) override
-    {
-
+        m_lastUserId = userID;
     }
 
     NetworkOperationStatus m_lastStatus;
+    int m_lastUserId;
 };
 
 TEST(NetworkTest, Backpropagate_StochasticGD_Async)
@@ -591,14 +583,17 @@ TEST(NetworkTest, Backpropagate_StochasticGD_Async)
     TestCallback2* tb = new TestCallback2();
     net->setObserver( tb );
 
-    ASSERT_TRUE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) );
-    ASSERT_FALSE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) ); // since already async operation in progress;
+    ASSERT_TRUE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1, 1234 ) );
+    ASSERT_FALSE( net->stochasticGradientDescentAsync( xin, yout, 100, 0.1, 1234 ) ); // since already async operation in progress;
     ASSERT_TRUE( net->isOperationInProgress() );
 
     net->getCurrentAsyncOperation().join(); // waits till thread ends
 
-    ASSERT_TRUE(net->stochasticGradientDescentAsync( xin, yout, 100, 0.1 ) ); // call a third time, now it should work again
+    ASSERT_EQ(tb->m_lastUserId, 1234);
+
+    ASSERT_TRUE(net->stochasticGradientDescentAsync( xin, yout, 100, 0.1, 4321 ) ); // call a third time, now it should work again
     net->getCurrentAsyncOperation().join(); // waits till thread ends
+    ASSERT_EQ(tb->m_lastUserId, 4321);
 
     ASSERT_FALSE( net->isOperationInProgress() );
     ASSERT_EQ( tb->m_lastStatus, NetworkOperationCallback::OpResultOk );

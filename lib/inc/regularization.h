@@ -25,6 +25,7 @@
 #define REGULARIZATION_H
 
 #include <string>
+#include <Eigen/Dense>
 
 class Regularization
 {
@@ -43,6 +44,7 @@ public:
 
     std::string toString() const;
     double regularizationCost() const;
+
 
     RegularizationMethod m_method;
     double m_lamda;

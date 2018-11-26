@@ -55,6 +55,7 @@ std::string Regularization::toString() const
 
     return ret;
 }
+
 double Regularization::regularizationCost() const
 {
     double regCost = 0.0;
@@ -65,7 +66,7 @@ double Regularization::regularizationCost() const
             break;
 
         case RegularizationMethod::WeightDecay:
-            regCost = m_lamda / (2.0 * m_nbrSamples) * m_weightSum;
+            regCost = m_lamda / 2.0 * m_weightSum;
             break;
     }
 

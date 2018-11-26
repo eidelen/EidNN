@@ -137,10 +137,11 @@ public:
      * @param lables Desired output signals.
      * @param batchsize Number of samples in the batch.
      * @param eta Learning rate.
+     * @param userId User given id.
      * @return true if successful.
      */
     bool stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
-                                        const unsigned int& batchsize, const double& eta );
+                                        const unsigned int& batchsize, const double& eta, const int& userId );
 
     /**
      * Tests the network with given samples and lables.
@@ -163,10 +164,11 @@ public:
      * @param samples Input sample.
      * @param lables Expected output.
      * @param euclideanDistanceThreshold The threshold when compareing the Euclidean distance between expected output and actual output signal.
+     * @param userId User given id.
      * @return True if successful. Otherwise false.
      */
     bool testNetworkAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
-                           const double& euclideanDistanceThreshold );
+                           const double& euclideanDistanceThreshold, const int& userId );
 
     /**
      * Returns the magnitude of the error vector in the output layer. This error is
@@ -287,7 +289,7 @@ private:
     // Do feedforward and backprop. but weights and biases are not updated!
     bool doFeedforwardAndBackpropagation(const Eigen::MatrixXd &x_in, const Eigen::MatrixXd &y_out );
 
-    bool doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta, double& cost);
+    bool doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta);
 
     void sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& opId,
                        const NetworkOperationCallback::NetworkOperationStatus& opStatus, const double& progress  );
@@ -308,6 +310,8 @@ private:
     std::atomic<bool> m_operationInProgress;
 
     std::shared_ptr<Regularization> m_regularization;
+
+    int m_userID{0};
 };
 
 #endif //NETWORKHEADER

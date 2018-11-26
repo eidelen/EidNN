@@ -52,8 +52,9 @@ public:
      * @param opId Operation ID.
      * @param opStatus Operation status.
      * @param progress Opration progress. This is a number between 0.0 and 1.0.
+     * @param userId User given id.
      */
-    virtual void networkOperationProgress( const NetworkOperationId& opId, const NetworkOperationStatus& opStatus, const double& progress ) = 0;
+    virtual void networkOperationProgress( const NetworkOperationId& opId, const NetworkOperationStatus& opStatus, const double& progress, const int& userId ) = 0;
 
     /**
      * Callback function which informs about the network test results.
@@ -61,20 +62,11 @@ public:
      * @param successRateMaxIdx Success rate in terms of identical maximum element.
      * @param averageCost Average test cost
      * @param failedSamplesIdx List of failed samples
+     * @param userId User given id
      */
     virtual void networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
                                      const double& averageCost,
-                                     const std::vector<std::size_t>& failedSamplesIdx) = 0;
-
-
-    /**
-     * Callback function which informs about the network training.
-     * @param successRateEuclidean Success rate in terms of the Euclidean distance between expected and actual output.
-     * @param successRateMaxIdx Success rate in terms of identical maximum element.
-     * @param averageCost Average cost
-     */
-    virtual void networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx,
-                                         const double& averageCost ) = 0;
+                                     const std::vector<std::size_t>& failedSamplesIdx, const int& userId) = 0;
 
 };
 

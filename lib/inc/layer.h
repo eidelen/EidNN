@@ -197,8 +197,9 @@ public:
      * Corrects the biases and weights within this layer by the passed values.
      * @param deltaBias
      * @param deltaWeight
+     * @param eta Learning rate
      */
-    void updateWeightsAndBiases(const Eigen::MatrixXd &deltaBias, const Eigen::MatrixXd& deltaWeight );
+    void updateWeightsAndBiases(const Eigen::MatrixXd &deltaBias, const Eigen::MatrixXd& deltaWeight, const double& eta );
 
     /**
      * Returns the computed backprogation error in this layer. Each column of the returned

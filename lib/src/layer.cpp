@@ -278,16 +278,25 @@ void Layer::computePartialDerivatives()
 
 void Layer::updateWeightsAndBiases(const double &eta, const unsigned int& sampleIdx )
 {
-    updateWeightsAndBiases(eta * getPartialDerivativesBiases().at(sampleIdx), eta * getPartialDerivativesWeights().at(sampleIdx) );
+    updateWeightsAndBiases(eta * getPartialDerivativesBiases().at(sampleIdx), eta * getPartialDerivativesWeights().at(sampleIdx), eta );
 }
 
-void Layer::updateWeightsAndBiases(const Eigen::MatrixXd& deltaBias, const Eigen::MatrixXd& deltaWeight)
+void Layer::updateWeightsAndBiases(const Eigen::MatrixXd& deltaBias, const Eigen::MatrixXd& deltaWeight, const double& eta)
 {
 
     const Eigen::MatrixXd newBiases = getBiasVector() - deltaBias;
     setBiases( newBiases );
 
-    const Eigen::MatrixXd newWeights = getWeigtMatrix() - deltaWeight;
+    Eigen::MatrixXd newWeights;
+    switch( getRegularizationMethod()->m_method )
+    {
+        case Regularization::RegularizationMethod::WeightDecay:
+            newWeights = (1-getRegularizationMethod()->m_lamda * eta) * getWeigtMatrix()  -   deltaWeight;
+            break;
+
+        default:
+            newWeights = getWeigtMatrix() - deltaWeight;
+    }
     setWeights( newWeights );
 }
 

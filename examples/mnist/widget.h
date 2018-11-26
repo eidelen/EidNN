@@ -62,7 +62,7 @@ signals:
 private:
     Ui::Widget* ui;
     QtCharts::QLineSeries* m_plotData_classification;
-    QtCharts::QLineSeries* m_plotData_L2;
+    QtCharts::QLineSeries* m_trainingSuccess;
     QtCharts::QValueAxis* m_XAxis;
     QtCharts::QValueAxis* m_YAxis;
 

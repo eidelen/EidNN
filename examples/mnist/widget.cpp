@@ -42,10 +42,10 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     chart->legend()->hide();
     m_plotData_classification = new QtCharts::QLineSeries( );
     m_plotData_classification->append(0,0);
-    m_plotData_L2 = new QtCharts::QLineSeries( );
-    m_plotData_L2->append(0,0);
+    m_trainingSuccess = new QtCharts::QLineSeries( );
+    m_trainingSuccess->append(0,0);
     chart->addSeries( m_plotData_classification );
-    chart->addSeries( m_plotData_L2 );
+    chart->addSeries( m_trainingSuccess );
     m_XAxis = new QtCharts::QValueAxis();
     m_XAxis->setTitleText("Epoch");
     m_XAxis->setLabelFormat("%d"); 
@@ -57,8 +57,8 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
     chart->addAxis(m_YAxis, Qt::AlignLeft);
     m_plotData_classification->attachAxis(m_XAxis);
     m_plotData_classification->attachAxis(m_YAxis);
-    m_plotData_L2->attachAxis(m_XAxis);
-    m_plotData_L2->attachAxis(m_YAxis);
+    m_trainingSuccess->attachAxis(m_XAxis);
+    m_trainingSuccess->attachAxis(m_YAxis);
     ui->progressChart->setChart( chart );
     ui->progressChart->setRenderHint(QPainter::Antialiasing);
 
@@ -133,7 +133,7 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
         std::shared_ptr<Regularization> reg(new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1));
 
         if( ui->regCB->isChecked() )
-            reg.reset( new Regularization(Regularization::RegularizationMethod::WeightDecay, ui->regLambdaSB->value()) );
+            reg.reset( new Regularization(Regularization::RegularizationMethod::WeightDecay, 0.001 ));// ui->regLambdaSB->value()) );
 
         m_net->setRegularizationMethod(reg);
     });
@@ -267,7 +267,7 @@ void Widget::updateUi()
         double min_Class; double max_Class;
         getMinMaxYValue(m_plotData_classification,4,min_Class,max_Class);
         double min_L2; double max_L2;
-        getMinMaxYValue(m_plotData_L2,4,min_L2,max_L2);
+        getMinMaxYValue(m_trainingSuccess,4,min_L2,max_L2);
 
         double lower = std::max(std::min(min_Class,min_L2)*0.95, 0.0);
         double upper = std::min(std::max(max_Class,max_L2)*1.2, 100.0);
@@ -341,7 +341,6 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
 
     m_failedSamples = failedSamplesIdx;
 
-    m_plotData_L2->append( m_plotData_L2->count(), successRateEuclidean * 100);
     m_plotData_classification->append( m_plotData_classification->count(), successRateMaxIdx * 100 );
 
     m_testSetCost->append( m_testSetCost->count(), averageCost);
@@ -352,6 +351,7 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
 
 void Widget::networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx, const double& averageCost )
 {
+    m_trainingSuccess->append( m_trainingSuccess->count(), successRateEuclidean * 100);
     m_trainingSetCost->append( m_trainingSetCost->count(), averageCost );
     std::cout << "Training success: L2 = " << successRateEuclidean*100.0 << "%,  MAX = " << successRateMaxIdx * 100.0 << "%" << std::endl;
     std::cout << "AVG TRAINING COST = " << averageCost << std::endl;

@@ -146,11 +146,12 @@ bool Network::gradientDescent( const Eigen::MatrixXd& x_in, const Eigen::MatrixX
 }
 
 bool Network::stochasticGradientDescentAsync(const std::vector<Eigen::MatrixXd> &samples, const std::vector<Eigen::MatrixXd> &lables,
-                                             const unsigned int& batchsize, const double& eta)
+                                             const unsigned int& batchsize, const double& eta, const int& userId)
 {
     if( !prepareForNextAsynchronousOperation() )
         return false;
 
+    m_userID = userId;
     m_asyncOperation = std::thread(&Network::stochasticGradientDescent, this,  samples, lables, batchsize, eta);
     return true;
 }
@@ -159,7 +160,6 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
                                         const unsigned int& batchsize, const double& eta)
 {    
     bool retValue = false;
-    double cost = 0.0;
     size_t nbrOfSamples = samples.size();
 
     if( samples.size() != lables.size() )
@@ -190,14 +190,10 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
                 batch_out.col(b) = lables.at(rIdx);
             }
 
-            double batchCost = 0.0;
-            doStochasticGradientDescentBatch(batch_in, batch_out, eta, batchCost);
-            cost += batchCost;
+            doStochasticGradientDescentBatch(batch_in, batch_out, eta);
 
             sendProg2Obs( NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpInProgress, double(batch)/double(nbrOfBatches) );
         }
-
-        cost = cost / static_cast<double>(nbrOfBatches);
 
         retValue = true;
     }
@@ -206,14 +202,6 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
 
     if( retValue )
     {
-        if( m_oberserver != NULL )
-        {
-            // test network with training data
-            double successRateEuclidean; double successRateMaxIdx; double euclideanDistanceThreshold; double avgCost; std::vector<size_t> failedSamples;
-            testNetwork( samples, lables, euclideanDistanceThreshold, false, successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
-            m_oberserver->networkTrainingResults( successRateEuclidean, successRateMaxIdx, avgCost);
-        }
-
         sendProg2Obs(NetworkOperationCallback::OpStochasticGradientDescent, NetworkOperationCallback::OpResultOk, 1.0);
     }
     else
@@ -224,13 +212,11 @@ bool Network::stochasticGradientDescent(const std::vector<Eigen::MatrixXd>& samp
     return retValue;
 }
 
-bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta, double& cost )
+bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, const Eigen::MatrixXd& batch_out, const double& eta)
 {
     // this feedforwards the whole batch at once
     if( !doFeedforwardAndBackpropagation( batch_in, batch_out ) )
         return false;
-
-    cost = getOutputLayer()->getCost();
 
     long batchsize = batch_in.cols();
 
@@ -254,7 +240,7 @@ bool Network::doStochasticGradientDescentBatch(const Eigen::MatrixXd& batch_in, 
         // update weights and biases in layer
         Eigen::MatrixXd avgPDBias = biasSum * ( eta / double(batchsize) );
         Eigen::MatrixXd avgPDWeights = weightSum * ( eta / double(batchsize) );
-        l->updateWeightsAndBiases(avgPDBias, avgPDWeights);
+        l->updateWeightsAndBiases(avgPDBias, avgPDWeights, eta);
     }
 
     return true;
@@ -347,7 +333,7 @@ void Network::sendProg2Obs( const NetworkOperationCallback::NetworkOperationId& 
                                       const double& progress  )
 {
     if( m_oberserver != NULL )
-        m_oberserver->networkOperationProgress( opId, opStatus, progress );
+        m_oberserver->networkOperationProgress( opId, opStatus, progress, m_userID );
 }
 
 bool Network::prepareForNextAsynchronousOperation()
@@ -366,11 +352,12 @@ bool Network::prepareForNextAsynchronousOperation()
 }
 
 bool Network::testNetworkAsync( const std::vector<Eigen::MatrixXd>& samples, const std::vector<Eigen::MatrixXd>& lables,
-                       const double& euclideanDistanceThreshold )
+                       const double& euclideanDistanceThreshold, const int& userId )
 {
     if( !prepareForNextAsynchronousOperation() )
         return false;
 
+    m_userID = userId;
     m_asyncOperation = std::thread(&Network::doTestAsync, this,  samples, lables, euclideanDistanceThreshold);
     return true;
 }
@@ -388,12 +375,12 @@ void Network::doTestAsync( const std::vector<Eigen::MatrixXd>& samples, const st
     {
         if( res )
         {
-            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0 );
-            m_oberserver->networkTestResults( successRateEuclidean, successRateMaxIdx, avgCost, failedSamples );
+            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultOk, 1.0, m_userID );
+            m_oberserver->networkTestResults( successRateEuclidean, successRateMaxIdx, avgCost, failedSamples, m_userID );
         }
         else
         {
-            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultErr, 1.0 );
+            m_oberserver->networkOperationProgress( NetworkOperationCallback::OpTestNetwork, NetworkOperationCallback::OpResultErr, 1.0, m_userID );
         }
     }
 }
