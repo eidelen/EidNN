@@ -15,7 +15,8 @@
 #include <QFileDialog>
 
 Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
-    m_sr_L2(0), m_sr_MAX(0), m_progress_testing(0), m_progress_learning(0)
+    m_sr_L2(0), m_sr_MAX(0), m_progress_training_testing(0), m_progress_learning(0),
+    m_progress_validation(0)
 {
     ui->setupUi(this);
 
@@ -138,7 +139,8 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
         m_net->setRegularizationMethod(reg);
     });
 
-    connect( this, SIGNAL(readyForTesting()), this, SLOT(doNNTesting()));
+    connect( this, SIGNAL(readyForValidation()), this, SLOT(doNNValidation()));
+    connect( this, SIGNAL(readyForTrainingTesting()), this, SLOT(doNNTesting()));
     connect( this, SIGNAL(readyForLearning()), this, SLOT(doNNLearning()));
     connect( ui->loadNNBtn, SIGNAL(pressed()), this, SLOT(loadNN()));
     connect( ui->saveNNBtn, SIGNAL(pressed()), this, SLOT(saveNN()));
@@ -186,7 +188,8 @@ void Widget::prepareSamples()
 
         m_net.reset(new Network(map));
         m_net->setObserver(this);
-        m_net_testing.reset(new Network(*(m_net.get())));
+        m_net_validation.reset(new Network(*(m_net.get())));
+        m_net_training_testing.reset(new Network(*(m_net.get())));
     }
     else
     {
@@ -219,11 +222,11 @@ void Widget::displayTestMNISTImage( const size_t& idx )
 
     ui->testlable->setText( "Lable: " + QString::number(sample.lable, 10) );
 
-    if( !m_net_testing->isOperationInProgress() )
+    if( !m_net_validation->isOperationInProgress() )
     {
         // feedforward
-        m_net_testing->feedForward(m_data->m_test.at(idx).input);
-        Eigen::MatrixXd activationSignal = m_net_testing->getOutputActivation();
+        m_net_validation->feedForward(m_data->m_test.at(idx).input);
+        Eigen::MatrixXd activationSignal = m_net_validation->getOutputActivation();
         QString actStr;
         actStr.sprintf("Activation: [ %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]", activationSignal(0,0), activationSignal(1,0),
                        activationSignal(2,0), activationSignal(3,0), activationSignal(4,0), activationSignal(5,0), activationSignal(6,0),
@@ -243,7 +246,8 @@ void Widget::updateUi()
     ui->resultLable->setText(testingRes);
 
     ui->learingProgress->setValue( int(round(m_progress_learning * 100.0)) );
-    ui->testingProgress->setValue( int(round(m_progress_testing * 100.0)) );
+    ui->testingTrainingProgress->setValue( int(round(m_progress_training_testing * 100.0)) );
+    ui->validationProgress->setValue( int(round(m_progress_validation * 100.0)) );
 
     QMutexLocker locker( &m_uiLock );
 
@@ -297,27 +301,39 @@ void Widget::doNNLearning()
 { 
     double learningRate = ui->learingRateSB->value();
     m_net->setCostFunction( getCurrentSelectedCostFunction() );
-    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, learningRate );
+    m_net->stochasticGradientDescentAsync(m_batchin, m_batchout, 10, learningRate, NETID_TRAINING );
 }
 
 void Widget::doNNTesting()
 {
-    m_net_testing->testNetworkAsync( m_testin, m_testout, 0.50 );
+    m_net_training_testing->testNetworkAsync( m_batchin, m_batchout, 0.50, NETID_TRAINING_TESTING);
+}
+
+void Widget::doNNValidation()
+{
+    m_net_validation->testNetworkAsync( m_testin, m_testout, 0.50, NETID_VALIDATION);
 }
 
 void Widget::networkOperationProgress( const NetworkOperationId & opId, const NetworkOperationStatus &opStatus,
-                                       const double &progress )
+                                       const double &progress, const int& userId )
 {
     if( opId == NetworkOperationCallback::OpStochasticGradientDescent )
     {
         m_progress_learning = progress;
         if( opStatus == NetworkOperationCallback::OpResultOk )
         {
-            // only overwrite if no operation ongoing on testing net
-            if( ! m_net_testing->isOperationInProgress() )
+            // only overwrite if no operation ongoing on validation net
+            if( ! m_net_validation->isOperationInProgress() )
             {
-                m_net_testing.reset( new Network( *(m_net.get())) );
-                emit readyForTesting();
+                m_net_validation.reset( new Network( *(m_net.get())) );
+                emit readyForValidation();
+            }
+
+            // only overwrite if no operation ongoing on training testing net
+            if( ! m_net_training_testing->isOperationInProgress() )
+            {
+                m_net_training_testing.reset( new Network( *(m_net.get())) );
+                emit readyForTrainingTesting();
             }
 
             if( ui->keepLearingCB->isChecked() )
@@ -326,35 +342,41 @@ void Widget::networkOperationProgress( const NetworkOperationId & opId, const Ne
     }
     else if( opId == NetworkOperationCallback::OpTestNetwork )
     {
-        m_progress_testing = progress;
+        if( userId == NETID_VALIDATION )
+            m_progress_validation = progress;
+        else if( userId == NETID_TRAINING_TESTING )
+            m_progress_training_testing = progress;
     }
 }
 
 void Widget::networkTestResults( const double& successRateEuclidean, const double& successRateMaxIdx,
                                  const double& averageCost,
-                                 const std::vector<std::size_t>& failedSamplesIdx )
+                                 const std::vector<std::size_t>& failedSamplesIdx, const int& userId )
 {
     QMutexLocker locker( &m_uiLock );
 
-    m_sr_L2 = successRateEuclidean;
-    m_sr_MAX = successRateMaxIdx;
+    if( userId == NETID_VALIDATION )
+    {
+        m_sr_L2 = successRateEuclidean;
+        m_sr_MAX = successRateMaxIdx;
 
-    m_failedSamples = failedSamplesIdx;
+        m_failedSamples = failedSamplesIdx;
 
-    m_plotData_classification->append( m_plotData_classification->count(), successRateMaxIdx * 100 );
+        m_plotData_classification->append(m_plotData_classification->count(), successRateMaxIdx * 100);
 
-    m_testSetCost->append( m_testSetCost->count(), averageCost);
+        m_testSetCost->append(m_testSetCost->count(), averageCost);
 
-    std::cout << "Test success: L2 = " << m_sr_L2*100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
-    std::cout << "AVG TEST COST = " << averageCost << std::endl;
-}
+        std::cout << "Test success: L2 = " << m_sr_L2 * 100.0 << "%,  MAX = " << m_sr_MAX * 100.0 << "%" << std::endl;
+        std::cout << "AVG TEST COST = " << averageCost << std::endl;
+    }
+    else if( userId == NETID_TRAINING_TESTING )
+    {
+        m_trainingSuccess->append( m_trainingSuccess->count(), successRateEuclidean * 100);
+        m_trainingSetCost->append( m_trainingSetCost->count(), averageCost );
 
-void Widget::networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx, const double& averageCost )
-{
-    m_trainingSuccess->append( m_trainingSuccess->count(), successRateEuclidean * 100);
-    m_trainingSetCost->append( m_trainingSetCost->count(), averageCost );
-    std::cout << "Training success: L2 = " << successRateEuclidean*100.0 << "%,  MAX = " << successRateMaxIdx * 100.0 << "%" << std::endl;
-    std::cout << "AVG TRAINING COST = " << averageCost << std::endl;
+        std::cout << "Training success: L2 = " << successRateEuclidean*100.0 << "%,  MAX = " << successRateMaxIdx * 100.0 << "%" << std::endl;
+        std::cout << "AVG TRAINING COST = " << averageCost << std::endl;
+    }
 }
 
 void Widget::loadNN()
@@ -368,8 +390,11 @@ void Widget::loadNN()
 
         ui->softmax->setChecked(m_net->isSoftmaxOutputEnabled());
 
-        m_net_testing.reset( new Network( *(m_net.get())) );
-        emit readyForTesting();
+        m_net_validation.reset( new Network( *(m_net.get())) );
+        m_net_training_testing.reset( new Network( *(m_net.get())) );
+
+        emit readyForValidation();
+        emit readyForTrainingTesting();
     }
 }
 

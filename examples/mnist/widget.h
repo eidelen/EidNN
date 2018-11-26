@@ -30,12 +30,10 @@ public:
     // NetworkOperationCallback interface
 public:
     void networkOperationProgress( const NetworkOperationId &opId, const NetworkOperationStatus &opStatus,
-                                   const double &progress );
+                                   const double &progress, const int& userId );
     void networkTestResults(const double& successRateEuclidean, const double& successRateMaxIdx ,
                             const double& averageCost,
-                            const std::vector<size_t>& failedSamplesIdx);
-
-    void networkTrainingResults( const double& successRateEuclidean, const double& successRateMaxIdx, const double& averageCost );
+                            const std::vector<size_t>& failedSamplesIdx, const int& userId);
 
 private:
     bool loadMNISTSample( const std::vector<std::vector<double>>& imgSet, const std::vector<uint8_t>& lableSet,
@@ -50,13 +48,15 @@ private:
 
 public slots:
     void doNNTesting();
+    void doNNValidation();
     void doNNLearning();
     void updateUi();
     void loadNN();
     void saveNN();
 
 signals:
-    void readyForTesting();
+    void readyForValidation();
+    void readyForTrainingTesting();
     void readyForLearning();
 
 private:
@@ -81,16 +81,22 @@ private:
     std::vector<Eigen::MatrixXd> m_testout;
     size_t m_currentIdx;
     std::shared_ptr<Network> m_net;
-    std::shared_ptr<Network> m_net_testing;
+    std::shared_ptr<Network> m_net_validation;
+    std::shared_ptr<Network> m_net_training_testing;
 
     // thread safe ui values
     std::atomic<double> m_sr_L2, m_sr_MAX;
-    std::atomic<double> m_progress_testing;
+    std::atomic<double> m_progress_training_testing;
     std::atomic<double> m_progress_learning;
+    std::atomic<double> m_progress_validation;
     QMutex m_uiLock;
     std::vector<std::size_t> m_failedSamples;
 
     MnistDataInput* m_data;
+
+    const int NETID_TRAINING{0};
+    const int NETID_TRAINING_TESTING{1};
+    const int NETID_VALIDATION{2};
 };
 
 #endif // WIDGET_H

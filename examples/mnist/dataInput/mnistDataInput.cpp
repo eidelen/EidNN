@@ -58,7 +58,7 @@ void MnistDataInput::load()
     mnist::normalize_dataset(mnistinputNormalized);
 
     // Load training data
-    for( size_t k = 0; k < 1000; k++) //mnistinputNormalized.training_images.size(); k++ )
+    for( size_t k = 0; k < mnistinputNormalized.training_images.size(); k++ )
     {
         Eigen::MatrixXd xInNormalized; uint8_t lable;
         loadMNISTSample( mnistinputNormalized.training_images, mnistinputNormalized.training_labels, k, xInNormalized, lable );
@@ -66,7 +66,7 @@ void MnistDataInput::load()
     }
 
     // Load testing data
-    for( size_t k = 0; k < 10000; k++) //mnistinputNormalized.test_images.size(); k++ )
+    for( size_t k = 0; k < mnistinputNormalized.test_images.size(); k++ )
     {
         Eigen::MatrixXd xInNormalized; uint8_t lable;
         loadMNISTSample( mnistinputNormalized.test_images, mnistinputNormalized.test_labels, k, xInNormalized, lable );
