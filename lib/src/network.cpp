@@ -592,3 +592,11 @@ double Network::getSumOfWeighSquares() const
 
     return sum;
 }
+int Network::getUserID() const
+{
+    return m_userID;
+}
+void Network::setUserID(int userID)
+{
+    m_userID = userID;
+}

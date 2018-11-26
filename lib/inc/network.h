@@ -312,6 +312,11 @@ private:
     std::shared_ptr<Regularization> m_regularization;
 
     int m_userID{0};
+public:
+    int
+    getUserID() const;
+    void
+    setUserID(int m_userID);
 };
 
 #endif //NETWORKHEADER

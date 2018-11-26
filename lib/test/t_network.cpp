@@ -436,7 +436,6 @@ public:
     NetworkOperationStatus m_lastOpStatus;
     double m_lastProgress;
     int m_lastUserId;
-
 };
 
 TEST(NetworkTest, Backpropagate_StochasticGD)
@@ -794,6 +793,20 @@ TEST(NetworkTest, SquareSum)
     double should_weight_sum = 1 * 2 * std::pow(4,2)   +   2 * 3 * std::pow(5,2);
 
     ASSERT_FLOAT_EQ( net->getSumOfWeighSquares(), should_weight_sum );
+
+    delete net;
+}
+
+TEST(NetworkTest, UserID)
+{
+    std::vector<unsigned int> map = {1,2,3};
+    Network* net = new Network(map);
+
+    net->setUserID(1234);
+    ASSERT_EQ( net->getUserID(), 1234 );
+
+    net->setUserID(4321);
+    ASSERT_EQ( net->getUserID(), 4321 );
 
     delete net;
 }
