@@ -129,14 +129,21 @@ Widget::Widget(QWidget* parent) : QMainWindow(parent), ui(new Ui::Widget),
 
     connect( ui->regCB, &QCheckBox::toggled, [=]()
     {
-        ui->regLambdaSB->setEnabled( ui->regCB->isChecked() );
+        ui->regLambdaSB->setEnabled(ui->regCB->isChecked());
+        setRegularizationFunction();
+    });
 
-        std::shared_ptr<Regularization> reg(new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1));
+    connect( ui->regLambdaSB, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [=]()
+    {
+        setRegularizationFunction();
+    });
 
-        if( ui->regCB->isChecked() )
-            reg.reset( new Regularization(Regularization::RegularizationMethod::WeightDecay, 0.001 ));// ui->regLambdaSB->value()) );
-
-        m_net->setRegularizationMethod(reg);
+    connect( ui->resetBtn, &QPushButton::pressed, [=]( )
+    {
+        if( !m_net->isOperationInProgress() )
+        {
+            m_net->resetWeights();
+        }
     });
 
     connect( this, SIGNAL(readyForValidation()), this, SLOT(doNNValidation()));
@@ -295,6 +302,8 @@ void Widget::updateUi()
         getMinMaxYValue(m_trainingSetCost, m_trainingSetCost->count(), min_RYVal, max_RYVal);
         m_RCYAxis->setRange(0, max_RYVal);
     }
+
+    ui->resetBtn->setEnabled( !m_net->isOperationInProgress()) ;
 }
 
 void Widget::doNNLearning()
@@ -371,7 +380,7 @@ void Widget::networkTestResults( const double& successRateEuclidean, const doubl
     }
     else if( userId == NETID_TRAINING_TESTING )
     {
-        m_trainingSuccess->append( m_trainingSuccess->count(), successRateEuclidean * 100);
+        m_trainingSuccess->append( m_trainingSuccess->count(), successRateMaxIdx * 100);
         m_trainingSetCost->append( m_trainingSetCost->count(), averageCost );
 
         std::cout << "Training success: L2 = " << successRateEuclidean*100.0 << "%,  MAX = " << successRateMaxIdx * 100.0 << "%" << std::endl;
@@ -410,11 +419,11 @@ Network::ECostFunction Widget::getCurrentSelectedCostFunction()
     int selectedIdx = ui->costFunctionCombo->currentIndex();
     if( selectedIdx == 0 )
     {
-        return Network::Quadratic;
+        return Network::CrossEntropy;
     }
     else
     {
-        return Network::CrossEntropy;
+        return Network::Quadratic;
     }
 }
 
@@ -437,6 +446,18 @@ void Widget::getMinMaxYValue(const QtCharts::QLineSeries* series, const uint& nb
             }
         }
     }
+}
+
+void Widget::setRegularizationFunction()
+{
+    std::shared_ptr<Regularization> reg(new Regularization(Regularization::RegularizationMethod::NoneRegularization, 1));
+
+    if( ui->regCB->isChecked() )
+        reg.reset( new Regularization(Regularization::RegularizationMethod::WeightDecay, ui->regLambdaSB->value()) );
+
+    m_net->setRegularizationMethod(reg);
+
+    std::cout << "Set regularization method: " << reg->toString() << " lambda: " << reg->m_lamda << std::endl;
 }
 
 

@@ -570,9 +570,7 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
 
 void Network::setRegularizationMethod(std::shared_ptr<Regularization> regMethod)
 {
-    std::cout << "Set regularization method: " << regMethod->toString() << std::endl;
     m_regularization = regMethod;
-
     for( unsigned int k = 0; k < m_Layers.size(); k++ )
         getLayer(k)->setRegularizationMethod(regMethod);
 }
@@ -599,4 +597,10 @@ int Network::getUserID() const
 void Network::setUserID(int userID)
 {
     m_userID = userID;
+}
+
+void Network::resetWeights()
+{
+    for( std::shared_ptr<Layer>& l : m_Layers )
+        l->resetRandomlyWeightsAndBiases();
 }

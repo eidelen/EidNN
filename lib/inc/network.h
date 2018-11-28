@@ -281,6 +281,11 @@ public:
      */
     double getSumOfWeighSquares() const;
 
+    /**
+     * Resets all weights in the network.
+     */
+    void resetWeights();
+
 
 private:
 

@@ -53,6 +53,7 @@ public slots:
     void updateUi();
     void loadNN();
     void saveNN();
+    void setRegularizationFunction();
 
 signals:
     void readyForValidation();

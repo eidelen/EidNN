@@ -89,12 +89,12 @@
      <widget class="QComboBox" name="costFunctionCombo">
       <item>
        <property name="text">
-        <string>Quadratic Cost</string>
+        <string>Cross Entropy</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Cross Entropy</string>
+        <string>Quadratic Cost</string>
        </property>
       </item>
      </widget>
@@ -190,7 +190,7 @@
        <double>0.200000000000000</double>
       </property>
       <property name="value">
-       <double>3.000000000000000</double>
+       <double>0.500000000000000</double>
       </property>
      </widget>
     </item>
@@ -226,6 +226,13 @@
      <widget class="QProgressBar" name="validationProgress">
       <property name="value">
        <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="6">
+     <widget class="QPushButton" name="resetBtn">
+      <property name="text">
+       <string>Reset</string>
       </property>
      </widget>
     </item>
