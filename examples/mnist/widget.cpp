@@ -190,7 +190,7 @@ void Widget::prepareSamples()
         // prepare network
         std::vector<unsigned int> map;
         map.push_back(div.inputDataLength);
-        map.push_back(100);
+        map.push_back(30);
         map.push_back(div.outputDataLength);
 
         m_net.reset(new Network(map));

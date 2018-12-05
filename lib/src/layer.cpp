@@ -194,16 +194,22 @@ void Layer::setBias(const double &bias )
 
 void Layer::resetRandomlyWeightsAndBiases()
 {
-    std::default_random_engine randomGenerator;
-    std::normal_distribution<double> gNoise(0.0, 1.0);
+    std::default_random_engine weightGenerator;
+    double stdDev = 1.0;
+    if( m_nbr_of_inputs > 0 )
+        stdDev = 1 / std::sqrt( m_nbr_of_inputs );
+    std::normal_distribution<double> weightDist(0.0, stdDev);
+
+    std::default_random_engine biasGenerator;
+    std::normal_distribution<double> biasDist(0.0, 1);
 
     for( unsigned int i = 0; i < getNbrOfNeurons(); i++ )
     {
-        m_biasVector(i,0) = gNoise(randomGenerator);
+        m_biasVector(i,0) = biasDist(biasGenerator);
 
         Eigen::VectorXd thisWeights = Eigen::VectorXd( getNbrOfNeuronInputs() );
         for( unsigned int k = 0; k < getNbrOfNeuronInputs(); k++ )
-            thisWeights(k) = gNoise(randomGenerator);
+            thisWeights(k) = weightDist(weightGenerator);
 
         m_weightMatrix.row(i) = thisWeights.transpose();
     }
