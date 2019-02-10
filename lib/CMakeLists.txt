@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 
 PROJECT(eidnnlib)
 
-# enable c++ 11
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x")
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
@@ -17,6 +14,7 @@ FILE(GLOB_RECURSE  EIDNN_SOURCES         src/*.cpp)
 ADD_LIBRARY(eidnnlib SHARED ${EIDNN_INCLUDES} ${EIDNN_SOURCES} )
 target_include_directories(eidnnlib INTERFACE inc)
 target_link_libraries(eidnnlib Eigen3::Eigen )
+target_compile_features(eidnnlib PRIVATE cxx_std_17 )
 
 option(TESTEIDNN  "TEST" OFF)
 IF(${TESTEIDNN})
@@ -29,6 +27,7 @@ IF(${TESTEIDNN})
 
     add_executable(runTests ${EIDNN_TESTS_INC} ${EIDNN_TESTS_SRC})
     target_link_libraries(runTests ${GTEST_LIBRARIES} pthread eidnnlib )
+    target_compile_features(runTests PRIVATE cxx_std_17 )
 ENDIF()
 
 

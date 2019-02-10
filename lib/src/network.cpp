@@ -563,7 +563,10 @@ std::vector<size_t> Network::randomIndices(size_t numberOfElements) const
     std::vector<size_t> rInd(numberOfElements);
     size_t n = 0;
     std::generate(rInd.begin(), rInd.end(), [n] () mutable { return n++; });
-    std::random_shuffle(rInd.begin(), rInd.end());
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(rInd.begin(), rInd.end(),g);
 
     return rInd;
 }
