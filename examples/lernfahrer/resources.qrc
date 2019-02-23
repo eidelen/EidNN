@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>tracks/track1.png</file>
+        <file>tracks/car.png</file>
+    </qresource>
+</RCC>
