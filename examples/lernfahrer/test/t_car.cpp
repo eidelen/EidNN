@@ -37,6 +37,7 @@ TEST(Car, Init)
     ASSERT_FLOAT_EQ(c->getDirection()(0),1.0);
     ASSERT_FLOAT_EQ(c->getDirection()(1),0.0);
     ASSERT_NEAR(c->getTimeSinceLastUpdate(),0.0,0.01);
+    ASSERT_FLOAT_EQ(c->getRotationSpeed(),0.0);
 
     delete c;
 }
@@ -54,9 +55,58 @@ TEST(Car, MoveConstVelocity)
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         c->doStep();
         ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
-        ASSERT_NEAR(c->getPosition()(1),0.0,0.01);
+        ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
     }
 
     delete c;
 }
 
+TEST(Car, Accelerate)
+{
+    auto c = new Car();
+
+    c->setDirection(Eigen::Vector2d(1,0));
+    c->setSpeed(0.0);
+    c->setAcceleration(10.0);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    c->doStep();
+
+    ASSERT_NEAR(c->getSpeed(),10.0, 0.1);
+    ASSERT_NEAR(c->getPosition()(0),5.0,0.1);
+    ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
+
+    c->setAcceleration(-10.0);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    c->doStep();
+
+    ASSERT_NEAR(c->getSpeed(),0.0, 0.2);
+    ASSERT_NEAR(c->getPosition()(0),10.0,0.2);
+    ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
+
+    delete c;
+}
+
+TEST(Car, Rotation)
+{
+    auto c = new Car();
+
+    c->setDirection(Eigen::Vector2d(1,0));
+    c->setRotationSpeed(360);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    c->doStep();
+
+    // 0 -> 360 = 180
+    ASSERT_NEAR(c->getDirection()(0),-1.0,0.2);
+    ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    c->doStep();
+
+    ASSERT_NEAR(c->getDirection()(0),1.0,0.2);
+    ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
+
+    delete c;
+}

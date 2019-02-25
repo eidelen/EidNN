@@ -23,6 +23,19 @@ public:
     const Eigen::Vector2d &getDirection() const;
     void setDirection(const Eigen::Vector2d &direction);
 
+    /**
+     * Rotation speed in degree per second.
+     * @return Degree per second
+     */
+    double getRotationSpeed() const;
+
+    /**
+     * Rotation speed in degree per second.
+     * @param rotationSpeed Degree per second
+     */
+    void setRotationSpeed(double rotationSpeed);
+
+
     double getFitness() override;
 
 private:
@@ -34,11 +47,14 @@ private:
     Eigen::Vector2d m_position;
     double m_acceleration;
     double m_speed;
+    double m_rotationSpeed;
+
+
+private:
 
 
     double m_lastSpeed;
     Eigen::Vector2d m_lastDirection;
-
 };
 
 

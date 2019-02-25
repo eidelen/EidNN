@@ -3,6 +3,7 @@
 #include "car.h"
 
 #include <iostream>
+#include <Eigen/Geometry>
 
 Car::Car()
 {
@@ -10,6 +11,7 @@ Car::Car()
     setPosition( Eigen::Vector2d(0.0, 0.0));
     setAcceleration(0.0);
     setDirection(Eigen::Vector2d(1.0, 0.0));
+    setRotationSpeed(0.0);
 }
 
 Car::~Car()
@@ -65,6 +67,9 @@ void Car::update()
     double animTime = getTimeSinceLastUpdate();
 
     double newSpeed = m_speed + animTime*getAcceleration();
+
+    Eigen::Vector2d newDirection = m_direction;
+
     Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
 
     Eigen::Vector2d oldSpeedVector = m_lastDirection * m_lastSpeed;
@@ -72,14 +77,24 @@ void Car::update()
     Eigen::Vector2d effectiveSpeed = (newSpeedVector + oldSpeedVector) * 0.5;
 
     setPosition( getPosition() + animTime * effectiveSpeed );
+    setSpeed( newSpeed );
+    setDirection( m_direction );
 
-    m_lastSpeed = newSpeed;
-    m_lastDirection = m_direction;
 }
 
 double Car::getFitness()
 {
     return 0.0;
+}
+
+double Car::getRotationSpeed() const
+{
+    return m_rotationSpeed;
+}
+
+void Car::setRotationSpeed(double rotationSpeed)
+{
+    m_rotationSpeed = rotationSpeed;
 }
 
 
