@@ -6,7 +6,6 @@
 
 Car::Car()
 {
-    setLastUpdate(now());
     setSpeed( Eigen::Vector2d(0.0, 0.0) );
     setPosition( Eigen::Vector2d(0.0, 0.0));
     setAcceleration(0.0);
@@ -50,30 +49,9 @@ void Car::setAcceleration(double acceleration)
     m_acceleration = acceleration;
 }
 
-const std::chrono::milliseconds &Car::getLastUpdate() const
-{
-    return m_lastUpdate;
-}
-
-void Car::setLastUpdate(const std::chrono::milliseconds &lastUpdate)
-{
-    m_lastUpdate = lastUpdate;
-}
-
-std::chrono::milliseconds Car::now() const
-{
-    return std::chrono::duration_cast< std::chrono::milliseconds >(
-            std::chrono::system_clock::now().time_since_epoch());
-}
-
-double Car::timeSinceLastUpdate() const
-{
-    return (now() - m_lastUpdate).count() / 1000.0;
-}
-
 void Car::update()
 {
-    double animTime = timeSinceLastUpdate();
+    double animTime = getTimeSinceLastUpdate();
 
     auto speed = getSpeed();
     double speedMagnitude = speed.norm();
@@ -84,6 +62,10 @@ void Car::update()
     setPosition( getPosition() + animTime * effectiveSpeed );
 
     m_speedLastUpdate = currentSpeed;
-    setLastUpdate(now());
+}
+
+double Car::getFitness()
+{
+    return 0.0;
 }
 

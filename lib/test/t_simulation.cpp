@@ -22,38 +22,26 @@
 *****************************************************************************/
 
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <thread>
-#include "car.h"
 
-TEST(Car, Init)
+#include "simulation.h"
+
+TEST(Simulation, TimeElapsed)
 {
-    auto c = new Car();
+    auto s = new Simulation();
 
-    ASSERT_FLOAT_EQ(c->getAcceleration(),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(1),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(1),0.0);
-    ASSERT_NEAR(c->getTimeSinceLastUpdate(),0.0,0.01);
-
-    delete c;
-}
-
-TEST(Car, MoveConstVelocity)
-{
-    auto c = new Car();
-
-    double speed = 10;
-    c->setSpeed(Eigen::Vector2d(speed, speed));
-
-    for(int k = 0; k < 8; k++ )
+    for(int k = 0; k < 4; k++ )
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        c->doStep();
-        ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
-        ASSERT_NEAR(c->getPosition()(1),(k+1)*speed*0.25,0.3);
+        ASSERT_NEAR(s->getTimeSinceLastUpdate(), 0.250, 0.05);
+        s->doStep();
     }
 
-    delete c;
+
+
+    delete s;
 }
+
+

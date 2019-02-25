@@ -21,39 +21,51 @@
 **
 *****************************************************************************/
 
-#include <gtest/gtest.h>
-#include <chrono>
-#include <thread>
-#include "car.h"
+#include "simulation.h"
 
-TEST(Car, Init)
+Simulation::Simulation()
 {
-    auto c = new Car();
-
-    ASSERT_FLOAT_EQ(c->getAcceleration(),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(1),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(1),0.0);
-    ASSERT_NEAR(c->getTimeSinceLastUpdate(),0.0,0.01);
-
-    delete c;
+    setLastUpdateTime(now());
 }
 
-TEST(Car, MoveConstVelocity)
+Simulation::~Simulation()
 {
-    auto c = new Car();
 
-    double speed = 10;
-    c->setSpeed(Eigen::Vector2d(speed, speed));
+}
 
-    for(int k = 0; k < 8; k++ )
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        c->doStep();
-        ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
-        ASSERT_NEAR(c->getPosition()(1),(k+1)*speed*0.25,0.3);
-    }
+void Simulation::doStep()
+{
+    update();
+    setLastUpdateTime(now());
+}
 
-    delete c;
+void Simulation::update()
+{
+    // Do override
+}
+
+double Simulation::getFitness()
+{
+    return 0.0;
+}
+
+std::chrono::milliseconds Simulation::now() const
+{
+    return std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch());
+}
+
+const std::chrono::milliseconds &Simulation::getLastUpdateTime() const
+{
+    return m_lastUpdate;
+}
+
+void Simulation::setLastUpdateTime(const std::chrono::milliseconds &lastUpdate)
+{
+    m_lastUpdate = lastUpdate;
+}
+
+double Simulation::getTimeSinceLastUpdate() const
+{
+    return (now() - m_lastUpdate).count() / 1000.0;
 }

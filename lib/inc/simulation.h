@@ -21,39 +21,62 @@
 **
 *****************************************************************************/
 
-#include <gtest/gtest.h>
+#ifndef SIMULATION_H
+#define SIMULATION_H
+
 #include <chrono>
-#include <thread>
-#include "car.h"
 
-TEST(Car, Init)
+class Simulation
 {
-    auto c = new Car();
 
-    ASSERT_FLOAT_EQ(c->getAcceleration(),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getSpeed()(1),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(0),0.0);
-    ASSERT_FLOAT_EQ(c->getPosition()(1),0.0);
-    ASSERT_NEAR(c->getTimeSinceLastUpdate(),0.0,0.01);
+public:
 
-    delete c;
-}
+    Simulation();
+    virtual ~Simulation();
 
-TEST(Car, MoveConstVelocity)
-{
-    auto c = new Car();
+    /**
+     * Update the simulation.
+     */
+    void doStep();
 
-    double speed = 10;
-    c->setSpeed(Eigen::Vector2d(speed, speed));
+    /**
+     * Fitness is a measure performance.
+     * @return Fitness.
+     */
+    virtual double getFitness();
 
-    for(int k = 0; k < 8; k++ )
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        c->doStep();
-        ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
-        ASSERT_NEAR(c->getPosition()(1),(k+1)*speed*0.25,0.3);
-    }
+    /**
+     * Get time stamp of the last update.
+     * @return Milliseconds since 1970.
+     */
+    virtual const std::chrono::milliseconds &getLastUpdateTime() const;
 
-    delete c;
-}
+    /**
+     * Set time stamp of last update.
+     * @param lastUpdate
+     */
+    virtual void setLastUpdateTime(const std::chrono::milliseconds &lastUpdate);
+
+    /**
+     * Time since last update in seconds.
+     * @return Elapsed time in seconds
+     */
+    virtual double getTimeSinceLastUpdate() const;
+
+protected:
+
+    std::chrono::milliseconds now() const;
+
+    /**
+     * Update the actual simulation.
+     */
+    virtual void update();
+
+
+protected:
+
+    std::chrono::milliseconds m_lastUpdate;
+
+};
+
+#endif // SIMULATION_H
