@@ -18,8 +18,10 @@ public:
     void setAcceleration(double acceleration);
     const Eigen::Vector2d &getPosition() const;
     void setPosition(const Eigen::Vector2d &position);
-    const Eigen::Vector2d &getSpeed() const;
-    void setSpeed(const Eigen::Vector2d &speed);
+    double getSpeed() const;
+    void setSpeed(double speed);
+    const Eigen::Vector2d &getDirection() const;
+    void setDirection(const Eigen::Vector2d &direction);
 
     double getFitness() override;
 
@@ -28,12 +30,14 @@ private:
 
 
 private:
-    Eigen::Vector2d m_speed;
+    Eigen::Vector2d m_direction;
     Eigen::Vector2d m_position;
     double m_acceleration;
+    double m_speed;
 
 
-    Eigen::Vector2d m_speedLastUpdate;
+    double m_lastSpeed;
+    Eigen::Vector2d m_lastDirection;
 
 };
 

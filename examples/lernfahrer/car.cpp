@@ -6,11 +6,10 @@
 
 Car::Car()
 {
-    setSpeed( Eigen::Vector2d(0.0, 0.0) );
+    setSpeed( 0.0 );
     setPosition( Eigen::Vector2d(0.0, 0.0));
     setAcceleration(0.0);
-
-    m_speedLastUpdate = getSpeed();
+    setDirection(Eigen::Vector2d(1.0, 0.0));
 }
 
 Car::~Car()
@@ -18,15 +17,15 @@ Car::~Car()
 
 }
 
-const Eigen::Vector2d &Car::getSpeed() const
+double Car::getSpeed() const
 {
     return m_speed;
 }
 
-void Car::setSpeed(const Eigen::Vector2d &speed)
+void Car::setSpeed(double speed)
 {
     m_speed = speed;
-    m_speedLastUpdate = speed;
+    m_lastSpeed = speed;
 }
 
 const Eigen::Vector2d &Car::getPosition() const
@@ -49,23 +48,39 @@ void Car::setAcceleration(double acceleration)
     m_acceleration = acceleration;
 }
 
+const Eigen::Vector2d &Car::getDirection() const
+{
+    return m_direction;
+}
+
+void Car::setDirection(const Eigen::Vector2d &direction)
+{
+    m_direction = direction;
+    m_direction.normalize();
+    m_lastDirection = m_direction;
+}
+
 void Car::update()
 {
     double animTime = getTimeSinceLastUpdate();
 
-    auto speed = getSpeed();
-    double speedMagnitude = speed.norm();
-    double newSpeedMagnitude = speedMagnitude + animTime*getAcceleration();
-    auto currentSpeed = speed * newSpeedMagnitude/speedMagnitude;
-    auto effectiveSpeed = (currentSpeed + m_speedLastUpdate) * 0.5;
+    double newSpeed = m_speed + animTime*getAcceleration();
+    Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
+
+    Eigen::Vector2d oldSpeedVector = m_lastDirection * m_lastSpeed;
+
+    Eigen::Vector2d effectiveSpeed = (newSpeedVector + oldSpeedVector) * 0.5;
 
     setPosition( getPosition() + animTime * effectiveSpeed );
 
-    m_speedLastUpdate = currentSpeed;
+    m_lastSpeed = newSpeed;
+    m_lastDirection = m_direction;
 }
 
 double Car::getFitness()
 {
     return 0.0;
 }
+
+
 
