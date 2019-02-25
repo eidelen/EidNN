@@ -7,7 +7,7 @@ PROJECT(eidnn)
 add_subdirectory(lib)
 add_subdirectory(examples/mnist)
 add_subdirectory(examples/face)
-add_subdirectory(examples/lernfahrer)
+#add_subdirectory(examples/lernfahrer)
 
 
 

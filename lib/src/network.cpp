@@ -319,7 +319,7 @@ bool Network::doFeedforwardAndBackpropagation( const Eigen::MatrixXd& x_in, cons
     for( int k = int(getNumberOfLayer()) - 2; k > 0; k-- )
     {
         std::shared_ptr<Layer> thisLayer = getLayer( unsigned(k) );
-        thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeigtMatrix() );
+        thisLayer->computeBackprogationError( layerAfter->getBackpropagationError(), layerAfter->getWeightMatrix() );
         thisLayer->computePartialDerivatives();
 
         layerAfter = thisLayer;
@@ -493,7 +493,7 @@ Network* Network::deserialize( const string& buffer )
         Layer* l = Layer::deserialize( layerData );
 
         n->getLayer(i)->setBiases( l->getBiasVector() );
-        n->getLayer(i)->setWeights( l->getWeigtMatrix() );
+        n->getLayer(i)->setWeights(l->getWeightMatrix() );
         n->getLayer(i)->setLayerType( l->getLayerType() );
 
         delete l;
