@@ -86,14 +86,6 @@ public:
         return std::shared_ptr<OneStepSimulation>(new OneStepSimulation());
     }
 
-    std::shared_ptr<Simulation> createCrossover(SimulationPtr a, SimulationPtr b, double mutationRate) override
-    {
-        NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, 0.2 );
-        std::shared_ptr<OneStepSimulation> crs( new OneStepSimulation( ) );
-        crs->setNetwork(cr);
-
-        return crs;
-    }
 };
 
 
@@ -132,6 +124,7 @@ TEST(Evolution, MultiEpochs)
     std::shared_ptr<OneStepSimFactory> f(new OneStepSimFactory());
 
     Evolution* e = new Evolution(500,1000,f);
+    e->setMutationRate(0.05);
 
     while(true)
     {
@@ -149,7 +142,7 @@ TEST(Evolution, MultiEpochs)
         e->breed();
     }
 
-    ASSERT_LE(e->getNumberOfEpochs(), 20);
+    ASSERT_LE(e->getNumberOfEpochs(), 50);
 
     delete e;
 }

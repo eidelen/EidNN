@@ -35,8 +35,16 @@ public:
      */
     void setRotationSpeed(double rotationSpeed);
 
+    /**
+     * Rotation relative to initial.
+     * @return Degree
+     */
+    double getRotationRelativeToInitial() const;
+
 
     double getFitness() override;
+
+    double computeAngleBetweenVectors( const Eigen::Vector2d& a, const Eigen::Vector2d& b ) const;
 
 private:
     void update() override;
@@ -48,13 +56,10 @@ private:
     double m_acceleration;
     double m_speed;
     double m_rotationSpeed;
-
-
-private:
-
+    double m_rotationSpeedRad;
+    double m_rotationToOriginal;
 
     double m_lastSpeed;
-    Eigen::Vector2d m_lastDirection;
 };
 
 

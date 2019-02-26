@@ -89,6 +89,11 @@ private:
     std::vector<SimulationPtr> m_simulations;
     bool m_epochOver;
     size_t m_epochCount;
+    double m_mutationRate;
+public:
+    double getMutationRate() const;
+
+    void setMutationRate(double mutationRate);
 };
 
 

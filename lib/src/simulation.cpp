@@ -23,8 +23,7 @@
 
 
 #include "simulation.h"
-
-
+#include "genetic.h"
 
 
 Simulation::Simulation()
@@ -108,8 +107,11 @@ SimulationPtr SimulationFactory::createRandomSimulation()
     return std::shared_ptr<Simulation>();
 }
 
-SimulationPtr SimulationFactory::createCrossover( SimulationPtr /*a*/, SimulationPtr /*b*/, double mutationRate)
+SimulationPtr SimulationFactory::createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate)
 {
-    return std::shared_ptr<Simulation>();
+    NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, mutationRate);
+    SimulationPtr crs = createRandomSimulation();
+    crs->setNetwork(cr);
+    return crs;
 }
 

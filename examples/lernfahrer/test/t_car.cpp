@@ -93,7 +93,7 @@ TEST(Car, Rotation)
     auto c = new Car();
 
     c->setDirection(Eigen::Vector2d(1,0));
-    c->setRotationSpeed(360);
+    c->setRotationSpeed(180);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     c->doStep();
@@ -102,11 +102,24 @@ TEST(Car, Rotation)
     ASSERT_NEAR(c->getDirection()(0),-1.0,0.2);
     ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     c->doStep();
 
     ASSERT_NEAR(c->getDirection()(0),1.0,0.2);
     ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
+
+    delete c;
+}
+
+TEST(Car, RelAngle)
+{
+    auto c = new Car();
+
+    ASSERT_NEAR(0.0, c->computeAngleBetweenVectors(Eigen::Vector2d(1,0), Eigen::Vector2d(1,0)), 0.0);
+    ASSERT_NEAR(0.0, c->computeAngleBetweenVectors(Eigen::Vector2d(1,0), Eigen::Vector2d(2,0)), 0.0);
+    ASSERT_NEAR(0.0, c->computeAngleBetweenVectors(Eigen::Vector2d(1,0), Eigen::Vector2d(0,5)), 90.0);
+    ASSERT_NEAR(0.0, c->computeAngleBetweenVectors(Eigen::Vector2d(1,0), Eigen::Vector2d(-2,0)), 180.0);
+    ASSERT_NEAR(0.0, c->computeAngleBetweenVectors(Eigen::Vector2d(1,0), Eigen::Vector2d(0,-4)), 270.0);
 
     delete c;
 }

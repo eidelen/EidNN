@@ -95,7 +95,8 @@ TEST(Genetic, Crossover)
     }
 
     double ratio = ((double)(cntB)) / ((double)(cntA));
-    ASSERT_NEAR( ratio, 1.0, 0.5 );
+    ASSERT_NEAR( ratio, 1.0, 0.8 );
+
 
 
     cntA = 0;
@@ -112,7 +113,8 @@ TEST(Genetic, Crossover)
     }
 
     ratio = ((double)(cntB)) / ((double)(cntA));
-    ASSERT_NEAR( ratio, 1.0, 0.5 );
+    ASSERT_NEAR( ratio, 1.0, 0.8 );
+
 
 
     auto l2 = c->getLayer(2);
@@ -138,7 +140,7 @@ TEST(Genetic, Crossover)
     }
 
     ratio = ((double)(cntB)) / ((double)(cntA));
-    ASSERT_NEAR( ratio, 1.0, 0.5 );
+    ASSERT_NEAR( ratio, 1.0, 0.8 );
 
     cntA = 0;
     cntB = 0;
@@ -154,7 +156,7 @@ TEST(Genetic, Crossover)
     }
 
     ratio = ((double)(cntB)) / ((double)(cntA));
-    ASSERT_NEAR( ratio, 1.0, 0.5 );
+    ASSERT_NEAR( ratio, 1.0, 0.8 );
 
 }
 

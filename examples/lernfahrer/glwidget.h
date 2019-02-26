@@ -2,6 +2,8 @@
 #ifndef EIDNN_GLWIDGET_H
 #define EIDNN_GLWIDGET_H
 
+#include "car.h"
+
 #include <QOpenGLWidget>
 
 class Helper;
@@ -22,6 +24,9 @@ protected:
 
 private:
     int elapsed;
+
+    std::shared_ptr<Car> m_car;
+
 };
 
 #endif //EIDNN_GLWIDGET_H
