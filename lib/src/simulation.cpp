@@ -21,7 +21,11 @@
 **
 *****************************************************************************/
 
+
 #include "simulation.h"
+
+
+
 
 Simulation::Simulation()
 {
@@ -35,8 +39,11 @@ Simulation::~Simulation()
 
 void Simulation::doStep()
 {
-    update();
-    setLastUpdateTime(now());
+    if( isAlive() )
+    {
+        update();
+        setLastUpdateTime(now());
+    }
 }
 
 void Simulation::update()
@@ -69,3 +76,40 @@ double Simulation::getTimeSinceLastUpdate() const
 {
     return (now() - m_lastUpdate).count() / 1000.0;
 }
+
+const std::shared_ptr<Network>& Simulation::getNetwork() const
+{
+    return m_network;
+}
+
+void Simulation::setNetwork(const std::shared_ptr<Network> &network)
+{
+    m_network = network;
+}
+
+bool Simulation::isAlive() const
+{
+    return m_alive;
+}
+
+
+// Factory
+
+SimulationFactory::SimulationFactory()
+{
+}
+
+SimulationFactory::~SimulationFactory()
+{
+}
+
+SimulationPtr SimulationFactory::createRandomSimulation()
+{
+    return std::shared_ptr<Simulation>();
+}
+
+SimulationPtr SimulationFactory::createCrossover( SimulationPtr /*a*/, SimulationPtr /*b*/)
+{
+    return std::shared_ptr<Simulation>();
+}
+

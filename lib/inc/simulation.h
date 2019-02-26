@@ -25,6 +25,11 @@
 #define SIMULATION_H
 
 #include <chrono>
+#include <memory>
+
+#include "network.h"
+
+#define SimulationPtr std::shared_ptr<Simulation>
 
 class Simulation
 {
@@ -63,6 +68,23 @@ public:
      */
     virtual double getTimeSinceLastUpdate() const;
 
+    /**
+     * Get neuronal network.
+     * @return NN
+     */
+    virtual const std::shared_ptr<Network> &getNetwork() const;
+
+    /**
+     * Set neuronal network.
+     * @param network NN
+     */
+    virtual void setNetwork(const std::shared_ptr<Network> &network);
+
+    /**
+     * Is the simulation still alive.
+     */
+    virtual bool isAlive() const;
+
 protected:
 
     std::chrono::milliseconds now() const;
@@ -76,7 +98,21 @@ protected:
 protected:
 
     std::chrono::milliseconds m_lastUpdate;
-
+    bool m_alive = true;
+    NetworkPtr m_network;
 };
+
+#define SimFactoryPtr std::shared_ptr<SimulationFactory>
+
+class SimulationFactory
+{
+public:
+    SimulationFactory();
+    virtual ~SimulationFactory();
+
+    virtual SimulationPtr createRandomSimulation();
+    virtual SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b );
+};
+
 
 #endif // SIMULATION_H
