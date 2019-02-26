@@ -111,7 +111,7 @@ public:
     virtual ~SimulationFactory();
 
     virtual SimulationPtr createRandomSimulation();
-    virtual SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b );
+    virtual SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate );
 };
 
 

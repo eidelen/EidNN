@@ -74,6 +74,12 @@ public:
      */
     std::vector<SimulationPtr> getSimulationsOrderedByFitness();
 
+    /**
+     * Get number of run epochs.
+     * @return Number of epochs.
+     */
+    size_t getNumberOfEpochs() const;
+
 
 
 private:
@@ -82,6 +88,7 @@ private:
     SimFactoryPtr m_simFactory;
     std::vector<SimulationPtr> m_simulations;
     bool m_epochOver;
+    size_t m_epochCount;
 };
 
 

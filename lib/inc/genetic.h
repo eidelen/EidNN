@@ -42,7 +42,7 @@ public:
         Uniform // Uniform crossover -> each param randomly chosen from parents
     };
 
-    static NetworkPtr crossover( NetworkPtr a, NetworkPtr b, CrossoverMethod method );
+    static NetworkPtr crossover( NetworkPtr a, NetworkPtr b, CrossoverMethod method, double mutationRate = 0.0 );
 
 };
 

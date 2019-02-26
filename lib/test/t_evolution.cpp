@@ -35,7 +35,7 @@ public:
 
     OneStepSimulation()
     {
-        std::vector<unsigned int> map = {2,2};
+        std::vector<unsigned int> map = {2,10,2};
         m_network = NetworkPtr( new Network(map) );
     }
 
@@ -86,9 +86,9 @@ public:
         return std::shared_ptr<OneStepSimulation>(new OneStepSimulation());
     }
 
-    std::shared_ptr<Simulation> createCrossover(SimulationPtr a, SimulationPtr b) override
+    std::shared_ptr<Simulation> createCrossover(SimulationPtr a, SimulationPtr b, double mutationRate) override
     {
-        NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform );
+        NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, 0.2 );
         std::shared_ptr<OneStepSimulation> crs( new OneStepSimulation( ) );
         crs->setNetwork(cr);
 
@@ -131,13 +131,25 @@ TEST(Evolution, MultiEpochs)
 {
     std::shared_ptr<OneStepSimFactory> f(new OneStepSimFactory());
 
-    Evolution* e = new Evolution(100,200,f);
+    Evolution* e = new Evolution(500,1000,f);
 
-    for( int i = 0; i < 10; i++ )
+    while(true)
     {
         e->doEpoch();
-        Helpers::printMatrix(e->getSimulationsOrderedByFitness()[0]->getNetwork()->getOutputActivation(), "Best:");
+
+        SimulationPtr best = e->getSimulationsOrderedByFitness()[0];
+
+        if( best->getFitness() > 200 )
+        {
+            Helpers::printMatrix( best->getNetwork()->getOutputActivation(), "best solution");
+            std::cout << "Number of epochs: " << e->getNumberOfEpochs() << std::endl;
+            break;
+        }
+
+        e->breed();
     }
+
+    ASSERT_LE(e->getNumberOfEpochs(), 20);
 
     delete e;
 }

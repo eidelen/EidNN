@@ -26,6 +26,7 @@
 
 #include "genetic.h"
 #include "layer.h"
+#include "helpers.h"
 
 
 TEST(Genetic, CrossoverEqualNetworks)
@@ -155,4 +156,24 @@ TEST(Genetic, Crossover)
     ratio = ((double)(cntB)) / ((double)(cntA));
     ASSERT_NEAR( ratio, 1.0, 0.5 );
 
+}
+
+TEST(Genetic, CrossoverMutation)
+{
+    auto a = std::shared_ptr<Network>(new Network({20,50}));
+    a->resetWeights();
+    auto b = std::shared_ptr<Network>(new Network(*(a.get())));
+
+    auto c = Genetic::crossover(a,b,Genetic::Uniform,0.1);
+
+    ASSERT_TRUE( std::equal( c->getNetworkStructure().begin(), c->getNetworkStructure().end(),  a->getNetworkStructure().begin() ) );
+
+    for(unsigned int k = 1; k < c->getNumberOfLayer(); k++ )
+    {
+        auto l_a = a->getLayer(k);
+        auto l_c = c->getLayer(k);
+
+        ASSERT_FALSE((l_a->getBiasVector() - l_c->getBiasVector()).isMuchSmallerThan(0.00001));
+        ASSERT_FALSE((l_a->getWeightMatrix() - l_c->getWeightMatrix()).isMuchSmallerThan(0.00001));
+    }
 }

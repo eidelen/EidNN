@@ -27,7 +27,7 @@
 #include <iostream>
 #include <random>
 
-NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMethod method)
+NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMethod method, double mutationRate )
 {
     auto kv = a->getNetworkStructure();
     auto qv = b->getNetworkStructure();
@@ -42,7 +42,11 @@ NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMeth
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 1);
+    std::uniform_int_distribution<> crossOv(0, 1);
+
+    std::uniform_real_distribution<double> mutation(0.0, 1.0);
+    std::normal_distribution<double> mutationVal(0.0, 1.0);
+
 
     for( unsigned int i = 0; i < cross->getNumberOfLayer(); i++ )
     {
@@ -59,10 +63,20 @@ NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMeth
         {
             for( size_t n = 0; n < crlw.cols(); n++ )
             {
-                if( dis(gen) == 0 )
-                    crlw(m,n) = aw(m,n);
+                if( mutation(gen) < mutationRate )
+                {
+                    // do mutation
+                    crlw(m, n) = mutationVal(gen);
+                }
                 else
-                    crlw(m,n) = bw(m,n);
+                {
+                    // do crossover
+
+                    if (crossOv(gen) == 0)
+                        crlw(m, n) = aw(m, n);
+                    else
+                        crlw(m, n) = bw(m, n);
+                }
             }
         }
 
@@ -75,10 +89,21 @@ NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMeth
 
         for( size_t m = 0; m < crlb.rows(); m++ )
         {
-            if( dis(gen) == 0 )
-                crlb(m) = ab(m);
+            if( mutation(gen) < mutationRate )
+            {
+                // do mutation
+                crlb(m) = mutationVal(gen);
+            }
             else
-                crlb(m) = bb(m);
+            {
+                // do crossover
+                if( crossOv(gen) == 0 )
+                    crlb(m) = ab(m);
+                else
+                    crlb(m) = bb(m);
+            }
+
+
         }
 
         crl->setBiases(crlb);

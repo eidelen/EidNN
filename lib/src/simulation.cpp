@@ -108,7 +108,7 @@ SimulationPtr SimulationFactory::createRandomSimulation()
     return std::shared_ptr<Simulation>();
 }
 
-SimulationPtr SimulationFactory::createCrossover( SimulationPtr /*a*/, SimulationPtr /*b*/)
+SimulationPtr SimulationFactory::createCrossover( SimulationPtr /*a*/, SimulationPtr /*b*/, double mutationRate)
 {
     return std::shared_ptr<Simulation>();
 }

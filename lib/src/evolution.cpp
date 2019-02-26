@@ -1,13 +1,17 @@
 
 
 #include "evolution.h"
+#include "layer.h"
+#include "helpers.h"
+
 
 #include <algorithm>
+#include <iostream>
 #include <inc/evolution.h>
 
 
 Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory)
-: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false)
+: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0)
 {
     std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
 }
@@ -37,6 +41,8 @@ void Evolution::doEpoch()
     while( !isEpochOver() )
         doStep();
 
+    m_epochCount++;
+
 }
 
 bool Evolution::isEpochOver()
@@ -60,7 +66,13 @@ void Evolution::breed()
 
     m_simulations.clear();
 
-    std::generate_n(std::back_inserter(m_simulations), m_nOffsprings, [=]()->SimulationPtr { return m_simFactory->createCrossover(a,b); });
+    std::generate_n(std::back_inserter(m_simulations), m_nOffsprings, [=]()->SimulationPtr { return m_simFactory->createCrossover(a,b,0.05); });
 
+    m_epochOver = false;
+}
+
+size_t Evolution::getNumberOfEpochs() const
+{
+    return m_epochCount;
 }
 
