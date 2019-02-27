@@ -5,6 +5,7 @@
 #include "car.h"
 
 #include <QOpenGLWidget>
+#include <QPixmap>
 
 class Helper;
 
@@ -24,8 +25,9 @@ protected:
 
 private:
     int elapsed;
-
     std::shared_ptr<Car> m_car;
+    QPixmap m_trackImg;
+    QPixmap m_carImg;
 
 };
 

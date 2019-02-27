@@ -18,5 +18,5 @@ Window::Window()
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, openGL, &GLWidget::animate);
-    timer->start(50);
+    timer->start(40);
 }
