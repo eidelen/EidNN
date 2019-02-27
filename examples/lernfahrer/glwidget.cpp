@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QTimer>
 #include <QPaintEvent>
+#include <QRgb>
 
 GLWidget::GLWidget(QWidget *parent)
         : QOpenGLWidget(parent)
@@ -14,8 +15,22 @@ GLWidget::GLWidget(QWidget *parent)
 
     m_carImg = QPixmap(":/tracks/car.png");
     m_trackImg = QPixmap(":/tracks/track1.png");
+    QImage trackI = m_trackImg.toImage();
+
+    Eigen::MatrixXi map(trackI.height(), trackI.width());
+    map.setOnes();
+    for( size_t m = 0; m < map.rows(); m++)
+    {
+        for( size_t n = 0; n < map.cols(); n++ )
+        {
+            QRgb color = trackI.pixel(n,m);
+            if( qRed(color) < 10 && qGreen(color) < 10 && qBlue(color) < 10)
+                map(m,n) = 0;
+        }
+    }
 
     m_car.reset( new Car() );
+    m_car->setMap(map);
     m_car->setPosition(Eigen::Vector2d(500,150) );
     m_car->setDirection(Eigen::Vector2d(1,0));
     m_car->setRotationSpeed(0.0);

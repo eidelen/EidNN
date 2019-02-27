@@ -46,8 +46,15 @@ public:
 
     double computeAngleBetweenVectors( const Eigen::Vector2d& a, const Eigen::Vector2d& b ) const;
 
+    const Eigen::MatrixXi &getMap() const;
+
+    void setMap(const Eigen::MatrixXi &map);
+
+    double distanceToEdge(const Eigen::Vector2d& pos, const Eigen::Vector2d& direction) const;
+
 private:
     void update() override;
+    Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
 
 
 private:
@@ -60,6 +67,9 @@ private:
     double m_rotationToOriginal;
 
     double m_lastSpeed;
+
+    Eigen::MatrixXi m_map;
+    bool m_mapSet;
 };
 
 

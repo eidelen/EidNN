@@ -25,6 +25,7 @@
 #include <chrono>
 #include <thread>
 #include "car.h"
+#include "helpers.h"
 
 TEST(Car, Init)
 {
@@ -123,3 +124,48 @@ TEST(Car, RelAngle)
 
     delete c;
 }
+
+
+TEST(Car, Collision)
+{
+    Eigen::MatrixXi map(20,20);
+    map.fill(1);
+    map.col(17).setZero();
+
+    auto c = new Car();
+    c->setMap(map);
+    c->setSpeed(100);
+    c->setPosition(Eigen::Vector2d(0,0));
+    c->setDirection(Eigen::Vector2d(1,0));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    c->doStep();
+    ASSERT_TRUE(c->isAlive());
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    c->doStep();
+    ASSERT_FALSE(c->isAlive());
+
+    ASSERT_NEAR(c->getPosition()(0), 17.0, 0.1);
+    ASSERT_NEAR(c->getPosition()(1), 0.0, 0.1);
+
+    delete c;
+}
+
+TEST(Car, DistanceToEdge)
+{
+    Eigen::MatrixXi map(10,10);
+    map.fill(1);
+    map.col(5).setZero();
+
+    auto c = new Car();
+    c->setMap(map);
+    c->setPosition(Eigen::Vector2d(2,2));
+
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(1,0)), 3.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(-1,0)), 2.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,1)), 6.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,-1)), 3.0, 0.1);
+
+    delete c;
+}
+

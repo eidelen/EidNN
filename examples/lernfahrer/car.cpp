@@ -14,6 +14,7 @@ Car::Car()
     setRotationSpeed(0.0);
 
     m_rotationToOriginal = 0.0;
+    m_mapSet = false;
 }
 
 Car::~Car()
@@ -81,7 +82,11 @@ void Car::update()
     Eigen::Vector2d oldSpeedVector = m_direction * m_lastSpeed;
     Eigen::Vector2d effectiveSpeed = (newSpeedVector + oldSpeedVector) * 0.5;
 
-    setPosition( getPosition() + animTime * effectiveSpeed );
+    Eigen::Vector2d newPosition = getPosition() + animTime * effectiveSpeed;
+
+    newPosition = handleCollision(getPosition(), newPosition);
+
+    setPosition( newPosition );
     setSpeed( newSpeed );
 }
 
@@ -109,6 +114,88 @@ double Car::getRotationRelativeToInitial() const
 double Car::computeAngleBetweenVectors(const Eigen::Vector2d &a, const Eigen::Vector2d &b) const
 {
     return std::acos( a.dot(b) / ( a.norm() * b.norm() ) ) / M_PI * 180.0;
+}
+
+const Eigen::MatrixXi& Car::getMap() const
+{
+    return m_map;
+}
+
+void Car::setMap(const Eigen::MatrixXi &map)
+{
+    m_map = map;
+    m_mapSet = true;
+}
+
+Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to)
+{
+    if( !m_mapSet )
+        return to;
+
+    Eigen::Vector2d dif = to - from;
+    double l = dif.norm();
+
+    if( l < 0.00000001 ) // no or very small move
+        return to;
+
+    Eigen::Vector2d du = dif * 1.0 / l;
+
+    double tillEdge = distanceToEdge(from,du);
+
+    if( tillEdge < l ) // collision
+    {
+        m_alive = false;
+        return from + du * tillEdge;
+    }
+
+    return to;
+}
+
+double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &direction) const
+{
+    Eigen::Vector2d d = direction.normalized();
+    Eigen::Vector2d end = pos;
+
+    bool goOn = true;
+
+    while(goOn)
+    {
+        end = end + d;
+
+        // check if within map
+        if(end(0) < 0.0)
+        {
+            end(0) = 0.0;
+            goOn = false;
+        }
+
+        if(end(1) < 0.0)
+        {
+            end(1) = 0.0;
+            goOn = false;
+        }
+
+        if(end(0) > m_map.cols()-1)
+        {
+            end(0) = m_map.cols()-1;
+            goOn = false;
+        }
+
+        if(end(1) > m_map.rows()-1)
+        {
+            end(1) = m_map.rows()-1;
+            goOn = false;
+        }
+
+        if( m_map( std::ceil(end(1)) , std::ceil(end(0))) == 0 )
+        {
+            end(0) = std::ceil(end(0));
+            end(1) = std::ceil(end(1));
+            goOn = false;
+        }
+    }
+
+    return (end-pos).norm();
 }
 
 
