@@ -60,7 +60,7 @@ Layer::Layer( const uint& nbr_of_inputs, const vector<Eigen::VectorXd>& weights,
 Layer::Layer( const Layer& l ) : Layer( l.getNbrOfNeurons(), l.getNbrOfNeuronInputs(), l.getLayerType() )
 {
     // Note: Temporary results like activations and derivatives are not copied.
-    m_weightMatrix = l.getWeigtMatrix();
+    m_weightMatrix = l.getWeightMatrix();
     m_biasVector = l.getBiasVector();
     m_regularization = l.getRegularizationMethod();
 }
@@ -191,7 +191,6 @@ void Layer::setBias(const double &bias )
     m_biasVector = Eigen::MatrixXd::Constant(getNbrOfNeurons(), 1, bias);
 }
 
-
 void Layer::resetRandomlyWeightsAndBiases()
 {
     std::default_random_engine weightGenerator;
@@ -297,11 +296,11 @@ void Layer::updateWeightsAndBiases(const Eigen::MatrixXd& deltaBias, const Eigen
     switch( getRegularizationMethod()->m_method )
     {
         case Regularization::RegularizationMethod::WeightDecay:
-            newWeights = (1-getRegularizationMethod()->m_lamda * eta) * getWeigtMatrix()  -   deltaWeight;
+            newWeights = (1-getRegularizationMethod()->m_lamda * eta) * getWeightMatrix()  -   deltaWeight;
             break;
 
         default:
-            newWeights = getWeigtMatrix() - deltaWeight;
+            newWeights = getWeightMatrix() - deltaWeight;
     }
     setWeights( newWeights );
 }
@@ -311,7 +310,7 @@ void Layer::print() const
     Eigen::VectorXd a;
 
     Helpers::printVector(getBiasVector(),"Biases");
-    Helpers::printMatrix(getWeigtMatrix(),"Weights");
+    Helpers::printMatrix(getWeightMatrix(),"Weights");
     Helpers::printVector(getBackpropagationError(),"Error");
 }
 

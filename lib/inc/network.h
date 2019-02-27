@@ -33,6 +33,10 @@
 #include "network_cb.h"
 #include "regularization.h"
 
+
+#define NetworkPtr std::shared_ptr<Network>
+
+
 class Layer;
 
 class Network
@@ -206,7 +210,7 @@ public:
      * Returns the structure of the neural network.
      * @return
      */
-    std::vector<unsigned int> getNetworkStructure() const { return m_NetworkStructure; }
+    const std::vector<unsigned int>& getNetworkStructure() const { return m_NetworkStructure; }
 
     /**
      * Sets the applied cost function in the outputlayer.

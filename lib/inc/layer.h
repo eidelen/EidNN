@@ -107,7 +107,7 @@ public:
      * ( see updateWeightMatrixAndBiasVector() )
      * @return
      */
-    const Eigen::MatrixXd& getWeigtMatrix() const { return m_weightMatrix; }
+    const Eigen::MatrixXd& getWeightMatrix() const { return m_weightMatrix; }
 
     /**
      * Sets the bias of each neuron in this layer.

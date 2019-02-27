@@ -45,10 +45,10 @@ TEST(LayerTest, CopyConstructor)
     Layer* lcopy = new Layer( *l );
     ASSERT_NEAR( lcopy->getBiasVector()(0,0), 0.2, 0.0001 );
     ASSERT_NEAR( lcopy->getBiasVector()(1,0), 0.2, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,0), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,1), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,0), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,1), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(0,0), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(0,1), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(1,0), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(1,1), 0.8, 0.0001 );
     ASSERT_EQ( lcopy->getLayerType(), Layer::Softmax );
 
     delete l;
@@ -65,10 +65,10 @@ TEST(LayerTest, Serialization)
 
     ASSERT_NEAR( lcopy->getBiasVector()(0,0), 0.2, 0.0001 );
     ASSERT_NEAR( lcopy->getBiasVector()(1,0), 0.2, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,0), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(0,1), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,0), 0.8, 0.0001 );
-    ASSERT_NEAR( lcopy->getWeigtMatrix()(1,1), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(0,0), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(0,1), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(1,0), 0.8, 0.0001 );
+    ASSERT_NEAR(lcopy->getWeightMatrix()(1,1), 0.8, 0.0001 );
     ASSERT_EQ( lcopy->getLayerType(), Layer::Softmax );
 
     delete l;
@@ -236,15 +236,15 @@ TEST(LayerTest, SetWeightsAndBiases)
     ASSERT_FALSE( l->setBiases( bV ) );
 
     // check some weights and biases
-    ASSERT_NEAR( (l->getWeigtMatrix()(0,0)), 1, 0.0001 );
-    ASSERT_NEAR( (l->getWeigtMatrix()(1,1)), 4 , 0.0001 );
+    ASSERT_NEAR( (l->getWeightMatrix()(0,0)), 1, 0.0001 );
+    ASSERT_NEAR( (l->getWeightMatrix()(1,1)), 4 , 0.0001 );
     ASSERT_NEAR( l->getBiasVector()(1), 6 , 0.0001 );
 
     // set uniform neuron settings
     l->setBias( 10.00 );
     l->setWeight( 13.00 );
-    ASSERT_NEAR( (l->getWeigtMatrix()(0,0)), 13.00, 0.0001 );
-    ASSERT_NEAR( (l->getWeigtMatrix()(1,1)), 13.00, 0.0001 );
+    ASSERT_NEAR( (l->getWeightMatrix()(0,0)), 13.00, 0.0001 );
+    ASSERT_NEAR( (l->getWeightMatrix()(1,1)), 13.00, 0.0001 );
     ASSERT_NEAR( l->getBiasVector()(1), 10.00 , 0.0001 );
     ASSERT_NEAR( l->getBiasVector()(0), 10.00 , 0.0001 );
 
@@ -264,10 +264,10 @@ TEST(LayerTest, SetWeightsAndBiases)
     ASSERT_FALSE( l->setWeights( wMatrixWrong ));
     Eigen::MatrixXd wMatrixRight = Eigen::MatrixXd( 2 , 2 ); wMatrixRight << 10, 11,   15, 16;
     ASSERT_TRUE( l->setWeights( wMatrixRight ));
-    ASSERT_NEAR( l->getWeigtMatrix()(0,0), 10.0, 0.0001 );
-    ASSERT_NEAR( l->getWeigtMatrix()(0,1), 11.0, 0.0001 );
-    ASSERT_NEAR( l->getWeigtMatrix()(1,0), 15.0, 0.0001 );
-    ASSERT_NEAR( l->getWeigtMatrix()(1,1), 16.0, 0.0001 );
+    ASSERT_NEAR(l->getWeightMatrix()(0,0), 10.0, 0.0001 );
+    ASSERT_NEAR(l->getWeightMatrix()(0,1), 11.0, 0.0001 );
+    ASSERT_NEAR(l->getWeightMatrix()(1,0), 15.0, 0.0001 );
+    ASSERT_NEAR(l->getWeightMatrix()(1,1), 16.0, 0.0001 );
 
     delete l;
 }
