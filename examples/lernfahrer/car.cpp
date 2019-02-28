@@ -19,6 +19,9 @@ Car::Car()
     setMeasureAngles( {-45.0, 0.0, 45.0} );
 
     m_droveDistance = 0.0;
+
+    std::vector<unsigned int> map = {3,10,4};
+    m_network = NetworkPtr( new Network(map) );
 }
 
 Car::~Car()
@@ -98,6 +101,44 @@ void Car::update()
 
     // decide what to do next
     m_measuredDistances = measureDistances();
+    Eigen::MatrixXd nnInput = m_measuredDistances.col(0);
+    m_network->feedForward(nnInput);
+    Eigen::MatrixXd nnOut = m_network->getOutputActivation();
+
+    double maxVal = -1.0;
+    size_t maxIdx = 0;
+    for( size_t q = 0; q < nnOut.rows(); q++ )
+    {
+        double val = nnOut(q,0);
+        if( val > maxVal )
+        {
+            maxVal = val;
+            maxIdx = q;
+        }
+    }
+
+    if( maxIdx == 0 )
+    {
+        setAcceleration(20);
+    }
+    else if( maxIdx == 1 )
+    {
+        setAcceleration(-40);
+    }
+    else if( maxIdx == 2 )
+    {
+        setRotationSpeed( -10 );
+    }
+    else if( maxIdx == 3 )
+    {
+        setRotationSpeed( 10 );
+    }
+    else
+    {
+        std::cout << "Err nn" << std::endl;
+    }
+
+
 }
 
 double Car::getFitness()

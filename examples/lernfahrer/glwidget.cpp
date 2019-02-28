@@ -30,7 +30,7 @@ GLWidget::GLWidget(QWidget *parent)
     }
 
     std::shared_ptr<CarFactory> f(new CarFactory(m_map));
-    m_evo = new Evolution(5,10,f);
+    m_evo = new Evolution(10,200,f);
 }
 
 void GLWidget::animate()
