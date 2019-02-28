@@ -57,6 +57,8 @@ TEST(Car, MoveConstVelocity)
         c->doStep();
         ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
         ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
+
+        ASSERT_NEAR(c->getFitness(),(k+1)*speed*0.25,0.3);
     }
 
     delete c;
@@ -169,3 +171,37 @@ TEST(Car, DistanceToEdge)
     delete c;
 }
 
+TEST(Car, DistanceInput)
+{
+    Eigen::MatrixXi map(10,10);
+    map.fill(1);
+    map.col(5).setZero();
+
+    auto c = new Car();
+    c->setMap(map);
+    c->setPosition(Eigen::Vector2d(2,2));
+    c->setMeasureAngles({0,90,-90});
+    c->setDirection(Eigen::Vector2d(1,0));
+    c->setSpeed(0.0);
+
+    c->doStep();
+
+    Eigen::MatrixXd mAng = c->getMeasuredDistances();
+
+    ASSERT_EQ(mAng.rows(), 3);
+    ASSERT_EQ(mAng.cols(), 3);
+
+    ASSERT_NEAR(mAng(0,0) , 3.0, 0.1);
+    ASSERT_NEAR(mAng(0,1) , 5.0, 0.1);
+    ASSERT_NEAR(mAng(0,2) , 2.0, 0.1);
+
+    ASSERT_NEAR(mAng(1,0) , 2.0, 0.1);
+    ASSERT_NEAR(mAng(1,1) , 2.0, 0.1);
+    ASSERT_NEAR(mAng(1,2) , 0.0, 0.1);
+
+    ASSERT_NEAR(mAng(2,0) , 7.0, 0.1);
+    ASSERT_NEAR(mAng(2,1) , 2.0, 0.1);
+    ASSERT_NEAR(mAng(2,2) , 9.0, 0.1);
+
+    delete c;
+}

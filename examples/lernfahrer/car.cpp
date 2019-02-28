@@ -15,6 +15,10 @@ Car::Car()
 
     m_rotationToOriginal = 0.0;
     m_mapSet = false;
+
+    setMeasureAngles( {-45.0, 0.0, 45.0} );
+
+    m_droveDistance = 0.0;
 }
 
 Car::~Car()
@@ -86,13 +90,19 @@ void Car::update()
 
     newPosition = handleCollision(getPosition(), newPosition);
 
+    m_droveDistance = m_droveDistance + (newPosition - getPosition()).norm();
+
     setPosition( newPosition );
     setSpeed( newSpeed );
+
+
+    // decide what to do next
+    m_measuredDistances = measureDistances();
 }
 
 double Car::getFitness()
 {
-    return 0.0;
+    return m_droveDistance;
 }
 
 double Car::getRotationSpeed() const
@@ -153,6 +163,9 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
 
 double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &direction) const
 {
+    if( !m_mapSet )
+        return 0.0;
+
     Eigen::Vector2d d = direction.normalized();
     Eigen::Vector2d end = pos;
 
@@ -198,5 +211,62 @@ double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &di
     return (end-pos).norm();
 }
 
+const std::vector<double> &Car::getMeasureAngles() const
+{
+    return m_measureAngles;
+}
+
+void Car::setMeasureAngles(const std::vector<double> &measureAngles)
+{
+    m_measureAngles = measureAngles;
+}
+
+Eigen::MatrixXd Car::measureDistances() const
+{
+    // distance, xP, yP
+    Eigen::MatrixXd angs( m_measureAngles.size(), 3);
+    for( size_t k = 0; k < m_measureAngles.size(); k++ )
+    {
+        double aRad = -(M_PI / 180.0 * m_measureAngles[k]);
+        Eigen::Rotation2D<double> r( aRad );
+        Eigen::Vector2d measureDir = r.toRotationMatrix() * m_direction;
+
+        double dist = distanceToEdge(getPosition(),measureDir);
+
+        Eigen::Vector2d edgePos = getPosition() + measureDir * dist;
+        angs(k,0) = dist;
+        angs(k,1) = edgePos(0);
+        angs(k,2) = edgePos(1);
+    }
+
+    return angs;
+}
+
+Eigen::MatrixXd Car::getMeasuredDistances() const
+{
+    return m_measuredDistances;
+}
 
 
+
+
+CarFactory::CarFactory(const Eigen::MatrixXi &map) : m_map(map)
+{
+
+}
+
+CarFactory::~CarFactory()
+{
+
+}
+
+std::shared_ptr<Simulation> CarFactory::createRandomSimulation()
+{
+    std::shared_ptr<Car> car( new Car( ) );
+
+    car->setMap(m_map);
+    car->setPosition(Eigen::Vector2d(500,150) );
+    car->setDirection(Eigen::Vector2d(1,0));
+
+    return car;
+}

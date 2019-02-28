@@ -41,7 +41,6 @@ public:
      */
     double getRotationRelativeToInitial() const;
 
-
     double getFitness() override;
 
     double computeAngleBetweenVectors( const Eigen::Vector2d& a, const Eigen::Vector2d& b ) const;
@@ -52,9 +51,16 @@ public:
 
     double distanceToEdge(const Eigen::Vector2d& pos, const Eigen::Vector2d& direction) const;
 
+    const std::vector<double> &getMeasureAngles() const;
+
+    void setMeasureAngles(const std::vector<double>& measureAngles);
+
+    Eigen::MatrixXd getMeasuredDistances() const;
+
 private:
     void update() override;
     Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
+    Eigen::MatrixXd measureDistances() const;
 
 
 private:
@@ -70,7 +76,26 @@ private:
 
     Eigen::MatrixXi m_map;
     bool m_mapSet;
+
+    std::vector<double> m_measureAngles;
+    Eigen::MatrixXd m_measuredDistances;
+
+    double m_droveDistance;
 };
 
+
+class CarFactory: public SimulationFactory
+{
+public:
+    CarFactory(const Eigen::MatrixXi &map);
+
+    ~CarFactory() override;
+
+    std::shared_ptr<Simulation> createRandomSimulation() override;
+
+private:
+    const Eigen::MatrixXi &m_map;
+
+};
 
 #endif //EIDNN_CAR_H

@@ -17,25 +17,20 @@ GLWidget::GLWidget(QWidget *parent)
     m_trackImg = QPixmap(":/tracks/track1.png");
     QImage trackI = m_trackImg.toImage();
 
-    Eigen::MatrixXi map(trackI.height(), trackI.width());
-    map.setOnes();
-    for( size_t m = 0; m < map.rows(); m++)
+    m_map = Eigen::MatrixXi(trackI.height(), trackI.width());
+    m_map.setOnes();
+    for( size_t m = 0; m < m_map.rows(); m++)
     {
-        for( size_t n = 0; n < map.cols(); n++ )
+        for( size_t n = 0; n < m_map.cols(); n++ )
         {
             QRgb color = trackI.pixel(n,m);
             if( qRed(color) < 10 && qGreen(color) < 10 && qBlue(color) < 10)
-                map(m,n) = 0;
+                m_map(m,n) = 0;
         }
     }
 
-    m_car.reset( new Car() );
-    m_car->setMap(map);
-    m_car->setPosition(Eigen::Vector2d(500,150) );
-    m_car->setDirection(Eigen::Vector2d(1,0));
-    m_car->setRotationSpeed(0.0);
-    m_car->setAcceleration(20);
-    m_car->setSpeed(10.0);
+    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
+    m_evo = new Evolution(5,10,f);
 }
 
 void GLWidget::animate()
@@ -46,7 +41,7 @@ void GLWidget::animate()
 
 void GLWidget::paintEvent(QPaintEvent *event)
 {
-    m_car->doStep();
+    m_evo->doStep();
 
     QPainter painter;
     painter.begin(this);
@@ -56,21 +51,37 @@ void GLWidget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(0,0,m_trackImg);
 
-    drawCar(&painter, QPointF(m_car->getPosition()(0,0),m_car->getPosition()(1,0)),  QPointF(m_car->getDirection()(0,0),m_car->getDirection()(1,0)));
+    std::vector<SimulationPtr> simRes = m_evo->getSimulationsOrderedByFitness();
+    for( SimulationPtr c : simRes )
+    {
+        std::shared_ptr<Car> thisCar = std::dynamic_pointer_cast<Car>( c );
+        drawCar(&painter, thisCar);
+    }
 
     painter.end();
 }
 
-void GLWidget::drawCar(QPainter *painter, QPointF pos, QPointF dir)
+void GLWidget::drawCar(QPainter *painter, std::shared_ptr<Car> car)
 {
     int carLength = 26;
     int carWidth = 14;
 
     QMatrix rm;
-    rm = rm.rotate(m_car->getRotationRelativeToInitial());
+    rm = rm.rotate(car->getRotationRelativeToInitial());
     QPixmap rotCar = m_carImg.transformed(rm, Qt::SmoothTransformation);
 
-    painter->drawPixmap(pos - QPointF(carLength/2.0, carWidth/2.0),rotCar);
+
+    QPointF carPos( car->getPosition()(0,0),car->getPosition()(1,0) );
+    painter->drawPixmap(carPos - QPointF(carLength/2.0, carWidth/2.0),rotCar);
+
+
+    // draw distances
+    Eigen::MatrixXd distances = car->getMeasuredDistances();
+    for( size_t i = 0; i < distances.rows(); i++ )
+    {
+        QPointF distEnd( distances(i,1), distances(i,2) );
+        painter->drawLine( carPos, distEnd );
+    }
 }
 
 
