@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <inc/evolution.h>
 
 
@@ -106,5 +107,25 @@ double Evolution::getMutationRate() const
 void Evolution::setMutationRate(double mutationRate)
 {
     m_mutationRate = mutationRate;
+}
+
+std::pair<size_t, size_t> Evolution::getNumberAliveAndDead() const
+{
+    size_t alive = 0;
+    size_t dead = 0;
+
+
+    for( auto m: m_simulations )
+        if( m->isAlive() )
+            alive++;
+        else
+            dead++;
+
+    return std::pair<size_t,size_t>(alive,dead);
+}
+
+double Evolution::getSimulationsAverageAge() const
+{
+    return std::accumulate(m_simulations.begin(), m_simulations.end(), 0.0,   [] (double total, auto i) { return total + i->getAge(); }) / (double)m_simulations.size();
 }
 

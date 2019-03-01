@@ -22,6 +22,8 @@
 *****************************************************************************/
 
 
+#include <inc/simulation.h>
+
 #include "simulation.h"
 #include "genetic.h"
 
@@ -29,6 +31,7 @@
 Simulation::Simulation()
 {
     setLastUpdateTime(now());
+    m_creation = now();
 }
 
 Simulation::~Simulation()
@@ -89,6 +92,11 @@ void Simulation::setNetwork(const std::shared_ptr<Network> &network)
 bool Simulation::isAlive() const
 {
     return m_alive;
+}
+
+double Simulation::getAge() const
+{
+    return ((double)(m_lastUpdate - m_creation).count()) / 1000.0;
 }
 
 

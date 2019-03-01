@@ -80,6 +80,17 @@ public:
      */
     size_t getNumberOfEpochs() const;
 
+    /**
+     * Get the nubmer of alive and dead simulations.
+     */
+    std::pair<size_t, size_t> getNumberAliveAndDead( ) const;
+
+    /**
+     * Average simulations age.
+     * @return seconds.
+     */
+    double getSimulationsAverageAge() const;
+
 
 
 private:

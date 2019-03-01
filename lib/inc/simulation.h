@@ -85,6 +85,12 @@ public:
      */
     virtual bool isAlive() const;
 
+    /**
+     * How long was the simulation alive.
+     * @return seconds.
+     */
+    virtual double getAge() const;
+
 protected:
 
     std::chrono::milliseconds now() const;
@@ -97,6 +103,8 @@ protected:
 
 protected:
 
+    std::chrono::milliseconds m_age;
+    std::chrono::milliseconds m_creation;
     std::chrono::milliseconds m_lastUpdate;
     bool m_alive = true;
     NetworkPtr m_network;

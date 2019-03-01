@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 #include <chrono>
+#include <QTime>
 
 class Car: public Simulation
 {
@@ -57,10 +58,13 @@ public:
 
     Eigen::MatrixXd getMeasuredDistances() const;
 
+
+
 private:
     void update() override;
     Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
     Eigen::MatrixXd measureDistances() const;
+    void considerSuicide();
 
 
 private:
@@ -81,6 +85,9 @@ private:
     Eigen::MatrixXd m_measuredDistances;
 
     double m_droveDistance;
+
+    QTime m_killer;
+    double m_formerDistance;
 };
 
 
@@ -92,6 +99,8 @@ public:
     ~CarFactory() override;
 
     std::shared_ptr<Simulation> createRandomSimulation() override;
+
+    SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate) override;
 
 private:
     const Eigen::MatrixXi &m_map;

@@ -7,6 +7,7 @@
 
 #include <QOpenGLWidget>
 #include <QPixmap>
+#include <QTime>
 
 class Helper;
 
@@ -22,7 +23,7 @@ public slots:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-    void drawCar(QPainter* painter, std::shared_ptr<Car> car);
+    void drawCar(QPainter* painter, std::shared_ptr<Car> car, QColor color);
 
 private:
     int elapsed;
@@ -32,7 +33,7 @@ private:
 
     Evolution* m_evo;
     Eigen::MatrixXi m_map;
-
+    QTime m_nextGeneration;
 };
 
 #endif //EIDNN_GLWIDGET_H

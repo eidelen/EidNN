@@ -1,6 +1,8 @@
 
 
 #include "car.h"
+#include "genetic.h"
+#include "layer.h"
 
 #include <iostream>
 #include <Eigen/Geometry>
@@ -16,12 +18,15 @@ Car::Car()
     m_rotationToOriginal = 0.0;
     m_mapSet = false;
 
-    setMeasureAngles( {-45.0, 0.0, 45.0} );
+    setMeasureAngles( {-80.0, -35.0, 0.0, 35.0, 80.0} );
 
     m_droveDistance = 0.0;
 
-    std::vector<unsigned int> map = {3,10,4};
+    std::vector<unsigned int> map = {5,2};
     m_network = NetworkPtr( new Network(map) );
+
+    m_killer.start();
+    m_formerDistance = 0.0;
 }
 
 Car::~Car()
@@ -83,7 +88,8 @@ void Car::update()
     m_rotationToOriginal = computeAngleBetweenVectors(Eigen::Vector2d(1.0,0.0), m_direction);
 
 
-    double newSpeed = m_speed + animTime*getAcceleration();
+    double newSpeed = std::max(m_speed + animTime*getAcceleration(), 0.0);
+    newSpeed = std::min(newSpeed,300.0);
 
     Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
     Eigen::Vector2d oldSpeedVector = m_direction * m_lastSpeed;
@@ -102,43 +108,42 @@ void Car::update()
     // decide what to do next
     m_measuredDistances = measureDistances();
     Eigen::MatrixXd nnInput = m_measuredDistances.col(0);
+
+    // normalize input
+    double maxValInput = nnInput.maxCoeff();
+    nnInput = nnInput * 1.0/maxValInput;
+
     m_network->feedForward(nnInput);
     Eigen::MatrixXd nnOut = m_network->getOutputActivation();
 
-    double maxVal = -1.0;
-    size_t maxIdx = 0;
-    for( size_t q = 0; q < nnOut.rows(); q++ )
-    {
-        double val = nnOut(q,0);
-        if( val > maxVal )
-        {
-            maxVal = val;
-            maxIdx = q;
-        }
-    }
+    //std::cout << nnOut.transpose() << std::endl;
 
-    if( maxIdx == 0 )
+
+    double maxAngleSpeed = 120;
+
+    if( nnOut(0,0) < 0.5 )
     {
         setAcceleration(20);
     }
-    else if( maxIdx == 1 )
+    else
     {
-        setAcceleration(-40);
+        setAcceleration(-100);
     }
-    else if( maxIdx == 2 )
+
+    if( nnOut(1,0) > 0.5)
     {
-        setRotationSpeed( -10 );
-    }
-    else if( maxIdx == 3 )
-    {
-        setRotationSpeed( 10 );
+        setRotationSpeed( -maxAngleSpeed );
     }
     else
     {
-        std::cout << "Err nn" << std::endl;
+        setRotationSpeed( maxAngleSpeed );
     }
 
-
+    if( m_killer.elapsed() > 1000 )
+    {
+        considerSuicide();
+        m_killer.restart();
+    }
 }
 
 double Car::getFitness()
@@ -196,7 +201,7 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
     if( tillEdge < l ) // collision
     {
         m_alive = false;
-        return from + du * tillEdge;
+        return from;
     }
 
     return to;
@@ -288,7 +293,17 @@ Eigen::MatrixXd Car::getMeasuredDistances() const
     return m_measuredDistances;
 }
 
-
+void Car::considerSuicide()
+{
+    if(( getAge() > 1.0 && m_droveDistance < 3.0) || m_droveDistance < m_formerDistance * 1.03 )
+    {
+        m_alive = false;
+    }
+    else
+    {
+        m_formerDistance = m_droveDistance;
+    }
+}
 
 
 CarFactory::CarFactory(const Eigen::MatrixXi &map) : m_map(map)
@@ -306,8 +321,25 @@ std::shared_ptr<Simulation> CarFactory::createRandomSimulation()
     std::shared_ptr<Car> car( new Car( ) );
 
     car->setMap(m_map);
-    car->setPosition(Eigen::Vector2d(500,150) );
+    car->setPosition(Eigen::Vector2d(400,350) );
     car->setDirection(Eigen::Vector2d(1,0));
 
     return car;
 }
+
+SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, double /*mutationRate*/)
+{
+    NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, 0.02);
+
+    // set all bias to zero
+    for( size_t i = 0; i < cr->getNumberOfLayer(); i++ )
+    {
+        cr->getLayer(i)->setBias(0.0);
+    }
+
+    SimulationPtr crs = createRandomSimulation();
+    crs->setNetwork(cr);
+    return crs;
+}
+
+
