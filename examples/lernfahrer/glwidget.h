@@ -20,6 +20,7 @@ public:
 
 public slots:
     void animate();
+    void doNewEpoch();
 
 protected:
     void paintEvent(QPaintEvent *event) override;

@@ -91,6 +91,23 @@ public:
      */
     double getSimulationsAverageAge() const;
 
+    /**
+     * Get mutation rate.
+     * @return Mutation rate (0.0 - 1.0)
+     */
+    double getMutationRate() const;
+
+    /**
+     * Set mutation rate.
+     * @param mutationRate 0.0 - 1.0
+     */
+    void setMutationRate(double mutationRate);
+
+    /**
+     * Kill all simulations.
+     */
+    void killAllSimulations();
+
 
 
 private:
@@ -101,10 +118,7 @@ private:
     bool m_epochOver;
     size_t m_epochCount;
     double m_mutationRate;
-public:
-    double getMutationRate() const;
 
-    void setMutationRate(double mutationRate);
 };
 
 

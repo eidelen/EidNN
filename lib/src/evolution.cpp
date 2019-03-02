@@ -56,7 +56,11 @@ void Evolution::doStep()
         }
     }
 
-    m_epochOver = !anyLive;
+    if( !anyLive )
+    {
+        m_epochOver = !anyLive;
+        m_epochCount++;
+    }
 }
 
 void Evolution::doEpoch()
@@ -127,5 +131,11 @@ std::pair<size_t, size_t> Evolution::getNumberAliveAndDead() const
 double Evolution::getSimulationsAverageAge() const
 {
     return std::accumulate(m_simulations.begin(), m_simulations.end(), 0.0,   [] (double total, auto i) { return total + i->getAge(); }) / (double)m_simulations.size();
+}
+
+void Evolution::killAllSimulations()
+{
+    for( auto m: m_simulations )
+        m->kill();
 }
 

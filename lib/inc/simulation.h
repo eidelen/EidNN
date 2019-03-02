@@ -91,6 +91,11 @@ public:
      */
     virtual double getAge() const;
 
+    /**
+     * Stops this simulation.
+     */
+    virtual void kill();
+
 protected:
 
     std::chrono::milliseconds now() const;

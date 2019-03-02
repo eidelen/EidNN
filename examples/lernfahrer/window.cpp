@@ -5,18 +5,29 @@
 #include <QLayout>
 #include <QLabel>
 #include <QTimer>
+#include <QPushButton>
 
 Window::Window()
 {
-    setWindowTitle(tr("2D Painting on Native and OpenGL Widgets"));
+    setWindowTitle(tr("EidNN Lernfahrer"));
 
     GLWidget *openGL = new GLWidget(this);
 
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(openGL, 0, 0);
+    QPushButton* nextEpochBtn = new QPushButton("New Epoch");
+
+    QVBoxLayout* layout = new QVBoxLayout;
+    layout->addWidget(nextEpochBtn);
+    layout->addWidget(openGL);
+
     setLayout(layout);
+
+
+    // connections
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, openGL, &GLWidget::animate);
     timer->start(40);
+
+    connect(nextEpochBtn, SIGNAL (released()),openGL, SLOT (doNewEpoch()));
+
 }

@@ -6,6 +6,7 @@
 #include <QPaintEvent>
 #include <QRgb>
 #include <QTime>
+#include <iostream>
 
 GLWidget::GLWidget(QWidget *parent)
         : QOpenGLWidget(parent)
@@ -25,13 +26,13 @@ GLWidget::GLWidget(QWidget *parent)
         for( size_t n = 0; n < m_map.cols(); n++ )
         {
             QRgb color = trackI.pixel(n,m);
-            if( qRed(color) > 60 && qGreen(color) > 60 && qBlue(color) > 60 )
+            if( qRed(color) == 165 && qGreen(color) == 172 && qBlue(color) == 182 )
                 m_map(m,n) = 1;
         }
     }
 
     std::shared_ptr<CarFactory> f(new CarFactory(m_map));
-    m_evo = new Evolution(1000,200,f);
+    m_evo = new Evolution(200,100,f);
 
     m_nextGeneration.start();
 }
@@ -78,12 +79,15 @@ void GLWidget::paintEvent(QPaintEvent *event)
         drawCar(&painter, secondBestCar, Qt::yellow);
     }
 
-    auto stat = m_evo->getNumberAliveAndDead();
-    QString statText = "Alive: " + QString::number(stat.first) + "   Dead: " + QString::number(stat.second);
-    painter.drawText(QPoint(1000,500), statText);
 
-    QString{"Average age: %1 s"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 );
-    painter.drawText(QPoint(1000,530), QString{"Average age: %1"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 ));
+    QFont font = painter.font() ;
+    font.setPointSize(25);
+    painter.setFont(font);
+    painter.setPen(QColor(39,75,122));
+    auto stat = m_evo->getNumberAliveAndDead();
+    painter.drawText(QPoint(900,500), QString{"Alive: %1   Dead: %2"}.arg(stat.first).arg(stat.second));
+    painter.drawText(QPoint(900,530), QString{"Average age: %1"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 ));
+    painter.drawText(QPoint(900,560), QString{"Epoch: %1"}.arg(m_evo->getNumberOfEpochs()));
 
     painter.end();
 }
@@ -117,6 +121,12 @@ void GLWidget::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color
     {
         painter->drawEllipse(carPos, 4, 4);
     }
+}
+
+void GLWidget::doNewEpoch()
+{
+    std::cout << "New Epoch!" << std::endl;
+    m_evo->killAllSimulations();
 }
 
 

@@ -18,11 +18,11 @@ Car::Car()
     m_rotationToOriginal = 0.0;
     m_mapSet = false;
 
-    setMeasureAngles( {-80.0, -35.0, 0.0, 35.0, 80.0} );
+    setMeasureAngles( {-80, -55.0, -25.0, 0.0, 25.0, 55.0, 80} );
 
     m_droveDistance = 0.0;
 
-    std::vector<unsigned int> map = {5,2};
+    std::vector<unsigned int> map = {7,16,2};
     m_network = NetworkPtr( new Network(map) );
 
     m_killer.start();
@@ -89,7 +89,7 @@ void Car::update()
 
 
     double newSpeed = std::max(m_speed + animTime*getAcceleration(), 0.0);
-    newSpeed = std::min(newSpeed,300.0);
+    newSpeed = std::min(newSpeed,400.0);
 
     Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
     Eigen::Vector2d oldSpeedVector = m_direction * m_lastSpeed;
@@ -119,25 +119,14 @@ void Car::update()
     //std::cout << nnOut.transpose() << std::endl;
 
 
-    double maxAngleSpeed = 120;
+    double maxRotationSpeed = 360.0;
+    double maxAcceleration = 100.0;
 
-    if( nnOut(0,0) < 0.5 )
-    {
-        setAcceleration(20);
-    }
-    else
-    {
-        setAcceleration(-100);
-    }
-
-    if( nnOut(1,0) > 0.5)
-    {
-        setRotationSpeed( -maxAngleSpeed );
-    }
-    else
-    {
-        setRotationSpeed( maxAngleSpeed );
-    }
+    // scale output from 0 - 1 to -1 to +1
+    double speedActivation = (nnOut(0,0) - 0.5) * 2;
+    double rotationActivation = (nnOut(1,0) - 0.5) * 2;
+    setAcceleration(maxAcceleration*speedActivation);
+    setRotationSpeed(maxRotationSpeed*rotationActivation);
 
     if( m_killer.elapsed() > 1000 )
     {
@@ -187,6 +176,12 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
 {
     if( !m_mapSet )
         return to;
+
+    if( m_map( std::ceil(from(1)) , std::ceil(from(0))) == 0 )
+    {
+        m_alive = false;
+        return from;
+    }
 
     Eigen::Vector2d dif = to - from;
     double l = dif.norm();
@@ -295,7 +290,7 @@ Eigen::MatrixXd Car::getMeasuredDistances() const
 
 void Car::considerSuicide()
 {
-    if(( getAge() > 1.0 && m_droveDistance < 3.0) || m_droveDistance < m_formerDistance * 1.03 )
+    if(( getAge() > 1.0 && m_droveDistance < 3.0) || m_droveDistance < m_formerDistance * 1.02 )
     {
         m_alive = false;
     }
@@ -321,7 +316,7 @@ std::shared_ptr<Simulation> CarFactory::createRandomSimulation()
     std::shared_ptr<Car> car( new Car( ) );
 
     car->setMap(m_map);
-    car->setPosition(Eigen::Vector2d(400,350) );
+    car->setPosition(Eigen::Vector2d(400,345) );
     car->setDirection(Eigen::Vector2d(1,0));
 
     return car;

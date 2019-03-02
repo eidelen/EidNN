@@ -99,6 +99,11 @@ double Simulation::getAge() const
     return ((double)(m_lastUpdate - m_creation).count()) / 1000.0;
 }
 
+void Simulation::kill()
+{
+    m_alive = false;
+}
+
 
 // Factory
 
