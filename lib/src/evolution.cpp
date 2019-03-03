@@ -30,14 +30,15 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <inc/evolution.h>
+#include <thread>
 
 
-Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory)
-: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0), m_mutationRate(0.0), m_stepCounter(0), m_simSpeed(0.0)
+Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory, unsigned int nThreads)
+: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0), m_mutationRate(0.0),
+  m_stepCounter(0), m_simSpeed(0.0), m_nbrThreads(nThreads)
 {
-    std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
     m_simSpeedTime = now();
+    std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
 }
 
 Evolution::~Evolution()
@@ -45,22 +46,42 @@ Evolution::~Evolution()
 
 }
 
-void Evolution::doStep()
+void Evolution::doStepOnFewSimulations( std::vector<SimulationPtr>& sims, std::atomic_bool& anyAlive, size_t start, size_t end )
 {
-    m_stepCounter++;
-    bool anyLive = false;
-    for( auto s: m_simulations )
+    for( size_t k = start; k < end; k++ )
     {
+        SimulationPtr s = sims[k];
         if (s->isAlive())
         {
             s->doStep();
-            anyLive = true;
+            anyAlive = true;
         }
     }
+}
 
-    if( !anyLive )
+void Evolution::doStep()
+{
+    m_stepCounter++;
+
+    std::atomic_bool anyAlive = false;
+    std::vector<std::thread> thv;
+    size_t samplesPerThread = m_simulations.size() / m_nbrThreads;
+    for(unsigned int th = 0; th < m_nbrThreads; th++)
     {
-        m_epochOver = !anyLive;
+        size_t startPos = th * samplesPerThread;
+        size_t endPos = startPos + samplesPerThread;
+        if( th == m_nbrThreads - 1 ) // last thread till end
+            endPos = m_simulations.size();
+
+        thv.emplace_back(std::thread( doStepOnFewSimulations, std::ref(m_simulations), std::ref(anyAlive), startPos, endPos ));
+    }
+
+    for( std::thread& th : thv )
+        th.join();
+
+    if( !anyAlive )
+    {
+        m_epochOver = !anyAlive;
         m_epochCount++;
     }
 

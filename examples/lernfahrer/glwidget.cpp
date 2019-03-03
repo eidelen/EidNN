@@ -15,10 +15,10 @@ GLWidget::GLWidget(QWidget *parent)
     setFixedSize(1200, 800);
     setAutoFillBackground(false);
 
-    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
-    m_evo = new Evolution(500,100,f);
-
     initTrack(Track2);
+
+    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
+    m_evo = new Evolution(800,200,f,12);
 
     m_nextGeneration.start();
 }
@@ -40,7 +40,6 @@ void GLWidget::paintEvent(QPaintEvent *event)
 
     m_evo->doStep();
     std::vector<SimulationPtr> simRes = m_evo->getSimulationsOrderedByFitness();
-
 
     // draw the simulation
 
@@ -139,7 +138,6 @@ void GLWidget::initTrack(GLWidget::Track t)
     }
 
     m_map = createMap( m_trackImg );
-    m_evo->killAllSimulations();
 }
 
 

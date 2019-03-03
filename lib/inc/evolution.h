@@ -42,8 +42,9 @@ public:
      * Constructor
      * @param nInitial How many random initialized genoms (first epoch)
      * @param nNext How many offsprings generated among best genoms (further epochs)
+     * @param nThreads Number of threads used for computation
      */
-    Evolution( size_t nInitial, size_t nNext, SimFactoryPtr simFactory );
+    Evolution( size_t nInitial, size_t nNext, SimFactoryPtr simFactory, unsigned int nThreads = 4 );
 
     virtual ~Evolution();
 
@@ -118,6 +119,7 @@ public:
 
 private:
     std::chrono::milliseconds now() const;
+    static void doStepOnFewSimulations( std::vector<SimulationPtr>& sims, std::atomic_bool& anyAlive, size_t start, size_t end );
 
 
 private:
@@ -131,6 +133,7 @@ private:
     size_t m_stepCounter;
     std::chrono::milliseconds m_simSpeedTime;
     double m_simSpeed;
+    unsigned int m_nbrThreads;
 
 };
 
