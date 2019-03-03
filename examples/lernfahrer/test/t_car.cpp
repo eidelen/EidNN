@@ -50,16 +50,18 @@ TEST(Car, MoveConstVelocity)
     double speed = 10;
     c->setSpeed(10);
     c->setDirection(Eigen::Vector2d(1,0));
+    c->setPosition(Eigen::Vector2d(0,0));
+    Eigen::MatrixXi map(100,100);
+    map.fill(1);
+    c->setMap(map);
 
-    for(int k = 0; k < 8; k++ )
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        c->doStep();
-        ASSERT_NEAR(c->getPosition()(0),(k+1)*speed*0.25,0.3);
-        ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    c->doStep();
+    ASSERT_NEAR(c->getPosition()(0),speed*0.25,0.3);
+    ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
 
-        ASSERT_NEAR(c->getFitness(),(k+1)*speed*0.25,0.3);
-    }
+    ASSERT_NEAR(c->getFitness(),speed*0.25,0.3);
+
 
     delete c;
 }
@@ -79,15 +81,6 @@ TEST(Car, Accelerate)
     ASSERT_NEAR(c->getPosition()(0),5.0,0.1);
     ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
 
-    c->setAcceleration(-10.0);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    c->doStep();
-
-    ASSERT_NEAR(c->getSpeed(),0.0, 0.2);
-    ASSERT_NEAR(c->getPosition()(0),10.0,0.2);
-    ASSERT_NEAR(c->getPosition()(1),0.0,0.1);
-
     delete c;
 }
 
@@ -103,12 +96,6 @@ TEST(Car, Rotation)
 
     // 0 -> 360 = 180
     ASSERT_NEAR(c->getDirection()(0),-1.0,0.2);
-    ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    c->doStep();
-
-    ASSERT_NEAR(c->getDirection()(0),1.0,0.2);
     ASSERT_NEAR(c->getDirection()(1),0.0,0.2);
 
     delete c;
@@ -140,14 +127,13 @@ TEST(Car, Collision)
     c->setPosition(Eigen::Vector2d(0,0));
     c->setDirection(Eigen::Vector2d(1,0));
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    c->doStep();
     ASSERT_TRUE(c->isAlive());
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
     c->doStep();
     ASSERT_FALSE(c->isAlive());
 
-    ASSERT_NEAR(c->getPosition()(0), 17.0, 0.1);
+    ASSERT_NEAR(c->getPosition()(0), 0.0, 0.1);
     ASSERT_NEAR(c->getPosition()(1), 0.0, 0.1);
 
     delete c;
@@ -164,9 +150,9 @@ TEST(Car, DistanceToEdge)
     c->setPosition(Eigen::Vector2d(2,2));
 
     ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(1,0)), 3.0, 0.1);
-    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(-1,0)), 2.0, 0.1);
-    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,1)), 6.0, 0.1);
-    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,-1)), 3.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(-1,0)), 3.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,1)), 7.0, 0.1);
+    ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(0,-1)), 4.0, 0.1);
 
     delete c;
 }
@@ -180,7 +166,7 @@ TEST(Car, DistanceInput)
     auto c = new Car();
     c->setMap(map);
     c->setPosition(Eigen::Vector2d(2,2));
-    c->setMeasureAngles({0,90,-90});
+    c->setMeasureAngles({0,90,-90, 0, 0, 0, 0});
     c->setDirection(Eigen::Vector2d(1,0));
     c->setSpeed(0.0);
 
@@ -188,20 +174,20 @@ TEST(Car, DistanceInput)
 
     Eigen::MatrixXd mAng = c->getMeasuredDistances();
 
-    ASSERT_EQ(mAng.rows(), 3);
+    ASSERT_EQ(mAng.rows(), 7);
     ASSERT_EQ(mAng.cols(), 3);
 
     ASSERT_NEAR(mAng(0,0) , 3.0, 0.1);
     ASSERT_NEAR(mAng(0,1) , 5.0, 0.1);
     ASSERT_NEAR(mAng(0,2) , 2.0, 0.1);
 
-    ASSERT_NEAR(mAng(1,0) , 2.0, 0.1);
+    ASSERT_NEAR(mAng(1,0) , 3.0, 0.1);
     ASSERT_NEAR(mAng(1,1) , 2.0, 0.1);
-    ASSERT_NEAR(mAng(1,2) , 0.0, 0.1);
+    ASSERT_NEAR(mAng(1,2) , -1.0, 0.1);
 
-    ASSERT_NEAR(mAng(2,0) , 7.0, 0.1);
+    ASSERT_NEAR(mAng(2,0) , 8.0, 0.1);
     ASSERT_NEAR(mAng(2,1) , 2.0, 0.1);
-    ASSERT_NEAR(mAng(2,2) , 9.0, 0.1);
+    ASSERT_NEAR(mAng(2,2) , 10.0, 0.1);
 
     delete c;
 }
