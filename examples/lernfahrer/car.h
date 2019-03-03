@@ -65,6 +65,7 @@ private:
     Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
     Eigen::MatrixXd measureDistances() const;
     void considerSuicide();
+    bool isPositionValid(const Eigen::Vector2d& pos) const;
 
 
 private:

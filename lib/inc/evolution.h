@@ -108,6 +108,16 @@ public:
      */
     void killAllSimulations();
 
+    /**
+     * Get the number of simulation steps achieved in 1 second.
+     * @return Simulation rate.
+     */
+    double getSimulationStepsPerSecond() const;
+
+
+
+private:
+    std::chrono::milliseconds now() const;
 
 
 private:
@@ -118,6 +128,9 @@ private:
     bool m_epochOver;
     size_t m_epochCount;
     double m_mutationRate;
+    size_t m_stepCounter;
+    std::chrono::milliseconds m_simSpeedTime;
+    double m_simSpeed;
 
 };
 

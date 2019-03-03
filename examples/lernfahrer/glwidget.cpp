@@ -15,24 +15,10 @@ GLWidget::GLWidget(QWidget *parent)
     setFixedSize(1200, 800);
     setAutoFillBackground(false);
 
-    m_carImg = QPixmap(":/tracks/car.png");
-    m_trackImg = QPixmap(":/tracks/track2.png");
-    QImage trackI = m_trackImg.toImage();
-
-    m_map = Eigen::MatrixXi(trackI.height(), trackI.width());
-    m_map.setZero();
-    for( size_t m = 0; m < m_map.rows(); m++)
-    {
-        for( size_t n = 0; n < m_map.cols(); n++ )
-        {
-            QRgb color = trackI.pixel(n,m);
-            if( qRed(color) == 165 && qGreen(color) == 172 && qBlue(color) == 182 )
-                m_map(m,n) = 1;
-        }
-    }
-
     std::shared_ptr<CarFactory> f(new CarFactory(m_map));
-    m_evo = new Evolution(200,100,f);
+    m_evo = new Evolution(500,100,f);
+
+    initTrack(Track2);
 
     m_nextGeneration.start();
 }
@@ -45,24 +31,24 @@ void GLWidget::animate()
 
 void GLWidget::paintEvent(QPaintEvent *event)
 {
-    if( m_nextGeneration.elapsed() > 120000 || m_evo->isEpochOver())
+    // update simulation
+    if( m_evo->isEpochOver())
     {
         m_evo->breed();
         m_nextGeneration.restart();
     }
 
     m_evo->doStep();
+    std::vector<SimulationPtr> simRes = m_evo->getSimulationsOrderedByFitness();
+
+
+    // draw the simulation
 
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
-
     painter.fillRect(event->rect(), QBrush(QColor(64, 32, 64)));
-
     painter.drawPixmap(0,0,m_trackImg);
-
-    std::vector<SimulationPtr> simRes = m_evo->getSimulationsOrderedByFitness();
-
 
     for( size_t k = 0; k < simRes.size(); k++ )
     {
@@ -70,16 +56,15 @@ void GLWidget::paintEvent(QPaintEvent *event)
         drawCar(&painter, thisCar, Qt::green);
     }
 
-    if( simRes.size() >= 2 ) // overdraw the two best
-    {
-        std::shared_ptr<Car> bestCar = std::dynamic_pointer_cast<Car>( simRes[0] );
-        drawCar(&painter, bestCar, Qt::red);
+    // specially mark the two best
+    if( simRes.size() >= 0 )
+        drawCar(&painter, std::dynamic_pointer_cast<Car>( simRes[1] ), Qt::yellow);
 
-        std::shared_ptr<Car> secondBestCar = std::dynamic_pointer_cast<Car>( simRes[1] );
-        drawCar(&painter, secondBestCar, Qt::yellow);
-    }
+    if( simRes.size() >= 1 )
+        drawCar(&painter, std::dynamic_pointer_cast<Car>( simRes[0] ), Qt::red);
 
 
+    // draw text
     QFont font = painter.font() ;
     font.setPointSize(25);
     painter.setFont(font);
@@ -88,26 +73,20 @@ void GLWidget::paintEvent(QPaintEvent *event)
     painter.drawText(QPoint(900,500), QString{"Alive: %1   Dead: %2"}.arg(stat.first).arg(stat.second));
     painter.drawText(QPoint(900,530), QString{"Average age: %1"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 ));
     painter.drawText(QPoint(900,560), QString{"Epoch: %1"}.arg(m_evo->getNumberOfEpochs()));
+    painter.drawText(QPoint(900,590), QString{"FPS: %1"}.arg(m_evo->getSimulationStepsPerSecond(), 0, 'f', 2 ));
 
     painter.end();
 }
 
 void GLWidget::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color)
 {
-    int carLength = 26;
-    int carWidth = 14;
-
-    QMatrix rm;
-    rm = rm.rotate(car->getRotationRelativeToInitial());
-    QPixmap rotCar = m_carImg.transformed(rm, Qt::SmoothTransformation);
-
     QPointF carPos( car->getPosition()(0,0),car->getPosition()(1,0) );
-    //painter->drawPixmap(carPos - QPointF(carLength/2.0, carWidth/2.0),rotCar);
     painter->setBrush(QBrush(color));
 
     if( car->isAlive() )
     {
-        painter->drawEllipse(carPos, 8, 8);
+        int carSize = 8;
+        painter->drawEllipse(carPos, carSize, carSize);
 
         // draw distances
         Eigen::MatrixXd distances = car->getMeasuredDistances();
@@ -119,15 +98,50 @@ void GLWidget::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color
     }
     else
     {
-        painter->drawEllipse(carPos, 4, 4);
+        int carSizeDead = 3;
+        painter->drawEllipse(carPos, carSizeDead, carSizeDead);
     }
 }
 
 void GLWidget::doNewEpoch()
 {
-    std::cout << "New Epoch!" << std::endl;
     m_evo->killAllSimulations();
 }
+
+Eigen::MatrixXi GLWidget::createMap(const QPixmap &imgP) const
+{
+    QImage img = imgP.toImage();
+    Eigen::MatrixXi map = Eigen::MatrixXi(img.height(), img.width());
+    map.setZero();
+    for( size_t m = 0; m < map.rows(); m++)
+    {
+        for( size_t n = 0; n < map.cols(); n++ )
+        {
+            QRgb color = img.pixel(n,m);
+            if( qRed(color) == 165 && qGreen(color) == 172 && qBlue(color) == 182 ) // Color of the racing track
+                map(m,n) = 1;
+        }
+    }
+    return map;
+}
+
+void GLWidget::initTrack(GLWidget::Track t)
+{
+    switch( t )
+    {
+        case Track1:
+            m_trackImg = QPixmap(":/tracks/track1.png");
+            break;
+
+        case Track2:
+            m_trackImg = QPixmap(":/tracks/track2.png");
+            break;
+    }
+
+    m_map = createMap( m_trackImg );
+    m_evo->killAllSimulations();
+}
+
 
 
 

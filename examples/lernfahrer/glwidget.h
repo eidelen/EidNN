@@ -18,9 +18,19 @@ Q_OBJECT
 public:
     GLWidget(QWidget *parent);
 
+    enum Track
+    {
+        Track1,
+        Track2
+    };
+
 public slots:
     void animate();
     void doNewEpoch();
+
+private:
+    Eigen::MatrixXi createMap(const QPixmap &img) const;
+    void initTrack(Track t);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

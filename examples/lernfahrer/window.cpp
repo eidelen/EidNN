@@ -26,7 +26,7 @@ Window::Window()
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, openGL, &GLWidget::animate);
-    timer->start(40);
+    timer->start(10);
 
     connect(nextEpochBtn, SIGNAL (released()),openGL, SLOT (doNewEpoch()));
 

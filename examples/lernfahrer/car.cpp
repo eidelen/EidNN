@@ -22,7 +22,7 @@ Car::Car()
 
     m_droveDistance = 0.0;
 
-    std::vector<unsigned int> map = {7,16,2};
+    std::vector<unsigned int> map = {7,2};
     m_network = NetworkPtr( new Network(map) );
 
     m_killer.start();
@@ -177,7 +177,7 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
     if( !m_mapSet )
         return to;
 
-    if( m_map( std::ceil(from(1)) , std::ceil(from(0))) == 0 )
+    if( isPositionValid(from) == 0 )
     {
         m_alive = false;
         return from;
@@ -212,42 +212,8 @@ double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &di
 
     bool goOn = true;
 
-    while(goOn)
-    {
+    while(isPositionValid(end))
         end = end + d;
-
-        // check if within map
-        if(end(0) < 0.0)
-        {
-            end(0) = 0.0;
-            goOn = false;
-        }
-
-        if(end(1) < 0.0)
-        {
-            end(1) = 0.0;
-            goOn = false;
-        }
-
-        if(end(0) > m_map.cols()-1)
-        {
-            end(0) = m_map.cols()-1;
-            goOn = false;
-        }
-
-        if(end(1) > m_map.rows()-1)
-        {
-            end(1) = m_map.rows()-1;
-            goOn = false;
-        }
-
-        if( m_map( std::ceil(end(1)) , std::ceil(end(0))) == 0 )
-        {
-            end(0) = std::ceil(end(0));
-            end(1) = std::ceil(end(1));
-            goOn = false;
-        }
-    }
 
     return (end-pos).norm();
 }
@@ -298,6 +264,14 @@ void Car::considerSuicide()
     {
         m_formerDistance = m_droveDistance;
     }
+}
+
+bool Car::isPositionValid(const Eigen::Vector2d &pos) const
+{
+    if(pos(0) < 0.0 ||  pos(0) > m_map.cols()-1 || pos(1) < 0.0 ||  pos(1) > m_map.rows()-1)
+        return false;
+
+    return m_map( std::ceil(pos(1)) , std::ceil(pos(0))) == 1;
 }
 
 

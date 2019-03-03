@@ -34,9 +34,10 @@
 
 
 Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory)
-: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0), m_mutationRate(0.0)
+: m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0), m_mutationRate(0.0), m_stepCounter(0), m_simSpeed(0.0)
 {
     std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
+    m_simSpeedTime = now();
 }
 
 Evolution::~Evolution()
@@ -46,6 +47,7 @@ Evolution::~Evolution()
 
 void Evolution::doStep()
 {
+    m_stepCounter++;
     bool anyLive = false;
     for( auto s: m_simulations )
     {
@@ -60,6 +62,15 @@ void Evolution::doStep()
     {
         m_epochOver = !anyLive;
         m_epochCount++;
+    }
+
+    // update sim speed every 10 steps
+    if( m_stepCounter % 20 == 0 )
+    {
+        std::chrono::milliseconds n = now();
+        m_simSpeed = m_stepCounter / ( (now()-m_simSpeedTime).count() / 1000.0);
+        m_stepCounter = 0;
+        m_simSpeedTime = n;
     }
 }
 
@@ -138,4 +149,16 @@ void Evolution::killAllSimulations()
     for( auto m: m_simulations )
         m->kill();
 }
+
+double Evolution::getSimulationStepsPerSecond() const
+{
+    return m_simSpeed;
+}
+
+std::chrono::milliseconds Evolution::now() const
+{
+    return std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch());
+}
+
 
