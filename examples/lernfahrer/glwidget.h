@@ -21,12 +21,14 @@ public:
     enum Track
     {
         Track1,
-        Track2
+        Track2,
+        Track3
     };
 
 public slots:
     void animate();
     void doNewEpoch();
+    void nextTrack();
 
 private:
     Eigen::MatrixXi createMap(const QPixmap &img) const;
@@ -44,7 +46,8 @@ private:
 
     Evolution* m_evo;
     Eigen::MatrixXi m_map;
-    QTime m_nextGeneration;
+
+    std::atomic_bool m_doSimulation;
 };
 
 #endif //EIDNN_GLWIDGET_H

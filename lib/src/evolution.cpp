@@ -31,6 +31,7 @@
 #include <iostream>
 #include <numeric>
 #include <thread>
+#include <inc/evolution.h>
 
 
 Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory, unsigned int nThreads)
@@ -180,6 +181,11 @@ std::chrono::milliseconds Evolution::now() const
 {
     return std::chrono::duration_cast< std::chrono::milliseconds >(
             std::chrono::system_clock::now().time_since_epoch());
+}
+
+void Evolution::resetFactory(SimFactoryPtr simFactory)
+{
+    m_simFactory = simFactory;
 }
 
 

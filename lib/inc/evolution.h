@@ -115,6 +115,12 @@ public:
      */
     double getSimulationStepsPerSecond() const;
 
+    /**
+     * Set a new factory object.
+     * @param simFactory Factory.
+     */
+    void resetFactory(SimFactoryPtr simFactory);
+
 
 
 private:

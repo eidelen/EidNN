@@ -14,9 +14,14 @@ Window::Window()
     GLWidget *openGL = new GLWidget(this);
 
     QPushButton* nextEpochBtn = new QPushButton("New Epoch");
+    QPushButton* nextTrackBtn = new QPushButton("Next");
+
+    QHBoxLayout* btnLayout = new QHBoxLayout();
+    btnLayout->addWidget(nextEpochBtn);
+    btnLayout->addWidget(nextTrackBtn);
 
     QVBoxLayout* layout = new QVBoxLayout;
-    layout->addWidget(nextEpochBtn);
+    layout->addLayout(btnLayout);
     layout->addWidget(openGL);
 
     setLayout(layout);
@@ -29,5 +34,5 @@ Window::Window()
     timer->start(10);
 
     connect(nextEpochBtn, SIGNAL (released()),openGL, SLOT (doNewEpoch()));
-
+    connect(nextTrackBtn, SIGNAL (released()),openGL, SLOT (nextTrack()));
 }

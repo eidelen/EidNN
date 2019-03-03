@@ -2,6 +2,7 @@
     <qresource>
         <file>tracks/track1.png</file>
         <file>tracks/track2.png</file>
+        <file>tracks/track3.png</file>
         <file>tracks/car.png</file>
     </qresource>
 </RCC>

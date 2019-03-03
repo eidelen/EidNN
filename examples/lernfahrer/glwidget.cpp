@@ -9,18 +9,13 @@
 #include <iostream>
 
 GLWidget::GLWidget(QWidget *parent)
-        : QOpenGLWidget(parent)
+        : QOpenGLWidget(parent), m_evo(nullptr)
 {
     elapsed = 0;
     setFixedSize(1200, 800);
     setAutoFillBackground(false);
 
     initTrack(Track2);
-
-    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
-    m_evo = new Evolution(800,200,f,12);
-
-    m_nextGeneration.start();
 }
 
 void GLWidget::animate()
@@ -32,13 +27,16 @@ void GLWidget::animate()
 void GLWidget::paintEvent(QPaintEvent *event)
 {
     // update simulation
-    if( m_evo->isEpochOver())
+    if( m_doSimulation )
     {
-        m_evo->breed();
-        m_nextGeneration.restart();
+        if (m_evo->isEpochOver())
+        {
+            m_evo->breed();
+        }
+
+        m_evo->doStep();
     }
 
-    m_evo->doStep();
     std::vector<SimulationPtr> simRes = m_evo->getSimulationsOrderedByFitness();
 
     // draw the simulation
@@ -69,10 +67,10 @@ void GLWidget::paintEvent(QPaintEvent *event)
     painter.setFont(font);
     painter.setPen(QColor(39,75,122));
     auto stat = m_evo->getNumberAliveAndDead();
-    painter.drawText(QPoint(900,500), QString{"Alive: %1   Dead: %2"}.arg(stat.first).arg(stat.second));
-    painter.drawText(QPoint(900,530), QString{"Average age: %1"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 ));
-    painter.drawText(QPoint(900,560), QString{"Epoch: %1"}.arg(m_evo->getNumberOfEpochs()));
-    painter.drawText(QPoint(900,590), QString{"FPS: %1"}.arg(m_evo->getSimulationStepsPerSecond(), 0, 'f', 2 ));
+    painter.drawText(QPoint(900,650), QString{"Alive: %1   Dead: %2"}.arg(stat.first).arg(stat.second));
+    painter.drawText(QPoint(900,680), QString{"Average age: %1"}.arg(m_evo->getSimulationsAverageAge(), 0, 'f', 2 ));
+    painter.drawText(QPoint(900,710), QString{"Epoch: %1"}.arg(m_evo->getNumberOfEpochs()));
+    painter.drawText(QPoint(900,740), QString{"FPS: %1"}.arg(m_evo->getSimulationStepsPerSecond(), 0, 'f', 2 ));
 
     painter.end();
 }
@@ -126,6 +124,8 @@ Eigen::MatrixXi GLWidget::createMap(const QPixmap &imgP) const
 
 void GLWidget::initTrack(GLWidget::Track t)
 {
+    m_doSimulation = false;
+
     switch( t )
     {
         case Track1:
@@ -135,11 +135,32 @@ void GLWidget::initTrack(GLWidget::Track t)
         case Track2:
             m_trackImg = QPixmap(":/tracks/track2.png");
             break;
+
+        case Track3:
+            m_trackImg = QPixmap(":/tracks/track3.png");
+            break;
+
     }
 
     m_map = createMap( m_trackImg );
+
+    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
+
+    if( m_evo )
+    {
+        m_evo->killAllSimulations();
+        m_evo->resetFactory(f);
+    }
+    else
+    {
+        m_evo = new Evolution(800, 100, f, 12);
+    }
+
+    m_doSimulation = true;
 }
 
-
-
+void GLWidget::nextTrack()
+{
+    initTrack(Track3);
+}
 

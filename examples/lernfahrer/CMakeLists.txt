@@ -28,7 +28,7 @@ IF(${LERNFAHRER})
         FILE(GLOB_RECURSE  LF_TESTS_SRC       test/*.cpp)
 
         add_executable(runLernfahrerTests ${LF_TESTS_INC} ${LF_TESTS_SRC} car.cpp car.h)
-        target_link_libraries(runLernfahrerTests ${GTEST_LIBRARIES} pthread eidnnlib )
+        target_link_libraries(runLernfahrerTests ${GTEST_LIBRARIES} Qt5::Widgets pthread eidnnlib )
         target_compile_features(runLernfahrerTests PRIVATE cxx_std_17 )
     ENDIF()
 
