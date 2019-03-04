@@ -3,6 +3,6 @@
         <file>tracks/track1.png</file>
         <file>tracks/track2.png</file>
         <file>tracks/track3.png</file>
-        <file>tracks/car.png</file>
+        <file>tracks/track4.png</file>
     </qresource>
 </RCC>

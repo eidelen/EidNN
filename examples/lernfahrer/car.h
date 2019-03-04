@@ -104,8 +104,10 @@ public:
 
     SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate) override;
 
+    void setMap(const Eigen::MatrixXi &map);
+
 private:
-    const Eigen::MatrixXi &m_map;
+    Eigen::MatrixXi m_map;
 
 };
 

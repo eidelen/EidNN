@@ -8,6 +8,7 @@
 #include <QOpenGLWidget>
 #include <QPixmap>
 #include <QTime>
+#include <vector>
 
 class Helper;
 
@@ -18,21 +19,21 @@ Q_OBJECT
 public:
     GLWidget(QWidget *parent);
 
-    enum Track
-    {
-        Track1,
-        Track2,
-        Track3
-    };
-
 public slots:
     void animate();
     void doNewEpoch();
     void nextTrack();
 
 private:
+    struct Track
+    {
+        QString name;
+        QString rscPath;
+    };
+
     Eigen::MatrixXi createMap(const QPixmap &img) const;
-    void initTrack(Track t);
+    void startRace(Track t);
+    void initTracks();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -44,10 +45,11 @@ private:
     QPixmap m_trackImg;
     QPixmap m_carImg;
 
-    Evolution* m_evo;
+    std::shared_ptr<Evolution> m_evo;
     Eigen::MatrixXi m_map;
-
     std::atomic_bool m_doSimulation;
+    std::vector<Track> m_tracks;
+    size_t m_currentTrackIdx;
 };
 
 #endif //EIDNN_GLWIDGET_H

@@ -5,8 +5,6 @@
 #include <QTimer>
 #include <QPaintEvent>
 #include <QRgb>
-#include <QTime>
-#include <iostream>
 
 GLWidget::GLWidget(QWidget *parent)
         : QOpenGLWidget(parent), m_evo(nullptr)
@@ -15,7 +13,9 @@ GLWidget::GLWidget(QWidget *parent)
     setFixedSize(1200, 800);
     setAutoFillBackground(false);
 
-    initTrack(Track2);
+    initTracks();
+    m_currentTrackIdx = 0;
+    startRace(m_tracks.at(m_currentTrackIdx));
 }
 
 void GLWidget::animate()
@@ -30,10 +30,8 @@ void GLWidget::paintEvent(QPaintEvent *event)
     if( m_doSimulation )
     {
         if (m_evo->isEpochOver())
-        {
             m_evo->breed();
-        }
-
+        
         m_evo->doStep();
     }
 
@@ -122,27 +120,11 @@ Eigen::MatrixXi GLWidget::createMap(const QPixmap &imgP) const
     return map;
 }
 
-void GLWidget::initTrack(GLWidget::Track t)
+void GLWidget::startRace(GLWidget::Track t)
 {
     m_doSimulation = false;
-
-    switch( t )
-    {
-        case Track1:
-            m_trackImg = QPixmap(":/tracks/track1.png");
-            break;
-
-        case Track2:
-            m_trackImg = QPixmap(":/tracks/track2.png");
-            break;
-
-        case Track3:
-            m_trackImg = QPixmap(":/tracks/track3.png");
-            break;
-
-    }
-
-    m_map = createMap( m_trackImg );
+    m_trackImg = QPixmap(t.rscPath);
+    m_map = createMap(m_trackImg);
 
     std::shared_ptr<CarFactory> f(new CarFactory(m_map));
 
@@ -153,7 +135,7 @@ void GLWidget::initTrack(GLWidget::Track t)
     }
     else
     {
-        m_evo = new Evolution(800, 100, f, 12);
+        m_evo.reset( new Evolution(800, 100, f, 12) );
     }
 
     m_doSimulation = true;
@@ -161,6 +143,20 @@ void GLWidget::initTrack(GLWidget::Track t)
 
 void GLWidget::nextTrack()
 {
-    initTrack(Track3);
+    m_currentTrackIdx++;
+    if( m_currentTrackIdx >= m_tracks.size() )
+        m_currentTrackIdx = 0;
+
+    startRace(m_tracks.at(m_currentTrackIdx));
+}
+
+void GLWidget::initTracks()
+{
+    Track t2 = {.name = QString("Nabu"), .rscPath = QString(":/tracks/track2.png")};
+    Track t3 = {.name = QString("Tartaros"), .rscPath = QString(":/tracks/track3.png")};
+    Track t4 = {.name = QString("Wald"), .rscPath = QString(":/tracks/track4.png")};
+    m_tracks.push_back(t2);
+    m_tracks.push_back(t3);
+    m_tracks.push_back(t4);
 }
 

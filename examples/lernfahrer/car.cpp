@@ -310,4 +310,9 @@ SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, doub
     return crs;
 }
 
+void CarFactory::setMap(const Eigen::MatrixXi &map)
+{
+    m_map = map;
+}
+
 
