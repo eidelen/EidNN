@@ -23,6 +23,7 @@ public slots:
     void animate();
     void doNewEpoch();
     void nextTrack();
+    void mutationRateChanged(double mutRate);
 
 private:
     struct Track

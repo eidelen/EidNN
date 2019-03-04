@@ -21,7 +21,7 @@ Car::Car()
 
     m_droveDistance = 0.0;
 
-    std::vector<unsigned int> map = {7,2};
+    std::vector<unsigned int> map = {7,14,2};
     m_network = NetworkPtr( new Network(map) );
 
     m_killer.start();
@@ -88,7 +88,7 @@ void Car::update()
 
 
     double newSpeed = std::max(m_speed + animTime*getAcceleration(), 0.0);
-    newSpeed = std::min(newSpeed,400.0);
+    newSpeed = std::min(newSpeed,600.0);
 
     Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
     Eigen::Vector2d oldSpeedVector = m_direction * m_lastSpeed;
@@ -118,7 +118,7 @@ void Car::update()
     //std::cout << nnOut.transpose() << std::endl;
 
 
-    double maxRotationSpeed = 360.0;
+    double maxRotationSpeed = 720.0;
     double maxAcceleration = 100.0;
 
     // scale output from 0 - 1 to -1 to +1
@@ -292,18 +292,15 @@ std::shared_ptr<Simulation> CarFactory::createRandomSimulation()
     car->setPosition(Eigen::Vector2d(400,345) );
     car->setDirection(Eigen::Vector2d(1,0));
 
+    setAllBiasToZero(car->getNetwork());
+
     return car;
 }
 
-SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, double /*mutationRate*/)
+SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, double mutationRate)
 {
-    NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, 0.02);
-
-    // set all bias to zero
-    for( size_t i = 0; i < cr->getNumberOfLayer(); i++ )
-    {
-        cr->getLayer(i)->setBias(0.0);
-    }
+    NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, mutationRate);
+    setAllBiasToZero(cr);
 
     SimulationPtr crs = createRandomSimulation();
     crs->setNetwork(cr);
@@ -313,6 +310,12 @@ SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, doub
 void CarFactory::setMap(const Eigen::MatrixXi &map)
 {
     m_map = map;
+}
+
+void CarFactory::setAllBiasToZero(NetworkPtr net)
+{
+    for( unsigned int i = 0; i < net->getNumberOfLayer(); i++ )
+        net->getLayer(i)->setBias(0.0);
 }
 
 

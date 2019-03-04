@@ -135,7 +135,7 @@ void GLWidget::startRace(GLWidget::Track t)
     }
     else
     {
-        m_evo.reset( new Evolution(800, 100, f, 12) );
+        m_evo.reset( new Evolution(1200, 200, f, 12) );
     }
 
     m_doSimulation = true;
@@ -158,5 +158,11 @@ void GLWidget::initTracks()
     m_tracks.push_back(t2);
     m_tracks.push_back(t3);
     m_tracks.push_back(t4);
+}
+
+void GLWidget::mutationRateChanged(double mutRate)
+{
+    if( m_evo )
+        m_evo->setMutationRate(mutRate);
 }
 

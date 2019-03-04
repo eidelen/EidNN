@@ -47,7 +47,6 @@ NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMeth
     std::uniform_real_distribution<double> mutation(0.0, 1.0);
     std::normal_distribution<double> mutationVal(0.0, 1.0);
 
-
     for( unsigned int i = 0; i < cross->getNumberOfLayer(); i++ )
     {
         auto al = a->getLayer(i);
@@ -102,8 +101,6 @@ NetworkPtr Genetic::crossover(NetworkPtr a, NetworkPtr b, Genetic::CrossoverMeth
                 else
                     crlb(m) = bb(m);
             }
-
-
         }
 
         crl->setBiases(crlb);
