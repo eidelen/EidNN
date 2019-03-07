@@ -135,7 +135,7 @@ void GLWidget::startRace(GLWidget::Track t)
     }
     else
     {
-        m_evo.reset( new Evolution(1200, 200, f, 12) );
+        m_evo.reset( new Evolution(1200, 100, f, 12) );
     }
 
     m_doSimulation = true;

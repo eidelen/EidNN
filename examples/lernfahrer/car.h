@@ -67,6 +67,7 @@ private:
     Eigen::MatrixXd measureDistances() const;
     void considerSuicide();
     bool isPositionValid(const Eigen::Vector2d& pos) const;
+    void navigate();
 
 
 private:
@@ -77,8 +78,6 @@ private:
     double m_rotationSpeed;
     double m_rotationSpeedRad;
     double m_rotationToOriginal;
-
-    double m_lastSpeed;
 
     Eigen::MatrixXi m_map;
     bool m_mapSet;

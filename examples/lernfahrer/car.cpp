@@ -21,7 +21,7 @@ Car::Car()
 
     m_droveDistance = 0.0;
 
-    std::vector<unsigned int> map = {7,14,2};
+    std::vector<unsigned int> map = {8,4,2};
     m_network = NetworkPtr( new Network(map) );
 
     m_killer.start();
@@ -41,7 +41,6 @@ double Car::getSpeed() const
 void Car::setSpeed(double speed)
 {
     m_speed = speed;
-    m_lastSpeed = speed;
 }
 
 const Eigen::Vector2d &Car::getPosition() const
@@ -86,52 +85,23 @@ void Car::update()
     Eigen::Vector2d(1.0,0.0);
     m_rotationToOriginal = computeAngleBetweenVectors(Eigen::Vector2d(1.0,0.0), m_direction);
 
-
+    // adjust speed
     double newSpeed = std::max(m_speed + animTime*getAcceleration(), 0.0);
     newSpeed = std::min(newSpeed,600.0);
+    Eigen::Vector2d effectiveSpeed = m_direction * (newSpeed + m_speed) * 0.5;
 
-    Eigen::Vector2d newSpeedVector = m_direction * newSpeed;
-    Eigen::Vector2d oldSpeedVector = m_direction * m_lastSpeed;
-    Eigen::Vector2d effectiveSpeed = (newSpeedVector + oldSpeedVector) * 0.5;
-
-    Eigen::Vector2d newPosition = getPosition() + animTime * effectiveSpeed;
-
-    newPosition = handleCollision(getPosition(), newPosition);
-
+    // set new position
+    Eigen::Vector2d newPosition = m_position + animTime * effectiveSpeed;
+    newPosition = handleCollision(m_position, newPosition);
+    // adjust drove distance
     m_droveDistance = m_droveDistance + (newPosition - getPosition()).norm();
 
-    setPosition( newPosition );
-    setSpeed( newSpeed );
+    navigate();
 
+    // update
+    m_speed = newSpeed;
+    m_position = newPosition;
 
-    // decide what to do next
-    m_measuredDistances = measureDistances();
-    Eigen::MatrixXd nnInput = m_measuredDistances.col(0);
-
-    // normalize input
-    double maxValInput = nnInput.maxCoeff();
-    nnInput = nnInput * 1.0/maxValInput;
-
-    m_network->feedForward(nnInput);
-    Eigen::MatrixXd nnOut = m_network->getOutputActivation();
-
-    //std::cout << nnOut.transpose() << std::endl;
-
-
-    double maxRotationSpeed = 720.0;
-    double maxAcceleration = 100.0;
-
-    // scale output from 0 - 1 to -1 to +1
-    double speedActivation = (nnOut(0,0) - 0.5) * 2;
-    double rotationActivation = (nnOut(1,0) - 0.5) * 2;
-    setAcceleration(maxAcceleration*speedActivation);
-    setRotationSpeed(maxRotationSpeed*rotationActivation);
-
-    if( m_killer.elapsed() > 1000 )
-    {
-        considerSuicide();
-        m_killer.restart();
-    }
 }
 
 double Car::getFitness()
@@ -272,6 +242,38 @@ bool Car::isPositionValid(const Eigen::Vector2d &pos) const
 
     return m_map( std::ceil(pos(1)) , std::ceil(pos(0))) == 1;
 }
+
+void Car::navigate()
+{
+    // decide what to do next
+    m_measuredDistances = measureDistances();
+    Eigen::MatrixXd nnInput = m_measuredDistances.col(0);
+    nnInput.conservativeResize(m_measuredDistances.rows()+1, 1); // additional input for speed
+    nnInput(nnInput.rows()-1,0) = m_speed;
+
+    // normalize input -> all values are positive -> scale them on a range -1 to +1
+    double maxValInput = nnInput.maxCoeff();
+    nnInput = (nnInput * 2.0/maxValInput).array() - 1.0;
+
+    m_network->feedForward(nnInput);
+    Eigen::MatrixXd nnOut = m_network->getOutputActivation();
+
+    double maxRotationSpeed = 720.0;
+    double maxAcceleration = 100.0;
+
+    // scale output from 0 - 1 to -1 to +1
+    double speedActivation = (nnOut(0,0) - 0.5) * 2;
+    double rotationActivation = (nnOut(1,0) - 0.5) * 2;
+    setAcceleration(maxAcceleration*speedActivation);
+    setRotationSpeed(maxRotationSpeed*rotationActivation);
+
+    if( m_killer.elapsed() > 1000 )
+    {
+        considerSuicide();
+        m_killer.restart();
+    }
+}
+
 
 
 CarFactory::CarFactory(const Eigen::MatrixXi &map) : m_map(map)
