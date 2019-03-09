@@ -36,7 +36,7 @@
 
 Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory, unsigned int nThreads)
 : m_nInitials(nInitial), m_nOffsprings(nNext), m_simFactory(simFactory), m_epochOver(false), m_epochCount(0), m_mutationRate(0.0),
-  m_stepCounter(0), m_simSpeed(0.0), m_nbrThreads(nThreads)
+  m_stepCounter(0), m_simSpeed(0.0), m_nbrThreads(nThreads), m_keepParents(true)
 {
     m_simSpeedTime = now();
     std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
@@ -128,6 +128,13 @@ void Evolution::breed()
 
     std::generate_n(std::back_inserter(m_simulations), m_nOffsprings, [=]()->SimulationPtr { return m_simFactory->createCrossover(a,b,m_mutationRate); });
 
+    // add parents to the next epoch
+    if( m_keepParents )
+    {
+        m_simulations.push_back(a);
+        m_simulations.push_back(b);
+    }
+
     m_epochOver = false;
 }
 
@@ -186,6 +193,16 @@ std::chrono::milliseconds Evolution::now() const
 void Evolution::resetFactory(SimFactoryPtr simFactory)
 {
     m_simFactory = simFactory;
+}
+
+bool Evolution::isKeepParents() const
+{
+    return m_keepParents;
+}
+
+void Evolution::setKeepParents(bool keepParents)
+{
+    m_keepParents = keepParents;
 }
 
 

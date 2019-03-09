@@ -106,6 +106,18 @@ public:
     void setMutationRate(double mutationRate);
 
     /**
+     * Are parents kept for the next epoch.
+     * @return True if parents are kept for next epoch.
+     */
+    bool isKeepParents() const;
+
+    /**
+     * If true, parents are part of the next epoch.
+     * @param keepParents True -> parents are part of next epoch. Otherwise false.
+     */
+    void setKeepParents(bool keepParents);
+
+    /**
      * Kill all simulations.
      */
     void killAllSimulations();
@@ -141,6 +153,7 @@ private:
     std::chrono::milliseconds m_simSpeedTime;
     double m_simSpeed;
     unsigned int m_nbrThreads;
+    bool m_keepParents;
 };
 
 
