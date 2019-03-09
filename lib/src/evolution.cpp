@@ -40,6 +40,7 @@ Evolution::Evolution(size_t nInitial, size_t nNext, SimFactoryPtr simFactory, un
 {
     m_simSpeedTime = now();
     std::generate_n(std::back_inserter(m_simulations), nInitial, [simFactory]()->SimulationPtr { return simFactory->createRandomSimulation(); });
+    m_fittest = m_simulations[0]; // set randomly
 }
 
 Evolution::~Evolution()
@@ -124,6 +125,9 @@ void Evolution::breed()
     SimulationPtr a = ord[0];
     SimulationPtr b = ord[1];
 
+    if(a->getFitness() > m_fittest->getFitness() )
+        m_fittest = a;
+
     m_simulations.clear();
 
     std::generate_n(std::back_inserter(m_simulations), m_nOffsprings, [=]()->SimulationPtr { return m_simFactory->createCrossover(a,b,m_mutationRate); });
@@ -131,8 +135,8 @@ void Evolution::breed()
     // add parents to the next epoch
     if( m_keepParents )
     {
-        m_simulations.push_back(a);
-        m_simulations.push_back(b);
+        m_simulations.push_back(m_simFactory->copy(a));
+        m_simulations.push_back(m_simFactory->copy(b));
     }
 
     m_epochOver = false;

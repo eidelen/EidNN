@@ -125,6 +125,7 @@ public:
 
     virtual SimulationPtr createRandomSimulation();
     virtual SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate );
+    virtual SimulationPtr copy( SimulationPtr a );
 };
 
 

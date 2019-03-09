@@ -128,3 +128,8 @@ SimulationPtr SimulationFactory::createCrossover( SimulationPtr a, SimulationPtr
     return crs;
 }
 
+SimulationPtr SimulationFactory::copy( SimulationPtr a )
+{
+    return std::shared_ptr<Simulation>();
+}
+

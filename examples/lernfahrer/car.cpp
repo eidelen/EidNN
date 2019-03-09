@@ -6,7 +6,8 @@
 #include <iostream>
 #include <Eigen/Geometry>
 
-Car::Car()
+Car::Car(): m_rotationToOriginal(0.0), m_mapSet(false), m_droveDistance(0.0),
+    m_formerDistance(0.0), m_accumulatedRotation(0.0)
 {
     setSpeed( 0.0 );
     setPosition( Eigen::Vector2d(0.0, 0.0));
@@ -14,18 +15,12 @@ Car::Car()
     setDirection(Eigen::Vector2d(1.0, 0.0));
     setRotationSpeed(0.0);
 
-    m_rotationToOriginal = 0.0;
-    m_mapSet = false;
-
     setMeasureAngles( {-80, -55.0, -25.0, 0.0, 25.0, 55.0, 80} );
-
-    m_droveDistance = 0.0;
 
     std::vector<unsigned int> map = {8,4,2};
     m_network = NetworkPtr( new Network(map) );
 
     m_killer.start();
-    m_formerDistance = 0.0;
 }
 
 Car::~Car()
@@ -80,7 +75,8 @@ void Car::update()
     double animTime = getTimeSinceLastUpdate();
 
     // rotate first
-    Eigen::Rotation2D<double> r( m_rotationSpeedRad *animTime );
+    double thisRotation =  m_rotationSpeedRad * animTime;
+    Eigen::Rotation2D<double> r( thisRotation );
     m_direction = r.toRotationMatrix() * m_direction;
     Eigen::Vector2d(1.0,0.0);
     m_rotationToOriginal = computeAngleBetweenVectors(Eigen::Vector2d(1.0,0.0), m_direction);
@@ -93,15 +89,16 @@ void Car::update()
     // set new position
     Eigen::Vector2d newPosition = m_position + animTime * effectiveSpeed;
     newPosition = handleCollision(m_position, newPosition);
-    // adjust drove distance
-    m_droveDistance = m_droveDistance + (newPosition - getPosition()).norm();
+
+    // adjust drove distance and accumulated rotation
+    m_droveDistance += (newPosition - getPosition()).norm();
+    m_accumulatedRotation += std::abs(thisRotation);
 
     navigate();
 
     // update
     m_speed = newSpeed;
     m_position = newPosition;
-
 }
 
 double Car::getFitness()
@@ -233,6 +230,11 @@ void Car::considerSuicide()
     {
         m_formerDistance = m_droveDistance;
     }
+
+    if( m_accumulatedRotation / getAge() > M_PI / 2.0) //90° per seconds average
+    {
+        m_alive = false;
+    }
 }
 
 bool Car::isPositionValid(const Eigen::Vector2d &pos) const
@@ -318,6 +320,13 @@ void CarFactory::setAllBiasToZero(NetworkPtr net)
 {
     for( unsigned int i = 0; i < net->getNumberOfLayer(); i++ )
         net->getLayer(i)->setBias(0.0);
+}
+
+SimulationPtr CarFactory::copy( SimulationPtr a )
+{
+    SimulationPtr crs = createRandomSimulation();
+    crs->setNetwork(a->getNetwork());
+    return crs;
 }
 
 

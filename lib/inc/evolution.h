@@ -154,6 +154,7 @@ private:
     double m_simSpeed;
     unsigned int m_nbrThreads;
     bool m_keepParents;
+    SimulationPtr m_fittest;
 };
 
 

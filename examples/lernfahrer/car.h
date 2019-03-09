@@ -86,6 +86,7 @@ private:
     Eigen::MatrixXd m_measuredDistances;
 
     double m_droveDistance;
+    double m_accumulatedRotation;
 
     QTime m_killer;
     double m_formerDistance;
@@ -102,6 +103,8 @@ public:
     std::shared_ptr<Simulation> createRandomSimulation() override;
 
     SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate) override;
+
+    SimulationPtr copy( SimulationPtr a ) override;
 
     void setMap(const Eigen::MatrixXi &map);
 
