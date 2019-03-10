@@ -4,5 +4,6 @@
         <file>tracks/track2.png</file>
         <file>tracks/track3.png</file>
         <file>tracks/track4.png</file>
+        <file>tracks/track5.png</file>
     </qresource>
 </RCC>

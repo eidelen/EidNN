@@ -14,8 +14,6 @@ GLWidget::GLWidget(QWidget *parent)
     setAutoFillBackground(false);
 
     initTracks();
-    m_currentTrackIdx = 0;
-    startRace(m_tracks.at(m_currentTrackIdx));
 }
 
 void GLWidget::animate()
@@ -43,7 +41,7 @@ void GLWidget::paintEvent(QPaintEvent *event)
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(event->rect(), QBrush(QColor(64, 32, 64)));
-    painter.drawPixmap(0,0,m_trackImg);
+    painter.drawPixmap(0,0,*m_currentTrack->getTrackImg());
 
     for( size_t k = 0; k < simRes.size(); k++ )
     {
@@ -103,39 +101,20 @@ void GLWidget::doNewEpoch()
     m_evo->killAllSimulations();
 }
 
-Eigen::MatrixXi GLWidget::createMap(const QPixmap &imgP) const
-{
-    QImage img = imgP.toImage();
-    Eigen::MatrixXi map = Eigen::MatrixXi(img.height(), img.width());
-    map.setZero();
-    for( size_t m = 0; m < map.rows(); m++)
-    {
-        for( size_t n = 0; n < map.cols(); n++ )
-        {
-            QRgb color = img.pixel(n,m);
-            if( qRed(color) == 165 && qGreen(color) == 172 && qBlue(color) == 182 ) // Color of the racing track
-                map(m,n) = 1;
-        }
-    }
-    return map;
-}
-
-void GLWidget::startRace(GLWidget::Track t)
+void GLWidget::startRace(std::shared_ptr<Track> t)
 {
     m_doSimulation = false;
-    m_trackImg = QPixmap(t.rscPath);
-    m_map = createMap(m_trackImg);
 
-    std::shared_ptr<CarFactory> f(new CarFactory(m_map));
+    m_currentTrack = t;
 
     if( m_evo )
     {
         m_evo->killAllSimulations();
-        m_evo->resetFactory(f);
+        m_evo->resetFactory(t->getFactory());
     }
     else
     {
-        m_evo.reset( new Evolution(1200, 100, f, 12) );
+        m_evo.reset( new Evolution(1200, 100, t->getFactory(), 12) );
     }
 
     m_doSimulation = true;
@@ -152,12 +131,13 @@ void GLWidget::nextTrack()
 
 void GLWidget::initTracks()
 {
-    Track t2 = {.name = QString("Nabu"), .rscPath = QString(":/tracks/track2.png")};
-    Track t3 = {.name = QString("Tartaros"), .rscPath = QString(":/tracks/track3.png")};
-    Track t4 = {.name = QString("Wald"), .rscPath = QString(":/tracks/track4.png")};
-    m_tracks.push_back(t2);
-    m_tracks.push_back(t3);
-    m_tracks.push_back(t4);
+    m_tracks.push_back(std::shared_ptr<Track>(new Track("Nabu", ":/tracks/track2.png")));
+    m_tracks.push_back(std::shared_ptr<Track>(new Track("Tartaros", ":/tracks/track3.png")));
+    m_tracks.push_back(std::shared_ptr<Track>(new Track("Wald", ":/tracks/track4.png")));
+    m_tracks.push_back(std::shared_ptr<Track>(new Track("Strange", ":/tracks/track5.png")));
+
+    m_currentTrackIdx = 0;
+    startRace(m_tracks.at(m_currentTrackIdx));
 }
 
 void GLWidget::mutationRateChanged(double mutRate)

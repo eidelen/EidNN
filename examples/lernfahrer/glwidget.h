@@ -4,9 +4,9 @@
 
 #include "car.h"
 #include "evolution.h"
+#include "track.h"
 
 #include <QOpenGLWidget>
-#include <QPixmap>
 #include <QTime>
 #include <vector>
 
@@ -26,14 +26,7 @@ public slots:
     void mutationRateChanged(double mutRate);
 
 private:
-    struct Track
-    {
-        QString name;
-        QString rscPath;
-    };
-
-    Eigen::MatrixXi createMap(const QPixmap &img) const;
-    void startRace(Track t);
+    void startRace(std::shared_ptr<Track> t);
     void initTracks();
 
 protected:
@@ -43,13 +36,13 @@ protected:
 private:
     int elapsed;
     std::shared_ptr<Car> m_car;
-    QPixmap m_trackImg;
-    QPixmap m_carImg;
+
 
     std::shared_ptr<Evolution> m_evo;
     Eigen::MatrixXi m_map;
     std::atomic_bool m_doSimulation;
-    std::vector<Track> m_tracks;
+    std::vector<std::shared_ptr<Track>> m_tracks;
+    std::shared_ptr<Track> m_currentTrack;
     size_t m_currentTrackIdx;
 };
 
