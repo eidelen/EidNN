@@ -316,6 +316,11 @@ void CarFactory::setMap(const Eigen::MatrixXi &map)
     m_map = map;
 }
 
+Eigen::MatrixXi& CarFactory::getMap()
+{
+    return m_map;
+}
+
 void CarFactory::setAllBiasToZero(NetworkPtr net)
 {
     for( unsigned int i = 0; i < net->getNumberOfLayer(); i++ )

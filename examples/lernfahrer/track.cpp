@@ -47,7 +47,47 @@ Eigen::MatrixXi Track::createMap(QPixmap* imgP) const
     return map;
 }
 
-void Track::animate(QPainter *painter)
+void Track::draw(QPainter *painter, const std::vector<SimulationPtr>& simRes)
 {
+    painter->drawPixmap(0,0,*getTrackImg());
+
+    for( size_t k = 0; k < simRes.size(); k++ )
+    {
+        std::shared_ptr<Car> thisCar = std::dynamic_pointer_cast<Car>( simRes[k] );
+        drawCar(painter, thisCar, Qt::green);
+    }
+
+    // specially mark the two best
+    if( simRes.size() >= 0 )
+        drawCar(painter, std::dynamic_pointer_cast<Car>( simRes[1] ), Qt::yellow);
+
+    if( simRes.size() >= 1 )
+        drawCar(painter, std::dynamic_pointer_cast<Car>( simRes[0] ), Qt::red);
 
 }
+
+void Track::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color)
+{
+    QPointF carPos( car->getPosition()(0,0),car->getPosition()(1,0) );
+    painter->setBrush(QBrush(color));
+
+    if( car->isAlive() )
+    {
+        int carSize = 8;
+        painter->drawEllipse(carPos, carSize, carSize);
+
+        // draw distances
+        Eigen::MatrixXd distances = car->getMeasuredDistances();
+        for (size_t i = 0; i < distances.rows(); i++)
+        {
+            QPointF distEnd(distances(i, 1), distances(i, 2));
+            painter->drawLine(carPos, distEnd);
+        }
+    }
+    else
+    {
+        int carSizeDead = 3;
+        painter->drawEllipse(carPos, carSizeDead, carSizeDead);
+    }
+}
+

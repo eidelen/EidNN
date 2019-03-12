@@ -31,15 +31,11 @@ private:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-    void drawCar(QPainter* painter, std::shared_ptr<Car> car, QColor color);
 
 private:
     int elapsed;
-    std::shared_ptr<Car> m_car;
-
 
     std::shared_ptr<Evolution> m_evo;
-    Eigen::MatrixXi m_map;
     std::atomic_bool m_doSimulation;
     std::vector<std::shared_ptr<Track>> m_tracks;
     std::shared_ptr<Track> m_currentTrack;

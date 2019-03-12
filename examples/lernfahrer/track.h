@@ -22,12 +22,13 @@ public:
     QString getName() const;
     QPixmap* getTrackImg() const;
 
-    virtual void animate(QPainter* painter);
+    virtual void draw(QPainter *painter, const std::vector<SimulationPtr>& simRes);
 
-private:
+protected:
     Eigen::MatrixXi createMap(QPixmap* imgP) const;
+    void drawCar(QPainter* painter, std::shared_ptr<Car> car, QColor color);
 
-private:
+protected:
     QString m_name;
     std::shared_ptr<CarFactory> m_factory;
     QPixmap* m_trackImg;

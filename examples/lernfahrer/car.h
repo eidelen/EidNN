@@ -108,6 +108,8 @@ public:
 
     void setMap(const Eigen::MatrixXi &map);
 
+    Eigen::MatrixXi& getMap();
+
 private:
     void setAllBiasToZero(NetworkPtr net);
     Eigen::MatrixXi m_map;
