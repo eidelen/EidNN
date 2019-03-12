@@ -4,7 +4,7 @@
 
 #include "strange.h"
 
-Strange::Strange(const QString &name, const QString &rscPath) : Track(name, rscPath)
+Strange::Strange(const QString &name, const QString &rscPath) : Track(name, rscPath), m_anim(0.0)
 {
     m_originalMap = createMap(getTrackImg());
 }
@@ -18,12 +18,24 @@ void Strange::draw(QPainter *painter, const std::vector<SimulationPtr > &simRes)
 {
     painter->drawPixmap(0,0,*getTrackImg());
 
-    /*
-    painter->setBrush(QBrush(Qt::blue));
-    painter->drawRect(QRect(200,200,50,200));
 
-    m_factory->getMap().setOnes();
-     */
+    size_t obstStartPosX = 650;
+    size_t obstStartPosY = 350;
+
+    size_t obstaclePos = std::sin(m_anim) * 150.0 + obstStartPosY;
+    m_anim = m_anim + 0.02;
+
+    Eigen::MatrixXi newDynMap = m_trackMap->createAllValidMap();
+
+    for( size_t m = 0; m < 100; m++ )
+        for( size_t n = 0; n < 30; n++ )
+            newDynMap(obstaclePos+m, obstStartPosX+n) = 0;
+
+    m_trackMap->setDynamicMap(newDynMap);
+
+    painter->setBrush(QBrush(Qt::blue));
+    painter->drawRect(QRect(obstStartPosX,obstaclePos,30,100));
+
 
 
     for( size_t k = 0; k < simRes.size(); k++ )

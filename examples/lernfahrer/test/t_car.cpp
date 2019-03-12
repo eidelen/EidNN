@@ -25,6 +25,7 @@
 #include <chrono>
 #include <thread>
 #include "car.h"
+#include "trackmap.h"
 #include "helpers.h"
 
 TEST(Car, Init)
@@ -53,7 +54,10 @@ TEST(Car, MoveConstVelocity)
     c->setPosition(Eigen::Vector2d(0,0));
     Eigen::MatrixXi map(100,100);
     map.fill(1);
-    c->setMap(map);
+
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+
+    c->setMap(tmap);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
     c->doStep();
@@ -121,8 +125,10 @@ TEST(Car, Collision)
     map.fill(1);
     map.col(17).setZero();
 
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+
     auto c = new Car();
-    c->setMap(map);
+    c->setMap(tmap);
     c->setSpeed(100);
     c->setPosition(Eigen::Vector2d(0,0));
     c->setDirection(Eigen::Vector2d(1,0));
@@ -145,8 +151,10 @@ TEST(Car, DistanceToEdge)
     map.fill(1);
     map.col(5).setZero();
 
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+
     auto c = new Car();
-    c->setMap(map);
+    c->setMap(tmap);
     c->setPosition(Eigen::Vector2d(2,2));
 
     ASSERT_NEAR(c->distanceToEdge(Eigen::Vector2d(2,3) , Eigen::Vector2d(1,0)), 3.0, 0.1);
@@ -163,8 +171,10 @@ TEST(Car, DistanceInput)
     map.fill(1);
     map.col(5).setZero();
 
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+
     auto c = new Car();
-    c->setMap(map);
+    c->setMap(tmap);
     c->setPosition(Eigen::Vector2d(2,2));
     c->setMeasureAngles({0,90,-90, 0, 0, 0, 0});
     c->setDirection(Eigen::Vector2d(1,0));
@@ -191,3 +201,17 @@ TEST(Car, DistanceInput)
 
     delete c;
 }
+
+TEST(Car, DistanceMap)
+{
+    Eigen::MatrixXi map(5,5);
+    map.fill(1);
+
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+
+    Eigen::MatrixXi dmap = tmap->computeDistanceMap(map);
+
+
+    std::cout << dmap << std::endl;
+}
+

@@ -17,6 +17,7 @@ public:
 
 private:
     Eigen::MatrixXi m_originalMap;
+    double m_anim;
 };
 
 

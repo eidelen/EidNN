@@ -127,12 +127,12 @@ double Car::computeAngleBetweenVectors(const Eigen::Vector2d &a, const Eigen::Ve
     return std::acos( a.dot(b) / ( a.norm() * b.norm() ) ) / M_PI * 180.0;
 }
 
-const Eigen::MatrixXi& Car::getMap() const
+std::shared_ptr<TrackMap> Car::getMap() const
 {
     return m_map;
 }
 
-void Car::setMap(const Eigen::MatrixXi &map)
+void Car::setMap(std::shared_ptr<TrackMap> map)
 {
     m_map = map;
     m_mapSet = true;
@@ -143,7 +143,7 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
     if( !m_mapSet )
         return to;
 
-    if( isPositionValid(from) == 0 )
+    if( !( m_map->isPositionValid(from) ) )
     {
         m_alive = false;
         return from;
@@ -178,7 +178,7 @@ double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &di
 
     bool goOn = true;
 
-    while(isPositionValid(end))
+    while(m_map->isPositionValid(end))
         end = end + d;
 
     return (end-pos).norm();
@@ -237,14 +237,6 @@ void Car::considerSuicide()
     }
 }
 
-bool Car::isPositionValid(const Eigen::Vector2d &pos) const
-{
-    if(pos(0) < 0.0 ||  pos(0) > m_map.cols()-1 || pos(1) < 0.0 ||  pos(1) > m_map.rows()-1)
-        return false;
-
-    return m_map( std::ceil(pos(1)) , std::ceil(pos(0))) == 1;
-}
-
 void Car::navigate()
 {
     // decide what to do next
@@ -275,63 +267,3 @@ void Car::navigate()
         m_killer.restart();
     }
 }
-
-
-
-CarFactory::CarFactory(const Eigen::MatrixXi &map) : m_map(map)
-{
-
-}
-
-CarFactory::~CarFactory()
-{
-
-}
-
-std::shared_ptr<Simulation> CarFactory::createRandomSimulation()
-{
-    std::shared_ptr<Car> car( new Car( ) );
-
-    car->setMap(m_map);
-    car->setPosition(Eigen::Vector2d(400,345) );
-    car->setDirection(Eigen::Vector2d(1,0));
-
-    setAllBiasToZero(car->getNetwork());
-
-    return car;
-}
-
-SimulationPtr CarFactory::createCrossover(SimulationPtr a, SimulationPtr b, double mutationRate)
-{
-    NetworkPtr cr = Genetic::crossover(a->getNetwork(), b->getNetwork(), Genetic::CrossoverMethod::Uniform, mutationRate);
-    setAllBiasToZero(cr);
-
-    SimulationPtr crs = createRandomSimulation();
-    crs->setNetwork(cr);
-    return crs;
-}
-
-void CarFactory::setMap(const Eigen::MatrixXi &map)
-{
-    m_map = map;
-}
-
-Eigen::MatrixXi& CarFactory::getMap()
-{
-    return m_map;
-}
-
-void CarFactory::setAllBiasToZero(NetworkPtr net)
-{
-    for( unsigned int i = 0; i < net->getNumberOfLayer(); i++ )
-        net->getLayer(i)->setBias(0.0);
-}
-
-SimulationPtr CarFactory::copy( SimulationPtr a )
-{
-    SimulationPtr crs = createRandomSimulation();
-    crs->setNetwork(a->getNetwork());
-    return crs;
-}
-
-

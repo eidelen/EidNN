@@ -3,11 +3,15 @@
 //
 
 #include "track.h"
+#include "trackmap.h"
+#include "carfactory.h"
 
 Track::Track(const QString &name, const QString &rscPath): m_name(name)
 {
     m_trackImg = new QPixmap(rscPath);
-    m_factory.reset(new CarFactory(createMap(m_trackImg)));
+
+    m_trackMap.reset(new TrackMap(createMap(m_trackImg)));
+    m_factory.reset(new CarFactory(m_trackMap));
 }
 
 Track::~Track()

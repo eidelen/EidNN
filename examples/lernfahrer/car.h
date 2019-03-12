@@ -2,6 +2,7 @@
 #define EIDNN_CAR_H
 
 #include "simulation.h"
+#include "trackmap.h"
 
 #include <QTime>
 #include <Eigen/Dense>
@@ -47,9 +48,9 @@ public:
 
     double computeAngleBetweenVectors( const Eigen::Vector2d& a, const Eigen::Vector2d& b ) const;
 
-    const Eigen::MatrixXi &getMap() const;
+    std::shared_ptr<TrackMap> getMap() const;
 
-    void setMap(const Eigen::MatrixXi &map);
+    void setMap(std::shared_ptr<TrackMap> map);
 
     double distanceToEdge(const Eigen::Vector2d& pos, const Eigen::Vector2d& direction) const;
 
@@ -60,13 +61,11 @@ public:
     Eigen::MatrixXd getMeasuredDistances() const;
 
 
-
 private:
     void update() override;
     Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
     Eigen::MatrixXd measureDistances() const;
     void considerSuicide();
-    bool isPositionValid(const Eigen::Vector2d& pos) const;
     void navigate();
 
 
@@ -79,7 +78,7 @@ private:
     double m_rotationSpeedRad;
     double m_rotationToOriginal;
 
-    Eigen::MatrixXi m_map;
+    std::shared_ptr<TrackMap> m_map;
     bool m_mapSet;
 
     std::vector<double> m_measureAngles;
@@ -90,30 +89,6 @@ private:
 
     QTime m_killer;
     double m_formerDistance;
-};
-
-
-class CarFactory: public SimulationFactory
-{
-public:
-    CarFactory(const Eigen::MatrixXi &map);
-
-    ~CarFactory() override;
-
-    std::shared_ptr<Simulation> createRandomSimulation() override;
-
-    SimulationPtr createCrossover( SimulationPtr a, SimulationPtr b, double mutationRate) override;
-
-    SimulationPtr copy( SimulationPtr a ) override;
-
-    void setMap(const Eigen::MatrixXi &map);
-
-    Eigen::MatrixXi& getMap();
-
-private:
-    void setAllBiasToZero(NetworkPtr net);
-    Eigen::MatrixXi m_map;
-
 };
 
 #endif //EIDNN_CAR_H

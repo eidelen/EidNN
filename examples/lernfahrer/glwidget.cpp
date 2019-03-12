@@ -1,6 +1,7 @@
 
 #include "glwidget.h"
 #include "strange.h"
+#include "carfactory.h"
 
 #include <QPainter>
 #include <QTimer>

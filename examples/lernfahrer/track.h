@@ -12,6 +12,9 @@
 #include <QPainter>
 #include <Eigen/Dense>
 
+class CarFactory;
+class TrackMap;
+
 class Track
 {
 public:
@@ -31,6 +34,7 @@ protected:
 protected:
     QString m_name;
     std::shared_ptr<CarFactory> m_factory;
+    std::shared_ptr<TrackMap> m_trackMap;
     QPixmap* m_trackImg;
 };
 
