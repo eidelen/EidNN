@@ -16,6 +16,8 @@ Window::Window()
 
     QPushButton* nextEpochBtn = new QPushButton("New Epoch");
     QPushButton* nextTrackBtn = new QPushButton("Next");
+    QPushButton* saveBtn = new QPushButton("Save");
+    QPushButton* loadBtn = new QPushButton("Load");
     QLabel* mutationRateLabel = new QLabel("Mutation Rate:");
     QDoubleSpinBox* mutationRateSpinBox = new QDoubleSpinBox();
     mutationRateSpinBox->setMinimum(0.0); mutationRateSpinBox->setMaximum(1.0);
@@ -25,6 +27,8 @@ Window::Window()
     QHBoxLayout* btnLayout = new QHBoxLayout();
     btnLayout->addWidget(nextEpochBtn);
     btnLayout->addWidget(nextTrackBtn);
+    btnLayout->addWidget(saveBtn);
+    btnLayout->addWidget(loadBtn);
     btnLayout->addWidget(mutationRateLabel);
     btnLayout->addWidget(mutationRateSpinBox);
 
@@ -43,5 +47,7 @@ Window::Window()
 
     connect(nextEpochBtn, SIGNAL (released()),openGL, SLOT (doNewEpoch()));
     connect(nextTrackBtn, SIGNAL (released()),openGL, SLOT (nextTrack()));
+    connect(saveBtn, SIGNAL (released()),openGL, SLOT (save()));
+    connect(loadBtn, SIGNAL (released()),openGL, SLOT (load()));
     connect(mutationRateSpinBox, SIGNAL(valueChanged(double)), openGL, SLOT( mutationRateChanged(double)));
 }

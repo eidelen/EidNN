@@ -9,7 +9,7 @@
 
 TrackMap::TrackMap(const Eigen::MatrixXi& map): m_dynamicMapSet(false)
 {
-    m_map = computeDistanceMap( map );
+    m_map = map; //computeDistanceMap( map );
 }
 
 TrackMap::~TrackMap()

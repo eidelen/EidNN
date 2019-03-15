@@ -24,6 +24,8 @@ public slots:
     void doNewEpoch();
     void nextTrack();
     void mutationRateChanged(double mutRate);
+    void save();
+    void load();
 
 private:
     void startRace(std::shared_ptr<Track> t);

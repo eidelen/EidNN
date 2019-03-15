@@ -209,4 +209,14 @@ void Evolution::setKeepParents(bool keepParents)
     m_keepParents = keepParents;
 }
 
+void Evolution::save(const std::string &a_path, const std::string &b_path)
+{
+
+}
+
+bool Evolution::load(const std::string &a_path, const std::string &b_path)
+{
+
+}
+
 

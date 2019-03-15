@@ -134,7 +134,20 @@ public:
      */
     void resetFactory(SimFactoryPtr simFactory);
 
+    /**
+     * Safe the evolution -> the two best
+     * @param a_path Path to fittest
+     * @param b_path Path to second fittest
+     */
+    void save(const std::string &a_path, const std::string &b_path);
 
+    /**
+     * Load the evolution -> the two best
+     * @param a_path Path to fittest
+     * @param b_path Path to second fittest
+     * @return True if successful. Otherwise false.
+     */
+    bool load( const std::string& a_path, const std::string& b_path );
 
 private:
     std::chrono::milliseconds now() const;

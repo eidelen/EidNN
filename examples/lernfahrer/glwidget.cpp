@@ -100,7 +100,7 @@ void GLWidget::initTracks()
     m_tracks.push_back(std::shared_ptr<Track>(new Track("Wald", ":/tracks/track4.png")));
     m_tracks.push_back(std::shared_ptr<Track>(new Strange("Strange", ":/tracks/track5.png")));
 
-    m_currentTrackIdx = 3;
+    m_currentTrackIdx = 0;
     startRace(m_tracks.at(m_currentTrackIdx));
 }
 
@@ -108,5 +108,15 @@ void GLWidget::mutationRateChanged(double mutRate)
 {
     if( m_evo )
         m_evo->setMutationRate(mutRate);
+}
+
+void GLWidget::save()
+{
+
+}
+
+void GLWidget::load()
+{
+
 }
 

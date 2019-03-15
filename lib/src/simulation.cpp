@@ -130,6 +130,8 @@ SimulationPtr SimulationFactory::createCrossover( SimulationPtr a, SimulationPtr
 
 SimulationPtr SimulationFactory::copy( SimulationPtr a )
 {
-    return std::shared_ptr<Simulation>();
+    SimulationPtr crs = createRandomSimulation();
+    crs->setNetwork(a->getNetwork());
+    return crs;
 }
 

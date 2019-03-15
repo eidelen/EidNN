@@ -146,3 +146,41 @@ TEST(Evolution, MultiEpochs)
 
     delete e;
 }
+
+TEST(Evolution, SaveAndLoad)
+{
+    std::shared_ptr<OneStepSimFactory> f(new OneStepSimFactory());
+
+    Evolution* e = new Evolution(100,100,f);
+    e->doStep();
+    e->save("a.net", "b.net");
+
+    Evolution* q = new Evolution(100,100,f);
+    q->doStep();
+    q->load("a.net", "b.net");
+
+
+    NetworkPtr e_a = e->getSimulationsOrderedByFitness()[0]->getNetwork();
+    NetworkPtr e_b = e->getSimulationsOrderedByFitness()[1]->getNetwork();
+
+    NetworkPtr q_a = q->getSimulationsOrderedByFitness()[0]->getNetwork();
+    NetworkPtr q_b = q->getSimulationsOrderedByFitness()[1]->getNetwork();
+
+    // check that same activation leads to same output
+    Eigen::MatrixXd input(2,1);// = Eigen::MatrixXd::Random(2, 1);
+    input(0,0) = 0.5;
+    input(1,0) = 0.5;
+
+    e_a->feedForward(input);
+    e_b->feedForward(input);
+    q_a->feedForward(input);
+    q_b->feedForward(input);
+
+    ASSERT_TRUE( ( e_a->getOutputActivation() -  q_a->getOutputActivation() ).isZero(0.001) );
+    ASSERT_TRUE( ( e_b->getOutputActivation() -  q_b->getOutputActivation() ).isZero(0.001) );
+
+
+
+    delete e;
+    delete q;
+}
