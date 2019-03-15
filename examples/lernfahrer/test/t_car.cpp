@@ -211,7 +211,63 @@ TEST(Car, DistanceMap)
 
     Eigen::MatrixXi dmap = tmap->computeDistanceMap(map);
 
-
-    std::cout << dmap << std::endl;
+    ASSERT_EQ(dmap(2,2), 3);
+    ASSERT_EQ(dmap(1,2), 2);
+    ASSERT_EQ(dmap(3,2), 2);
+    ASSERT_EQ(dmap(2,3), 2);
+    ASSERT_EQ(dmap(2,1), 2);
+    ASSERT_EQ(dmap(0,0), 1);
+    ASSERT_EQ(dmap(1,1), 2);
 }
+
+TEST(Car, DistanceMapObst)
+{
+    Eigen::MatrixXi map(5,5);
+    map.fill(1);
+    map(1,1) = 0;
+
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+    Eigen::MatrixXi dmap = tmap->computeDistanceMap(map);
+
+    ASSERT_EQ(dmap(0,0), 1);
+    ASSERT_EQ(dmap(1,1), 0);
+    ASSERT_EQ(dmap(2,2), 1);
+    ASSERT_EQ(dmap(3,3), 2);
+    ASSERT_EQ(dmap(4,4), 1);
+
+    ASSERT_EQ(dmap(2,0), 1);
+    ASSERT_EQ(dmap(2,1), 1);
+    ASSERT_EQ(dmap(2,2), 1);
+    ASSERT_EQ(dmap(2,3), 2);
+    ASSERT_EQ(dmap(2,4), 1);
+}
+
+
+TEST(Car, DistanceMapHeavyComp)
+{
+    // 3.3, 0.7
+
+    Eigen::MatrixXi map(200,200);
+    map.fill(1);
+
+    std::shared_ptr<TrackMap> tmap( new TrackMap(map) );
+    Eigen::MatrixXi dmap = tmap->computeDistanceMap(map);
+
+    for( size_t i = 0; i < 200; i++ )
+    {
+        ASSERT_EQ(dmap(i, 0), 1);
+        ASSERT_EQ(dmap(0, i), 1);
+        ASSERT_EQ(dmap(i, 199), 1);
+        ASSERT_EQ(dmap(199, i), 1);
+    }
+
+    for( size_t t = 0; t < 100; t++ )
+    {
+        ASSERT_EQ(dmap(t,t), t+1);
+        ASSERT_EQ(dmap(199-t, 199-t), t+1);
+        ASSERT_EQ(dmap(100,t), t+1);
+        ASSERT_EQ(dmap(100,199-t), t+1);
+    }
+}
+
 

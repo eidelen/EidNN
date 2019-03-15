@@ -31,7 +31,7 @@ void Strange::draw(QPainter *painter, const std::vector<SimulationPtr > &simRes)
         for( size_t n = 0; n < 30; n++ )
             newDynMap(obstaclePos+m, obstStartPosX+n) = 0;
 
-    m_trackMap->setDynamicMap(newDynMap);
+    //m_trackMap->setDynamicMap(newDynMap);
 
     painter->setBrush(QBrush(Qt::blue));
     painter->drawRect(QRect(obstStartPosX,obstaclePos,30,100));

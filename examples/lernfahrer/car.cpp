@@ -178,8 +178,13 @@ double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &di
 
     bool goOn = true;
 
-    while(m_map->isPositionValid(end))
-        end = end + d;
+    int minDistToEdge = m_map->isPositionValid(end);
+
+    while(minDistToEdge  > 0)
+    {
+        end = end + (d * minDistToEdge);
+        minDistToEdge = m_map->isPositionValid(end);
+    }
 
     return (end-pos).norm();
 }

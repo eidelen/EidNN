@@ -19,15 +19,21 @@ public:
     void setDynamicMap(const Eigen::MatrixXi& map);
     void clearDynamicMap();
 
-    bool isPositionValid(const Eigen::Vector2d &pos) const;
+    int isPositionValid(const Eigen::Vector2d &pos) const;
 
     Eigen::MatrixXi createAllValidMap() const;
 
     Eigen::MatrixXi computeDistanceMap( const Eigen::MatrixXi& map ) const;
 
+
 private:
 
-    bool isPositionValid(const Eigen::MatrixXi& map, const Eigen::Vector2d &pos) const;
+    int isPositionValid(const Eigen::MatrixXi& map, const Eigen::Vector2d &pos) const;
+
+    int mapPositionValue(size_t m, size_t n, const Eigen::MatrixXi& map) const;
+
+    void getKnownSuroundingMapDistances( size_t m, size_t n, const Eigen::MatrixXi& map,  int& min, int& max ) const;
+
 
     Eigen::MatrixXi m_map;
     Eigen::MatrixXi m_dynamicMap;
