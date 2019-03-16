@@ -112,11 +112,11 @@ void GLWidget::mutationRateChanged(double mutRate)
 
 void GLWidget::save()
 {
-
+    m_evo->save("a.net", "b.net");
 }
 
 void GLWidget::load()
 {
-
+    m_evo->load("a.net", "b.net");
 }
 

@@ -59,7 +59,7 @@ protected:
 
     void update() override
     {
-        Eigen::MatrixXd mat(2,1);// = Eigen::MatrixXd::Random(2, 1);
+        Eigen::MatrixXd mat(2,1);
         mat(0,0) = 0.2;
         mat(1,0) = 0.4;
         m_network->feedForward(mat);
@@ -156,9 +156,8 @@ TEST(Evolution, SaveAndLoad)
     e->save("a.net", "b.net");
 
     Evolution* q = new Evolution(100,100,f);
-    q->doStep();
     q->load("a.net", "b.net");
-
+    q->doStep();
 
     NetworkPtr e_a = e->getSimulationsOrderedByFitness()[0]->getNetwork();
     NetworkPtr e_b = e->getSimulationsOrderedByFitness()[1]->getNetwork();
@@ -167,7 +166,7 @@ TEST(Evolution, SaveAndLoad)
     NetworkPtr q_b = q->getSimulationsOrderedByFitness()[1]->getNetwork();
 
     // check that same activation leads to same output
-    Eigen::MatrixXd input(2,1);// = Eigen::MatrixXd::Random(2, 1);
+    Eigen::MatrixXd input(2,1);
     input(0,0) = 0.5;
     input(1,0) = 0.5;
 
@@ -176,10 +175,9 @@ TEST(Evolution, SaveAndLoad)
     q_a->feedForward(input);
     q_b->feedForward(input);
 
+    // check that saved and loaded networks generate the same output
     ASSERT_TRUE( ( e_a->getOutputActivation() -  q_a->getOutputActivation() ).isZero(0.001) );
     ASSERT_TRUE( ( e_b->getOutputActivation() -  q_b->getOutputActivation() ).isZero(0.001) );
-
-
 
     delete e;
     delete q;

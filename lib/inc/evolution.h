@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <vector>
+#include <mutex>
 
 /**
  * This class runs simulations and evolutions, and keeps track of the
@@ -139,7 +140,7 @@ public:
      * @param a_path Path to fittest
      * @param b_path Path to second fittest
      */
-    void save(const std::string &a_path, const std::string &b_path);
+    bool save(const std::string &a_path, const std::string &b_path);
 
     /**
      * Load the evolution -> the two best
@@ -168,6 +169,7 @@ private:
     unsigned int m_nbrThreads;
     bool m_keepParents;
     SimulationPtr m_fittest;
+    std::mutex m_mutex;
 };
 
 

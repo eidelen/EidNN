@@ -65,6 +65,8 @@ void Evolution::doStep()
 {
     m_stepCounter++;
 
+    std::lock_guard<std::mutex> guard(m_mutex);
+
     std::atomic_bool anyAlive = false;
     std::vector<std::thread> thv;
     size_t samplesPerThread = m_simulations.size() / m_nbrThreads;
@@ -113,6 +115,8 @@ bool Evolution::isEpochOver()
 
 std::vector<SimulationPtr > Evolution::getSimulationsOrderedByFitness()
 {
+    std::lock_guard<std::mutex> guard(m_mutex);
+
     std::sort( m_simulations.begin(), m_simulations.end(), [](SimulationPtr a, SimulationPtr b) -> bool {
         return a->getFitness() > b->getFitness();
     } );
@@ -127,6 +131,9 @@ void Evolution::breed()
 
     if(a->getFitness() > m_fittest->getFitness() )
         m_fittest = a;
+
+
+    std::lock_guard<std::mutex> guard(m_mutex);
 
     m_simulations.clear();
 
@@ -179,6 +186,7 @@ double Evolution::getSimulationsAverageAge() const
 
 void Evolution::killAllSimulations()
 {
+    std::lock_guard<std::mutex> guard(m_mutex);
     for( auto m: m_simulations )
         m->kill();
 }
@@ -209,14 +217,57 @@ void Evolution::setKeepParents(bool keepParents)
     m_keepParents = keepParents;
 }
 
-void Evolution::save(const std::string &a_path, const std::string &b_path)
+bool Evolution::save(const std::string &a_path, const std::string &b_path)
 {
+    // get the two fittest
+    std::vector<SimulationPtr> ord = getSimulationsOrderedByFitness();
 
+    std::lock_guard<std::mutex> guard(m_mutex);
+
+    if( ord.size() < 2 )
+    {
+        std::cout << "No two fittest" << std::endl;
+        return false;
+    }
+
+    SimulationPtr a = ord[0];
+    SimulationPtr b = ord[1];
+
+    if( !a->getNetwork()->save(a_path) )
+        return false;
+
+    if( !b->getNetwork()->save(b_path) )
+        return false;
+
+    return true;
 }
 
 bool Evolution::load(const std::string &a_path, const std::string &b_path)
 {
+    killAllSimulations();
 
+    std::lock_guard<std::mutex> guard(m_mutex);
+
+    NetworkPtr aNet( Network::load( a_path ));
+    NetworkPtr bNet(Network::load( b_path ));
+
+    if( aNet.get() == nullptr || bNet.get() == nullptr )
+    {
+        std::cout << "Could not load network" << std::endl;
+        return false;
+    }
+
+    SimulationPtr a = m_simFactory->createRandomSimulation();
+    a->setNetwork(aNet);
+
+    SimulationPtr b = m_simFactory->createRandomSimulation();
+    b->setNetwork(bNet);
+
+    m_simulations.clear();
+    m_simulations.push_back(a);
+    m_simulations.push_back(b);
+
+    return true;
 }
 
 
