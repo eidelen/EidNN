@@ -29,7 +29,9 @@ public:
 
 protected:
     Eigen::MatrixXi createMap(QPixmap* imgP) const;
+    void drawMap(QPainter* painter);
     void drawCar(QPainter* painter, std::shared_ptr<Car> car, QColor color);
+    void drawAllCars(QPainter *painter, const std::vector<SimulationPtr>& simRes);
 
 protected:
     QString m_name;

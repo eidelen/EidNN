@@ -53,8 +53,17 @@ Eigen::MatrixXi Track::createMap(QPixmap* imgP) const
 
 void Track::draw(QPainter *painter, const std::vector<SimulationPtr>& simRes)
 {
-    painter->drawPixmap(0,0,*getTrackImg());
+    drawMap(painter);
+    drawAllCars(painter, simRes);
+}
 
+void Track::drawMap(QPainter *painter)
+{
+    painter->drawPixmap(0,0,*getTrackImg());
+}
+
+void Track::drawAllCars(QPainter *painter, const std::vector<SimulationPtr > &simRes)
+{
     for( size_t k = 0; k < simRes.size(); k++ )
     {
         std::shared_ptr<Car> thisCar = std::dynamic_pointer_cast<Car>( simRes[k] );
@@ -67,7 +76,6 @@ void Track::draw(QPainter *painter, const std::vector<SimulationPtr>& simRes)
 
     if( simRes.size() >= 1 )
         drawCar(painter, std::dynamic_pointer_cast<Car>( simRes[0] ), Qt::red);
-
 }
 
 void Track::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color)
