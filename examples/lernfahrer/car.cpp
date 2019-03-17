@@ -227,7 +227,7 @@ Eigen::MatrixXd Car::getMeasuredDistances() const
 
 void Car::considerSuicide()
 {
-    if(( getAge() > 1.0 && m_droveDistance < 3.0) || m_droveDistance < m_formerDistance * 1.02 )
+    if(( getAge() > 1.0 && m_droveDistance < 3.0) || m_droveDistance < m_formerDistance * 1.01 )
     {
         m_alive = false;
     }
