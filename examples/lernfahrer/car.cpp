@@ -15,7 +15,7 @@ Car::Car(): m_rotationToOriginal(0.0), m_mapSet(false), m_droveDistance(0.0),
     setDirection(Eigen::Vector2d(1.0, 0.0));
     setRotationSpeed(0.0);
 
-    setMeasureAngles( {-80, -55.0, -25.0, 0.0, 25.0, 55.0, 80} );
+    setMeasureAngles( {-80, -50.0, -15.0, 0.0, 15.0, 50.0, 80} );
 
     std::vector<unsigned int> map = {8,4,2};
     m_network = NetworkPtr( new Network(map) );

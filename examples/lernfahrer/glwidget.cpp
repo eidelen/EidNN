@@ -1,6 +1,7 @@
 
 #include "glwidget.h"
 #include "strange.h"
+#include "wald.h"
 #include "carfactory.h"
 
 #include <QPainter>
@@ -113,7 +114,7 @@ void GLWidget::initTracks()
 {
     m_tracks.push_back(std::shared_ptr<Track>(new Track("Nabu", ":/tracks/track2.png")));
     m_tracks.push_back(std::shared_ptr<Track>(new Track("Tartaros", ":/tracks/track3.png")));
-    m_tracks.push_back(std::shared_ptr<Track>(new Track("Wald", ":/tracks/track4.png")));
+    m_tracks.push_back(std::shared_ptr<Track>(new Wald("Wald", ":/tracks/track4.png")));
     m_tracks.push_back(std::shared_ptr<Track>(new Strange("Strange", ":/tracks/track5.png")));
 
     m_currentTrackIdx = 0;

@@ -89,11 +89,14 @@ void Track::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color)
         painter->drawEllipse(carPos, carSize, carSize);
 
         // draw distances
-        Eigen::MatrixXd distances = car->getMeasuredDistances();
-        for (size_t i = 0; i < distances.rows(); i++)
+        if( true )
         {
-            QPointF distEnd(distances(i, 1), distances(i, 2));
-            painter->drawLine(carPos, distEnd);
+            Eigen::MatrixXd distances = car->getMeasuredDistances();
+            for (size_t i = 0; i < distances.rows(); i++)
+            {
+                QPointF distEnd(distances(i, 1), distances(i, 2));
+                painter->drawLine(carPos, distEnd);
+            }
         }
     }
     else
