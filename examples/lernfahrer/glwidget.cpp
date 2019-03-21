@@ -95,7 +95,7 @@ void GLWidget::startRace(std::shared_ptr<Track> t)
     }
     else
     {
-        m_evo.reset( new Evolution(1200, 100, t->getFactory(), 12) );
+        m_evo.reset( new Evolution(1200, 100, t->getFactory(), 8) );
     }
 
     m_doSimulation = true;
@@ -117,7 +117,7 @@ void GLWidget::initTracks()
     m_tracks.push_back(std::shared_ptr<Track>(new Wald("Wald", ":/tracks/track4.png")));
     m_tracks.push_back(std::shared_ptr<Track>(new Strange("Strange", ":/tracks/track5.png")));
 
-    m_currentTrackIdx = 0;
+    m_currentTrackIdx = 1;
     startRace(m_tracks.at(m_currentTrackIdx));
 }
 

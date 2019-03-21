@@ -64,6 +64,7 @@ public:
 private:
     void update() override;
     Eigen::Vector2d handleCollision(const Eigen::Vector2d& from, const Eigen::Vector2d& to);
+    void handlePostMoveCollision();
     Eigen::MatrixXd measureDistances() const;
     void considerSuicide();
     void navigate();
@@ -89,6 +90,8 @@ private:
 
     QTime m_killer;
     double m_formerDistance;
+
+    double m_carSize;
 };
 
 #endif //EIDNN_CAR_H

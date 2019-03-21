@@ -7,7 +7,7 @@
 #include <Eigen/Geometry>
 
 Car::Car(): m_rotationToOriginal(0.0), m_mapSet(false), m_droveDistance(0.0),
-    m_formerDistance(0.0), m_accumulatedRotation(0.0)
+    m_formerDistance(0.0), m_accumulatedRotation(0.0), m_carSize{4}
 {
     setSpeed( 0.0 );
     setPosition( Eigen::Vector2d(0.0, 0.0));
@@ -94,6 +94,8 @@ void Car::update()
     m_droveDistance += (newPosition - getPosition()).norm();
     m_accumulatedRotation += std::abs(thisRotation);
 
+    // important: measure distances before navigate and post move collision
+    m_measuredDistances = measureDistances();
     navigate();
 
     // update
@@ -159,13 +161,25 @@ Eigen::Vector2d Car::handleCollision(const Eigen::Vector2d& from, const Eigen::V
 
     double tillEdge = distanceToEdge(from,du);
 
-    if( tillEdge < l ) // collision
+    if( tillEdge < l + m_carSize ) // collision
     {
         m_alive = false;
         return from;
     }
 
     return to;
+}
+
+void Car::handlePostMoveCollision()
+{
+    for(size_t k = 0; k < m_measuredDistances.rows(); k++)
+    {
+        if( m_measuredDistances(k,0) < m_carSize )
+        {
+            this->kill();
+            return;
+        }
+    }
 }
 
 double Car::distanceToEdge(const Eigen::Vector2d &pos, const Eigen::Vector2d &direction) const
@@ -245,7 +259,6 @@ void Car::considerSuicide()
 void Car::navigate()
 {
     // decide what to do next
-    m_measuredDistances = measureDistances();
     Eigen::MatrixXd nnInput = m_measuredDistances.col(0);
     nnInput.conservativeResize(m_measuredDistances.rows()+1, 1); // additional input for speed
     nnInput(nnInput.rows()-1,0) = m_speed;

@@ -32,6 +32,7 @@ protected:
     void drawMap(QPainter* painter);
     void drawCar(QPainter* painter, std::shared_ptr<Car> car, QColor color);
     void drawAllCars(QPainter *painter, const std::vector<SimulationPtr>& simRes);
+    void addDynamicSquare(QPainter *painter, Eigen::MatrixXi &dynMap, size_t px, size_t py, size_t width, size_t height);
 
 protected:
     QString m_name;

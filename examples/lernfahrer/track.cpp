@@ -106,3 +106,13 @@ void Track::drawCar(QPainter *painter, std::shared_ptr<Car> car, QColor color)
     }
 }
 
+void Track::addDynamicSquare(QPainter *painter, Eigen::MatrixXi &dynMap, size_t px, size_t py, size_t width, size_t height)
+{
+    for( size_t m = 0; m < height; m++ )
+        for( size_t n = 0; n < width; n++ )
+            dynMap(py+m, px+n) = 0;
+
+    painter->setBrush(QBrush(Qt::blue));
+    painter->drawRect(QRect(px,py,width,height));
+}
+

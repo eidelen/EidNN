@@ -12,7 +12,6 @@ class Wald: public Track
 public:
     Wald(const QString &name, const QString &rscPath);
     virtual ~Wald();
-
     void draw(QPainter *painter, const std::vector<SimulationPtr > &simRes) override;
 
 private:
