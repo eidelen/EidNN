@@ -5,7 +5,12 @@ This project is about implementation-from-scratch fun and becoming familiar with
 
 EidNN is written in C++11 and uses Eigen3 for vector / matrix arithmetic. Tests are written with Google's gtest. CMake is used as build environment.
 
-# Example
+# Examples
+
+Genetic algorithm - Neural networks controlling little creatures
+
+[![Genetic algorithm video](http://img.youtube.com/vi/7eZU7FZ8obs/0.jpg)](http://www.youtube.com/watch?v=7eZU7FZ8obs "Genetic algorithm powered racing")
+
 Classification of handwritten digits - MNIST database.
 
 <p align="center"><img alt="mnistExample" src="http://eidelen.diffuse.ch/mnistEx.png" width="90%"></p>
