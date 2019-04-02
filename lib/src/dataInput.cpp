@@ -255,12 +255,12 @@ DataInput::DataInputValidation DataInput::validateData() const
 {
     DataInputValidation ret;
 
-    std::vector<const std::vector<DataElement>> allDataSets = {m_test, m_training};
+    std::vector<std::vector<DataElement>> allDataSets = {m_test, m_training};
 
     size_t inputSize(0);
     size_t outputSize(0);
     bool sizeSet = false;
-    for( const std::vector<DataElement> set : allDataSets )
+    for(const std::vector<DataElement> set : allDataSets )
     {
         for( const DataElement& d : set )
         {
