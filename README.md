@@ -1,3 +1,5 @@
+[![Travis-ci Build Status](https://travis-ci.org/eidelen/EidNN.svg?branch=master)](https://travis-ci.org/eidelen/EidNN)
+
 # EidNN
 Neural Network C++ implementation.
 
