@@ -15,7 +15,7 @@ Genetic algorithm - Neural networks controlling little creatures
 
 Classification of handwritten digits - MNIST database.
 
-<p align="center"><img alt="mnistExample" src="http://eidelen.diffuse.ch/mnistEx.png" width="90%"></p>
+<p align="center"><img alt="mnistExample" src="docs/img/mnistEx.png" width="90%"></p>
 
 # Resources
 - Neural Networks tutorial: http://neuralnetworksanddeeplearning.com/
